@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.SessionMapper">
+    <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.Session">
+        <id column="session_id" jdbcType="BIGINT" property="sessionId"/>
+        <result column="status" jdbcType="BIT" property="status"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime"/>
+        <result column="last_login_IP" jdbcType="VARCHAR" property="lastLoginIp"/>
+        <result column="token_id" jdbcType="BIGINT" property="tokenId"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        session_id, status, user_id, last_login_time, last_login_IP, token_id
+    </sql>
+    <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.SessionExample"
+            resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from session
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from session
+        where session_id = #{sessionId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from session
+        where session_id = #{sessionId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.SessionExample">
+        delete from session
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.Session">
+        insert into session (session_id, status, user_id,
+                             last_login_time, last_login_IP, token_id)
+        values (#{sessionId,jdbcType=BIGINT}, #{status,jdbcType=BIT}, #{userId,jdbcType=INTEGER},
+                #{lastLoginTime,jdbcType=TIMESTAMP}, #{lastLoginIp,jdbcType=VARCHAR}, #{tokenId,jdbcType=BIGINT})
+    </insert>
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Session" useGeneratedKeys="true"
+            keyProperty="sessionId">
+        insert into session
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sessionId != null">
+                session_id,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="lastLoginTime != null">
+                last_login_time,
+            </if>
+            <if test="lastLoginIp != null">
+                last_login_IP,
+            </if>
+            <if test="tokenId != null">
+                token_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sessionId != null">
+                #{sessionId,jdbcType=BIGINT},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=BIT},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="lastLoginTime != null">
+                #{lastLoginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lastLoginIp != null">
+                #{lastLoginIp,jdbcType=VARCHAR},
+            </if>
+            <if test="tokenId != null">
+                #{tokenId,jdbcType=BIGINT},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.SessionExample"
+            resultType="java.lang.Long">
+        select count(*) from session
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update session
+        <set>
+            <if test="row.sessionId != null">
+                session_id = #{row.sessionId,jdbcType=BIGINT},
+            </if>
+            <if test="row.status != null">
+                status = #{row.status,jdbcType=BIT},
+            </if>
+            <if test="row.userId != null">
+                user_id = #{row.userId,jdbcType=INTEGER},
+            </if>
+            <if test="row.lastLoginTime != null">
+                last_login_time = #{row.lastLoginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.lastLoginIp != null">
+                last_login_IP = #{row.lastLoginIp,jdbcType=VARCHAR},
+            </if>
+            <if test="row.tokenId != null">
+                token_id = #{row.tokenId,jdbcType=BIGINT},
+            </if>
+        </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update session
+        set session_id = #{row.sessionId,jdbcType=BIGINT},
+        status = #{row.status,jdbcType=BIT},
+        user_id = #{row.userId,jdbcType=INTEGER},
+        last_login_time = #{row.lastLoginTime,jdbcType=TIMESTAMP},
+        last_login_IP = #{row.lastLoginIp,jdbcType=VARCHAR},
+        token_id = #{row.tokenId,jdbcType=BIGINT}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.Session">
+        update session
+        <set>
+            <if test="status != null">
+                status = #{status,jdbcType=BIT},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="lastLoginTime != null">
+                last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lastLoginIp != null">
+                last_login_IP = #{lastLoginIp,jdbcType=VARCHAR},
+            </if>
+            <if test="tokenId != null">
+                token_id = #{tokenId,jdbcType=BIGINT},
+            </if>
+        </set>
+        where session_id = #{sessionId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.Session">
+        update session
+        set status          = #{status,jdbcType=BIT},
+            user_id         = #{userId,jdbcType=INTEGER},
+            last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
+            last_login_IP   = #{lastLoginIp,jdbcType=VARCHAR},
+            token_id        = #{tokenId,jdbcType=BIGINT}
+        where session_id = #{sessionId,jdbcType=BIGINT}
+    </update>
+    <update id="userClockIn">
+        UPDATE users
+            LEFT JOIN `session` ON `session`.user_id = users.user_id
+        set users.Coin=users.Coin + #{checkInScore}
+        where `session`.`status` = 'offline'
+          and users.user_id = #{UserId}
+    </update>
+    <update id="elbowingUser">
+        update session
+        set status=0
+        where user_id = #{UserId}
+          and status = 1;
+    </update>
+    <update id="helicopterAirCrash">
+        update session
+        set status=0
+        where status = 1
+    </update>
+    <select id="getSessionByUser" resultType="com.huaji.galgamebyhuaji.entity.Session">
+        select *
+        from session
+        where user_id=#{userId}
+        <if test="ip != null">
+            and last_login_IP = #{ip}
+        </if>
+    </select>
+    <update id="exitLogin">
+        update session
+        set status = 0
+        where user_id = #{usersId}
+    </update>
+</mapper>

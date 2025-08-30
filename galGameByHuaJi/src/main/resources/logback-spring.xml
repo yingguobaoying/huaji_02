@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 全局编码设置 -->
+    <property name="LOG_FILE_PATH" value="./logs"/>
+    <property name="ENCODING" value="UTF-8"/>
+
+    <!-- 定义日志输出格式 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>${ENCODING}</charset>
+        </encoder>
+    </appender>
+
+    <appender name="errorFile" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_FILE_PATH}/error.txt</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>${ENCODING}</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="debugFile" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_FILE_PATH}/updateAndDel.txt</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>${ENCODING}</charset>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- 日志级别配置 -->
+        <root level="DEBUG">
+            <appender-ref ref="console"/>
+            <appender-ref ref="errorFile"/>
+            <appender-ref ref="debugFile"/>
+        </root>
+<!--    <root level="TRACE">-->
+<!--        <appender-ref ref="console"/>-->
+<!--        <appender-ref ref="errorFile"/>-->
+<!--        <appender-ref ref="debugFile"/>-->
+<!--    </root>-->
+
+</configuration>

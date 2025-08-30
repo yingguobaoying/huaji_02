@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.LinksMapper">
+    <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.Links">
+        <id column="link_id" jdbcType="BIGINT" property="linkId"/>
+        <result column="link_up_user" jdbcType="INTEGER" property="linkUpUser"/>
+        <result column="link_r" jdbcType="INTEGER" property="linkR"/>
+        <result column="link_state" jdbcType="CHAR" property="linkState"/>
+        <result column="links_public" jdbcType="CHAR" property="linksPublic"/>
+        <result column="up_time" jdbcType="TIMESTAMP" property="upTime"/>
+        <result column="link_pointer" jdbcType="VARCHAR" property="linkPointer"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.huaji.galgamebyhuaji.entity.LinksWithBLOBs">
+        <result column="link" jdbcType="LONGVARCHAR" property="link"/>
+        <result column="notes" jdbcType="LONGVARCHAR" property="notes"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        link_id, link_up_user, link_r, link_state, links_public, up_time, link_pointer
+    </sql>
+    <sql id="Blob_Column_List">
+        link, notes
+    </sql>
+    <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.LinksExample"
+            resultMap="ResultMapWithBLOBs">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from links
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.LinksExample" resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from links
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from links
+        where link_id = #{linkId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from links
+        where link_id = #{linkId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.LinksExample">
+        delete from links
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.LinksWithBLOBs">
+        insert into links (link_id, link_up_user, link_r,
+                           link_state, links_public, up_time,
+                           link_pointer, link, notes)
+        values (#{linkId,jdbcType=BIGINT}, #{linkUpUser,jdbcType=INTEGER}, #{linkR,jdbcType=INTEGER},
+                #{linkState,jdbcType=CHAR}, #{linksPublic,jdbcType=CHAR}, #{upTime,jdbcType=TIMESTAMP},
+                #{linkPointer,jdbcType=VARCHAR}, #{link,jdbcType=LONGVARCHAR}, #{notes,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.LinksWithBLOBs">
+        insert into links
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="linkId != null">
+                link_id,
+            </if>
+            <if test="linkUpUser != null">
+                link_up_user,
+            </if>
+            <if test="linkR != null">
+                link_r,
+            </if>
+            <if test="linkState != null">
+                link_state,
+            </if>
+            <if test="linksPublic != null">
+                links_public,
+            </if>
+            <if test="upTime != null">
+                up_time,
+            </if>
+            <if test="linkPointer != null">
+                link_pointer,
+            </if>
+            <if test="link != null">
+                link,
+            </if>
+            <if test="notes != null">
+                notes,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="linkId != null">
+                #{linkId,jdbcType=BIGINT},
+            </if>
+            <if test="linkUpUser != null">
+                #{linkUpUser,jdbcType=INTEGER},
+            </if>
+            <if test="linkR != null">
+                #{linkR,jdbcType=INTEGER},
+            </if>
+            <if test="linkState != null">
+                #{linkState,jdbcType=CHAR},
+            </if>
+            <if test="linksPublic != null">
+                #{linksPublic,jdbcType=CHAR},
+            </if>
+            <if test="upTime != null">
+                #{upTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="linkPointer != null">
+                #{linkPointer,jdbcType=VARCHAR},
+            </if>
+            <if test="link != null">
+                #{link,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="notes != null">
+                #{notes,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.LinksExample"
+            resultType="java.lang.Long">
+        select count(*) from links
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update links
+        <set>
+            <if test="row.linkId != null">
+                link_id = #{row.linkId,jdbcType=BIGINT},
+            </if>
+            <if test="row.linkUpUser != null">
+                link_up_user = #{row.linkUpUser,jdbcType=INTEGER},
+            </if>
+            <if test="row.linkR != null">
+                link_r = #{row.linkR,jdbcType=INTEGER},
+            </if>
+            <if test="row.linkState != null">
+                link_state = #{row.linkState,jdbcType=CHAR},
+            </if>
+            <if test="row.linksPublic != null">
+                links_public = #{row.linksPublic,jdbcType=CHAR},
+            </if>
+            <if test="row.upTime != null">
+                up_time = #{row.upTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.linkPointer != null">
+                link_pointer = #{row.linkPointer,jdbcType=VARCHAR},
+            </if>
+            <if test="row.link != null">
+                link = #{row.link,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="row.notes != null">
+                notes = #{row.notes,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExampleWithBLOBs" parameterType="map">
+        update links
+        set link_id = #{row.linkId,jdbcType=BIGINT},
+        link_up_user = #{row.linkUpUser,jdbcType=INTEGER},
+        link_r = #{row.linkR,jdbcType=INTEGER},
+        link_state = #{row.linkState,jdbcType=CHAR},
+        links_public = #{row.linksPublic,jdbcType=CHAR},
+        up_time = #{row.upTime,jdbcType=TIMESTAMP},
+        link_pointer = #{row.linkPointer,jdbcType=VARCHAR},
+        link = #{row.link,jdbcType=LONGVARCHAR},
+        notes = #{row.notes,jdbcType=LONGVARCHAR}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update links
+        set link_id = #{row.linkId,jdbcType=BIGINT},
+        link_up_user = #{row.linkUpUser,jdbcType=INTEGER},
+        link_r = #{row.linkR,jdbcType=INTEGER},
+        link_state = #{row.linkState,jdbcType=CHAR},
+        links_public = #{row.linksPublic,jdbcType=CHAR},
+        up_time = #{row.upTime,jdbcType=TIMESTAMP},
+        link_pointer = #{row.linkPointer,jdbcType=VARCHAR}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.LinksWithBLOBs">
+        update links
+        <set>
+            <if test="linkUpUser != null">
+                link_up_user = #{linkUpUser,jdbcType=INTEGER},
+            </if>
+            <if test="linkR != null">
+                link_r = #{linkR,jdbcType=INTEGER},
+            </if>
+            <if test="linkState != null">
+                link_state = #{linkState,jdbcType=CHAR},
+            </if>
+            <if test="linksPublic != null">
+                links_public = #{linksPublic,jdbcType=CHAR},
+            </if>
+            <if test="upTime != null">
+                up_time = #{upTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="linkPointer != null">
+                link_pointer = #{linkPointer,jdbcType=VARCHAR},
+            </if>
+            <if test="link != null">
+                link = #{link,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="notes != null">
+                notes = #{notes,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where link_id = #{linkId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.LinksWithBLOBs">
+        update links
+        set link_up_user = #{linkUpUser,jdbcType=INTEGER},
+            link_r       = #{linkR,jdbcType=INTEGER},
+            link_state   = #{linkState,jdbcType=CHAR},
+            links_public = #{linksPublic,jdbcType=CHAR},
+            up_time      = #{upTime,jdbcType=TIMESTAMP},
+            link_pointer = #{linkPointer,jdbcType=VARCHAR},
+            link         = #{link,jdbcType=LONGVARCHAR},
+            notes        = #{notes,jdbcType=LONGVARCHAR}
+        where link_id = #{linkId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.Links">
+        update links
+        set link_up_user = #{linkUpUser,jdbcType=INTEGER},
+            link_r       = #{linkR,jdbcType=INTEGER},
+            link_state   = #{linkState,jdbcType=CHAR},
+            links_public = #{linksPublic,jdbcType=CHAR},
+            up_time      = #{upTime,jdbcType=TIMESTAMP},
+            link_pointer = #{linkPointer,jdbcType=VARCHAR}
+        where link_id = #{linkId,jdbcType=BIGINT}
+    </update>
+    <select id="testLink" resultType="Integer">
+        select COUNT(*)
+        from links
+        where link_r = #{rId}
+    </select>
+</mapper>

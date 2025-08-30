@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.ResourcesJpegMapMapper">
+  <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.ResourcesJpegMap">
+    <result column="resources_id" jdbcType="INTEGER" property="resourcesId" />
+    <result column="jpeg_name" jdbcType="VARCHAR" property="jpegName" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    resources_id, jpeg_name
+  </sql>
+  <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesJpegMapExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from resources_jpeg_map
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesJpegMapExample">
+    delete from resources_jpeg_map
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesJpegMap">
+    insert into resources_jpeg_map (resources_id, jpeg_name)
+    values (#{resourcesId,jdbcType=INTEGER}, #{jpegName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesJpegMap">
+    insert into resources_jpeg_map
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="resourcesId != null">
+        resources_id,
+      </if>
+      <if test="jpegName != null">
+        jpeg_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="resourcesId != null">
+        #{resourcesId,jdbcType=INTEGER},
+      </if>
+      <if test="jpegName != null">
+        #{jpegName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesJpegMapExample" resultType="java.lang.Long">
+    select count(*) from resources_jpeg_map
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update resources_jpeg_map
+    <set>
+      <if test="row.resourcesId != null">
+        resources_id = #{row.resourcesId,jdbcType=INTEGER},
+      </if>
+      <if test="row.jpegName != null">
+        jpeg_name = #{row.jpegName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="example != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update resources_jpeg_map
+    set resources_id = #{row.resourcesId,jdbcType=INTEGER},
+      jpeg_name = #{row.jpegName,jdbcType=VARCHAR}
+    <if test="example != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+</mapper>

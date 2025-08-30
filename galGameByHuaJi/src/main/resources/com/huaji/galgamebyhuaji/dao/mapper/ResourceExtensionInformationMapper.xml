@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.ResourceExtensionInformationMapper">
+  <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformation">
+    <id column="r_id" jdbcType="INTEGER" property="rId" />
+    <result column="link_price" jdbcType="INTEGER" property="linkPrice" />
+    <result column="download_locally_price" jdbcType="INTEGER" property="downloadLocallyPrice" />
+    <result column="has_download_locally" jdbcType="CHAR" property="hasDownloadLocally" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    r_id, link_price, download_locally_price, has_download_locally
+  </sql>
+  <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformationExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from resource_extension_information
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from resource_extension_information
+    where r_id = #{rId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from resource_extension_information
+    where r_id = #{rId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformationExample">
+    delete from resource_extension_information
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformation">
+    insert into resource_extension_information (r_id, link_price, download_locally_price, 
+      has_download_locally)
+    values (#{rId,jdbcType=INTEGER}, #{linkPrice,jdbcType=INTEGER}, #{downloadLocallyPrice,jdbcType=INTEGER}, 
+      #{hasDownloadLocally,jdbcType=CHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformation">
+    insert into resource_extension_information
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="rId != null">
+        r_id,
+      </if>
+      <if test="linkPrice != null">
+        link_price,
+      </if>
+      <if test="downloadLocallyPrice != null">
+        download_locally_price,
+      </if>
+      <if test="hasDownloadLocally != null">
+        has_download_locally,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="rId != null">
+        #{rId,jdbcType=INTEGER},
+      </if>
+      <if test="linkPrice != null">
+        #{linkPrice,jdbcType=INTEGER},
+      </if>
+      <if test="downloadLocallyPrice != null">
+        #{downloadLocallyPrice,jdbcType=INTEGER},
+      </if>
+      <if test="hasDownloadLocally != null">
+        #{hasDownloadLocally,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformationExample" resultType="java.lang.Long">
+    select count(*) from resource_extension_information
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update resource_extension_information
+    <set>
+      <if test="row.rId != null">
+        r_id = #{row.rId,jdbcType=INTEGER},
+      </if>
+      <if test="row.linkPrice != null">
+        link_price = #{row.linkPrice,jdbcType=INTEGER},
+      </if>
+      <if test="row.downloadLocallyPrice != null">
+        download_locally_price = #{row.downloadLocallyPrice,jdbcType=INTEGER},
+      </if>
+      <if test="row.hasDownloadLocally != null">
+        has_download_locally = #{row.hasDownloadLocally,jdbcType=CHAR},
+      </if>
+    </set>
+    <if test="example != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update resource_extension_information
+    set r_id = #{row.rId,jdbcType=INTEGER},
+      link_price = #{row.linkPrice,jdbcType=INTEGER},
+      download_locally_price = #{row.downloadLocallyPrice,jdbcType=INTEGER},
+      has_download_locally = #{row.hasDownloadLocally,jdbcType=CHAR}
+    <if test="example != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformation">
+    update resource_extension_information
+    <set>
+      <if test="linkPrice != null">
+        link_price = #{linkPrice,jdbcType=INTEGER},
+      </if>
+      <if test="downloadLocallyPrice != null">
+        download_locally_price = #{downloadLocallyPrice,jdbcType=INTEGER},
+      </if>
+      <if test="hasDownloadLocally != null">
+        has_download_locally = #{hasDownloadLocally,jdbcType=CHAR},
+      </if>
+    </set>
+    where r_id = #{rId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.ResourceExtensionInformation">
+    update resource_extension_information
+    set link_price = #{linkPrice,jdbcType=INTEGER},
+      download_locally_price = #{downloadLocallyPrice,jdbcType=INTEGER},
+      has_download_locally = #{hasDownloadLocally,jdbcType=CHAR}
+    where r_id = #{rId,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.ResourcesMapper">
+    <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.Resources">
+        <id column="r_id" jdbcType="INTEGER" property="rId"/>
+        <result column="r_name" jdbcType="VARCHAR" property="rName"/>
+        <result column="r_manufacturer" jdbcType="VARCHAR" property="rManufacturer"/>
+        <result column="r_type" jdbcType="CHAR" property="rType"/>
+        <result column="r_jpeg" jdbcType="VARCHAR" property="rJpeg"/>
+        <result column="r_enter_time" jdbcType="TIMESTAMP" property="rEnterTime"/>
+        <result column="up_user" jdbcType="BIGINT" property="upUser"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.huaji.galgamebyhuaji.entity.Resources">
+        <result column="r_introduction" jdbcType="LONGVARCHAR" property="rIntroduction"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        r_id, r_name, r_manufacturer, r_type, r_jpeg, r_enter_time, up_user
+    </sql>
+    <sql id="Blob_Column_List">
+        r_introduction
+    </sql>
+    <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesExample"
+            resultMap="ResultMapWithBLOBs">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from resources
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesExample"
+            resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from resources
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from resources
+        where r_id = #{rId,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from resources
+        where r_id = #{rId,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesExample">
+        delete from resources
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        insert into resources (r_id, r_name, r_manufacturer,
+                               r_type, r_jpeg, r_enter_time,
+                               up_user, r_introduction)
+        values (#{rId,jdbcType=INTEGER}, #{rName,jdbcType=VARCHAR}, #{rManufacturer,jdbcType=VARCHAR},
+                #{rType,jdbcType=CHAR}, #{rJpeg,jdbcType=VARCHAR}, #{rEnterTime,jdbcType=TIMESTAMP},
+                #{upUser,jdbcType=BIGINT}, #{rIntroduction,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        insert into resources
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="rId != null">
+                r_id,
+            </if>
+            <if test="rName != null">
+                r_name,
+            </if>
+            <if test="rManufacturer != null">
+                r_manufacturer,
+            </if>
+            <if test="rType != null">
+                r_type,
+            </if>
+            <if test="rJpeg != null">
+                r_jpeg,
+            </if>
+            <if test="rEnterTime != null">
+                r_enter_time,
+            </if>
+            <if test="upUser != null">
+                up_user,
+            </if>
+            <if test="rIntroduction != null">
+                r_introduction,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="rId != null">
+                #{rId,jdbcType=INTEGER},
+            </if>
+            <if test="rName != null">
+                #{rName,jdbcType=VARCHAR},
+            </if>
+            <if test="rManufacturer != null">
+                #{rManufacturer,jdbcType=VARCHAR},
+            </if>
+            <if test="rType != null">
+                #{rType,jdbcType=CHAR},
+            </if>
+            <if test="rJpeg != null">
+                #{rJpeg,jdbcType=VARCHAR},
+            </if>
+            <if test="rEnterTime != null">
+                #{rEnterTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="upUser != null">
+                #{upUser,jdbcType=BIGINT},
+            </if>
+            <if test="rIntroduction != null">
+                #{rIntroduction,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesExample"
+            resultType="java.lang.Long">
+        select count(*) from resources
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update resources
+        <set>
+            <if test="row.rId != null">
+                r_id = #{row.rId,jdbcType=INTEGER},
+            </if>
+            <if test="row.rName != null">
+                r_name = #{row.rName,jdbcType=VARCHAR},
+            </if>
+            <if test="row.rManufacturer != null">
+                r_manufacturer = #{row.rManufacturer,jdbcType=VARCHAR},
+            </if>
+            <if test="row.rType != null">
+                r_type = #{row.rType,jdbcType=CHAR},
+            </if>
+            <if test="row.rJpeg != null">
+                r_jpeg = #{row.rJpeg,jdbcType=VARCHAR},
+            </if>
+            <if test="row.rEnterTime != null">
+                r_enter_time = #{row.rEnterTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.upUser != null">
+                up_user = #{row.upUser,jdbcType=BIGINT},
+            </if>
+            <if test="row.rIntroduction != null">
+                r_introduction = #{row.rIntroduction,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExampleWithBLOBs" parameterType="map">
+        update resources
+        set r_id = #{row.rId,jdbcType=INTEGER},
+        r_name = #{row.rName,jdbcType=VARCHAR},
+        r_manufacturer = #{row.rManufacturer,jdbcType=VARCHAR},
+        r_type = #{row.rType,jdbcType=CHAR},
+        r_jpeg = #{row.rJpeg,jdbcType=VARCHAR},
+        r_enter_time = #{row.rEnterTime,jdbcType=TIMESTAMP},
+        up_user = #{row.upUser,jdbcType=BIGINT},
+        r_introduction = #{row.rIntroduction,jdbcType=LONGVARCHAR}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update resources
+        set r_id = #{row.rId,jdbcType=INTEGER},
+        r_name = #{row.rName,jdbcType=VARCHAR},
+        r_manufacturer = #{row.rManufacturer,jdbcType=VARCHAR},
+        r_type = #{row.rType,jdbcType=CHAR},
+        r_jpeg = #{row.rJpeg,jdbcType=VARCHAR},
+        r_enter_time = #{row.rEnterTime,jdbcType=TIMESTAMP},
+        up_user = #{row.upUser,jdbcType=BIGINT}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        update resources
+        <set>
+            <if test="rName != null">
+                r_name = #{rName,jdbcType=VARCHAR},
+            </if>
+            <if test="rManufacturer != null">
+                r_manufacturer = #{rManufacturer,jdbcType=VARCHAR},
+            </if>
+            <if test="rType != null">
+                r_type = #{rType,jdbcType=CHAR},
+            </if>
+            <if test="rJpeg != null">
+                r_jpeg = #{rJpeg,jdbcType=VARCHAR},
+            </if>
+            <if test="rEnterTime != null">
+                r_enter_time = #{rEnterTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="upUser != null">
+                up_user = #{upUser,jdbcType=BIGINT},
+            </if>
+            <if test="rIntroduction != null">
+                r_introduction = #{rIntroduction,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where r_id = #{rId,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        update resources
+        set r_name         = #{rName,jdbcType=VARCHAR},
+            r_manufacturer = #{rManufacturer,jdbcType=VARCHAR},
+            r_type         = #{rType,jdbcType=CHAR},
+            r_jpeg         = #{rJpeg,jdbcType=VARCHAR},
+            r_enter_time   = #{rEnterTime,jdbcType=TIMESTAMP},
+            up_user        = #{upUser,jdbcType=BIGINT},
+            r_introduction = #{rIntroduction,jdbcType=LONGVARCHAR}
+        where r_id = #{rId,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        update resources
+        set r_name         = #{rName,jdbcType=VARCHAR},
+            r_manufacturer = #{rManufacturer,jdbcType=VARCHAR},
+            r_type         = #{rType,jdbcType=CHAR},
+            r_jpeg         = #{rJpeg,jdbcType=VARCHAR},
+            r_enter_time   = #{rEnterTime,jdbcType=TIMESTAMP},
+            up_user        = #{upUser,jdbcType=BIGINT}
+        where r_id = #{rId,jdbcType=INTEGER}
+    </update>
+    <select id="gatResourcesMap" resultMap="ResultMapWithBLOBs">
+        select *
+        from resources
+    </select>
+    <select id="selectPage" resultType="com.huaji.galgamebyhuaji.entity.Resources">
+        select r_name, r_id, r_name, r_manufacturer, r_jpeg
+        from resources
+        limit #{start},#{count}
+    </select>
+    <select id="getResourceListSize" resultType="java.lang.Integer">
+        select COUNT(*)
+        from resources;
+    </select>
+</mapper>

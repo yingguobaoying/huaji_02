@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.UserTokenMapper">
+    <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.UserToken">
+        <id column="user_id" jdbcType="INTEGER" property="userId"/>
+        <id column="token_id" jdbcType="BIGINT" property="tokenId"/>
+        <result column="die_time" jdbcType="TIMESTAMP" property="dieTime"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.huaji.galgamebyhuaji.entity.UserToken">
+        <result column="token" jdbcType="LONGVARCHAR" property="token"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        user_id, token_id, die_time, type
+    </sql>
+    <sql id="Blob_Column_List">
+        token
+    </sql>
+    <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.UserTokenExample"
+            resultMap="ResultMapWithBLOBs">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from user_token
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserTokenExample"
+            resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from user_token
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.UserTokenKey"
+            resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from user_token
+        where user_id = #{userId,jdbcType=INTEGER}
+        and token_id = #{tokenId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.UserTokenKey">
+        delete
+        from user_token
+        where user_id = #{userId,jdbcType=INTEGER}
+          and token_id = #{tokenId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserTokenExample">
+        delete from user_token
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.UserToken">
+        insert into user_token (user_id, token_id, die_time,
+                                type, token)
+        values (#{userId,jdbcType=INTEGER}, #{tokenId,jdbcType=BIGINT}, #{dieTime,jdbcType=TIMESTAMP},
+                #{type,jdbcType=INTEGER}, #{token,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.UserToken" useGeneratedKeys="true"
+            keyProperty="tokenId">
+        insert into user_token
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="tokenId != null">
+                token_id,
+            </if>
+            <if test="dieTime != null">
+                die_time,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="token != null">
+                token,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="tokenId != null">
+                #{tokenId,jdbcType=BIGINT},
+            </if>
+            <if test="dieTime != null">
+                #{dieTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=INTEGER},
+            </if>
+            <if test="token != null">
+                #{token,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserTokenExample"
+            resultType="java.lang.Long">
+        select count(*) from user_token
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update user_token
+        <set>
+            <if test="row.userId != null">
+                user_id = #{row.userId,jdbcType=INTEGER},
+            </if>
+            <if test="row.tokenId != null">
+                token_id = #{row.tokenId,jdbcType=BIGINT},
+            </if>
+            <if test="row.dieTime != null">
+                die_time = #{row.dieTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.type != null">
+                type = #{row.type,jdbcType=INTEGER},
+            </if>
+            <if test="row.token != null">
+                token = #{row.token,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExampleWithBLOBs" parameterType="map">
+        update user_token
+        set user_id = #{row.userId,jdbcType=INTEGER},
+        token_id = #{row.tokenId,jdbcType=BIGINT},
+        die_time = #{row.dieTime,jdbcType=TIMESTAMP},
+        type = #{row.type,jdbcType=INTEGER},
+        token = #{row.token,jdbcType=LONGVARCHAR}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update user_token
+        set user_id = #{row.userId,jdbcType=INTEGER},
+        token_id = #{row.tokenId,jdbcType=BIGINT},
+        die_time = #{row.dieTime,jdbcType=TIMESTAMP},
+        type = #{row.type,jdbcType=INTEGER}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.UserToken">
+        update user_token
+        <set>
+            <if test="dieTime != null">
+                die_time = #{dieTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="type != null">
+                type = #{type,jdbcType=INTEGER},
+            </if>
+            <if test="token != null">
+                token = #{token,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where user_id = #{userId,jdbcType=INTEGER}
+        and token_id = #{tokenId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.UserToken">
+        update user_token
+        set die_time = #{dieTime,jdbcType=TIMESTAMP},
+            type     = #{type,jdbcType=INTEGER},
+            token    = #{token,jdbcType=LONGVARCHAR}
+        where user_id = #{userId,jdbcType=INTEGER}
+          and token_id = #{tokenId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.UserToken">
+        update user_token
+        set die_time = #{dieTime,jdbcType=TIMESTAMP},
+            type     = #{type,jdbcType=INTEGER}
+        where user_id = #{userId,jdbcType=INTEGER}
+          and token_id = #{tokenId,jdbcType=BIGINT}
+    </update>
+    <select id="verifyToken" resultType="com.huaji.galgamebyhuaji.entity.UserToken">
+        select *
+        from user_token
+        where user_id = #{userId}
+          and type = #{type}
+          and token = #{token}
+          and die_time > SYSDATE()
+    </select>
+    <update id="invalidateToken">
+        update user_token
+        set die_time = #{time}
+        where user_id = #{userId}
+          and type = #{type}
+          and (token = #{token} or token is null)
+    </update>
+    <select id="getTokens" resultType="com.huaji.galgamebyhuaji.entity.UserToken">
+        select *
+        from user_token
+        where user_id = #{userId}
+          and type = #{type}
+    </select>
+</mapper>
