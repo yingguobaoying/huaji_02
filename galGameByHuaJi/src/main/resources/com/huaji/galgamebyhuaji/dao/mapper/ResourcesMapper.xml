@@ -320,4 +320,88 @@
         select COUNT(*)
         from resources;
     </select>
+    <select id="selectRName" resultMap="ResultMapWithBLOBs">
+        select *
+        from resources
+        where r_name like concat('%', #{rName}, '%')
+        LIMIT #{page.startIndex}, #{page.size}
+    </select>
+    <select id="selectResources" resultMap="ResultMapWithBLOBs"
+            parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        SELECT
+        r.r_id,
+        r.r_name,
+        r.r_manufacturer,
+        r.r_type,
+        r.r_jpeg,
+        r.r_enter_time,
+        r.up_user,
+        r.r_introduction
+        FROM resources r
+        <if test="tagList != null and tagList.size() > 0">
+            INNER JOIN resources_tag_map rm ON r.r_id = rm.r_id
+            INNER JOIN tag t ON rm.tag_id = t.tag_id
+        </if>
+        <where>
+            <if test="resources != null">
+                <if test="resources.rName != null and resources.rName != ''">
+                    AND r.r_name LIKE CONCAT('%', #{resources.rName}, '%')
+                </if>
+                <if test="resources.rType != null and resources.rType != ''">
+                    AND r.r_type LIKE CONCAT('%', #{resources.rType}, '%')
+                </if>
+                <if test="resources.rManufacturer != null and resources.rManufacturer != ''">
+                    AND r.r_manufacturer = #{resources.rManufacturer}
+                </if>
+            </if>
+            <if test="tagList != null and tagList.size() > 0">
+                AND t.tag_id IN
+                <foreach collection="tagList" item="tagId" open="(" separator="," close=")">
+                    #{tagId}
+                </foreach>
+            </if>
+        </where>
+        <if test="tagList != null and tagList.size() > 0">
+            GROUP BY r.r_id
+            HAVING COUNT(DISTINCT t.tag_id) >= #{tagSize}
+        </if>
+        ORDER BY r.r_id
+        LIMIT #{page.startIndex}, #{page.size}
+    </select>
+    <select id="getSelectResourcesSize" resultType="int"
+            parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+        SELECT COUNT(*)
+        FROM (
+        SELECT r.r_id
+        FROM resources r
+        <if test="tagList != null and tagList.size() > 0">
+            INNER JOIN resources_tag_map rm ON r.r_id = rm.r_id
+            INNER JOIN tag t ON rm.tag_id = t.tag_id
+        </if>
+        <where>
+            <if test="resources != null">
+                <if test="resources.rName != null and resources.rName != ''">
+                    AND r.r_name LIKE CONCAT('%', #{resources.rName}, '%')
+                </if>
+                <if test="resources.rType != null and resources.rType != ''">
+                    AND r.r_type LIKE CONCAT('%', #{resources.rType}, '%')
+                </if>
+                <if test="resources.rManufacturer != null and resources.rManufacturer != ''">
+                    AND r.r_manufacturer = #{resources.rManufacturer}
+                </if>
+            </if>
+            <if test="tagList != null and tagList.size() > 0">
+                AND t.tag_id IN
+                <foreach collection="tagList" item="tagId" open="(" separator="," close=")">
+                    #{tagId}
+                </foreach>
+            </if>
+        </where>
+        <if test="tagList != null and tagList.size() > 0">
+            GROUP BY r.r_id
+            HAVING COUNT(DISTINCT t.tag_id) >= #{tagSize}
+        </if>
+        ) AS tmp
+    </select>
+
 </mapper>

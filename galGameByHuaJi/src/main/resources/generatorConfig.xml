@@ -48,7 +48,7 @@
         </javaClientGenerator>
         <!-- 表名和对应的实体类名-->
 <!--        <table tableName="comment" domainObjectName="Comment"/>-->
-<!--        <table tableName="download" domainObjectName="Download"/>-->
+        <table tableName="user_download" domainObjectName="UserDownload" modelType="flat"/>
 <!--        <table tableName="feedback" domainObjectName="Feedback"/>-->
 <!--        <table tableName="fen" domainObjectName="Fen"/>-->
 <!--        <table tableName="friend_map" domainObjectName="FriendMap"/>-->
@@ -62,7 +62,7 @@
 <!--        <table tableName="tag" domainObjectName="Tag"/>-->
 <!--        <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
 <!--        <table tableName="user_token" domainObjectName="UserToken"/>-->
-        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>
+<!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
 <!--        <table tableName="users" domainObjectName="Users"/>-->
     </context>
 </generatorConfiguration>

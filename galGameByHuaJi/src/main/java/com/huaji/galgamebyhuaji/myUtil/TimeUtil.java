@@ -14,6 +14,11 @@ public class TimeUtil {
 			date = new Date();
 		return new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(date);
 	}
+	public static String getVisualDateFormatTime(Date date) {
+		if ( date == null )
+			date = new Date();
+		return new SimpleDateFormat("yyyy年MM月dd日HH:mm:ss").format(date);
+	}
 	
 	public static String getNowTime () {
 		return new SimpleDateFormat("_yyyy_MM_dd_HH_mm_ss").format(new Date());

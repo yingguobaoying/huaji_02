@@ -1,5 +1,6 @@
 package com.huaji.galgamebyhuaji.model.jwtToken;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.huaji.galgamebyhuaji.enumPackage.TokenType;
 
 import java.util.Objects;

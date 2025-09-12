@@ -35,12 +35,12 @@ public class ReturnResult<T> {
 	 * 拓展字段
 	 */
 	private Map<String, Object> map;
-
+	
 	public void addMap(String key, Object value) {
 		if (map == null) map = new HashMap<>();
 		map.put(key, value);
 	}
-
+	
 	/**
 	 * 操作结果
 	 */
@@ -53,84 +53,84 @@ public class ReturnResult<T> {
 	 * 操作是否出现错误/异常
 	 */
 	private boolean hasError;
-
+	
 	/**
 	 * 返回时间
 	 */
 	private Date retrunDate;
-
+	
 	/**
 	 * 错误代码
 	 * -1 代表没有错误,其他数字:比如1002表示错误类别1,错误类别号为2
 	 */
 	private int errorNum;
-
+	
 	public void setErrorNum(int errorNum) {
 		this.errorNum = errorNum;
 	}
-
+	
 	public boolean isHasError() {
 		return hasError;
 	}
-
+	
 	public void setHasError(boolean hasError) {
 		this.hasError = hasError;
 	}
-
+	
 	public T getReturnResult() {
 		return returnResult;
 	}
-
+	
 	public void setReturnResult(T returnResult) {
 		this.returnResult = returnResult;
 	}
-
+	
 	public List<T> getResultList() {
 		return resultList;
 	}
-
+	
 	public void setResultList(List<T> resultList) {
 		this.resultList = resultList;
 	}
-
+	
 	public int getPage() {
 		return page;
 	}
-
+	
 	public void setPage(int page) {
 		this.page = page;
 	}
-
+	
 	public int getAll() {
 		return all;
 	}
-
+	
 	public void setAll(int all) {
 		this.all = all;
 	}
-
+	
 	public boolean isOperationResult() {
 		return operationResult;
 	}
-
+	
 	public void setOperationResult(boolean operationResult) {
 		this.operationResult = operationResult;
 	}
-
+	
 	public String getMxg() {
 		return Mxg;
 	}
-
+	
 	public void setMxg(String mxg) {
 		Mxg = mxg;
 	}
-
-
+	
+	
 	public ReturnResult() {
 		errorNum = -1;
 		hasError = false;
 	}
-
+	
 	/**
 	 * 返回错误
 	 *
@@ -142,7 +142,7 @@ public class ReturnResult<T> {
 		setHasError(true);
 		return this;
 	}
-
+	
 	/**
 	 * 返回错误
 	 *
@@ -156,7 +156,7 @@ public class ReturnResult<T> {
 		setHasError(true);
 		return this;
 	}
-
+	
 	/**
 	 * 返回错误
 	 *
@@ -175,7 +175,7 @@ public class ReturnResult<T> {
 		setHasError(true);
 		return this;
 	}
-
+	
 	/**
 	 * 自动打包返回操作失败信息(打包的操作结果为false)
 	 *
@@ -192,7 +192,7 @@ public class ReturnResult<T> {
 		retrunDate = new Date();
 		return this;
 	}
-
+	
 	/**
 	 * 自动打包返回结果(仅一条信息时使用,打包的操作结果为true)
 	 *
@@ -213,8 +213,8 @@ public class ReturnResult<T> {
 		retrunDate = new Date();
 		return this;
 	}
-
-
+	
+	
 	/**
 	 * 自动打包返回结果(多条信息时使用,打包的操作结果为true)
 	 *
@@ -227,7 +227,7 @@ public class ReturnResult<T> {
 		setOperationResult(true);
 		setResultList(val);
 		setPage(1);
-		if (all == -1) {
+		if (all <= 0) {
 			if (val == null) {
 				setAll(0);
 			} else {
@@ -239,7 +239,7 @@ public class ReturnResult<T> {
 		retrunDate = new Date();
 		return this;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "ReturnResult{" +
@@ -254,7 +254,7 @@ public class ReturnResult<T> {
 				", errorNum=" + errorNum +
 				'}';
 	}
-
+	
 	/**
 	 * 自动打包返回结果(多条信息时使用,打包的操作结果为true)
 	 *
@@ -264,7 +264,7 @@ public class ReturnResult<T> {
 	public static <T> ReturnResult<T> isTrue(String mxg, T val) {
 		return new ReturnResult<T>().operationTrue(mxg, val);
 	}
-
+	
 	/**
 	 * 自动打包返回结果(多条信息时使用,打包的操作结果为true)
 	 *
@@ -275,7 +275,7 @@ public class ReturnResult<T> {
 	public static <T> ReturnResult<T> isTrue(String mxg, List<T> val, Integer all) {
 		return new ReturnResult<T>().operationTrue(mxg, val, all == null ? -1 : all);
 	}
-
+	
 	/**
 	 * 自动打包返回错误结果
 	 *
@@ -284,7 +284,7 @@ public class ReturnResult<T> {
 	public static <T> ReturnResult<T> isError(String mxg) {
 		return new ReturnResult<T>().operationError(mxg);
 	}
-
+	
 	/**
 	 * 自动打包返回错误结果
 	 *
@@ -296,7 +296,7 @@ public class ReturnResult<T> {
 			return new ReturnResult<T>().operationError(e1.getMessage(), e, e1.getErrorType() * 1000 + e1.getErrorNum());
 		return new ReturnResult<T>().operationError(mxg, e, 1);
 	}
-
+	
 	/**
 	 * 自动打包返回错误结果
 	 *
@@ -307,27 +307,27 @@ public class ReturnResult<T> {
 	public static <T> ReturnResult<T> isError(String mxg, T e, int errorNum) {
 		return new ReturnResult<T>().operationError(mxg, e, errorNum);
 	}
-
+	
 	public static <T> ReturnResult<T> isFalse(String mxg) {
 		return new ReturnResult<T>().operationFalse(mxg);
 	}
-
+	
 	public Map<String, Object> getMap() {
 		return map;
 	}
-
+	
 	public void setMap(Map<String, Object> map) {
 		this.map = map;
 	}
-
+	
 	public Date getRetrunDate() {
 		return retrunDate;
 	}
-
+	
 	public void setRetrunDate(Date retrunDate) {
 		this.retrunDate = retrunDate;
 	}
-
+	
 	public int getErrorNum() {
 		return errorNum;
 	}

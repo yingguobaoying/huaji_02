@@ -11,6 +11,8 @@ public class ResourcesFileMap {
 
     private Integer size;
 
+    private Long fileSize;
+
     public Integer getrId() {
         return rId;
     }
@@ -50,5 +52,12 @@ public class ResourcesFileMap {
     public void setSize(Integer size) {
         this.size = size;
     }
-    
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
 }

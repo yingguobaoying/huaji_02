@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.service;
 
 
 import com.huaji.galgamebyhuaji.entity.Resources;
+import com.huaji.galgamebyhuaji.entity.ResourcesFileMap;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.vo.SelectViewMag;
@@ -63,4 +64,6 @@ public interface ResourcesService {
 	List<Resources> getResourceList(int start, int end);
 
 	Integer getResourceListSize();
+
+	List<ResourcesFileMap> getResourceFileList(int rId);
 }

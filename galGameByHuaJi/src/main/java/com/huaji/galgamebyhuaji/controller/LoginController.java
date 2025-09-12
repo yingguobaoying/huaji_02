@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,13 +35,16 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LoginController {
 	@Autowired
 	private LoginService loginService;
-	@Autowired
-	private SessionService sessionService;
+	private final SessionService sessionService;
 	@Autowired
 	private UserMxgServlet userMxgServlet;
 	private static final ConcurrentHashMap<Integer, ReentrantLock> userNameLocks = new ConcurrentHashMap<>();
-
-
+	
+	public LoginController(SessionService sessionService) {
+		this.sessionService = sessionService;
+	}
+	
+	
 	private ReentrantLock getLockForUserName(String s) {
 		int i = s.hashCode();
 		return userNameLocks.computeIfAbsent(i, k -> new ReentrantLock());
@@ -63,6 +67,7 @@ public class LoginController {
 
 	@GetMapping("/loginByToken")
 	@ResponseBody
+	@Transactional
 	public ReturnResult<UsersWithBLOBs> loginByToken(
 			@RequestParam(value = "token", required = false) String usersToken,
 			HttpServletRequest request,
@@ -98,7 +103,7 @@ public class LoginController {
 	private ReturnResult<UsersWithBLOBs> getUsersReturnResult(HttpServletRequest request, UsersWithBLOBs users) {
 		String tip;
 		String attribute = (String) request.getAttribute(SystemConstant.SYSTEM_MSG);
-		if (MyStringUtil.isNull(attribute)) {
+		if (!MyStringUtil.isNull(attribute)) {
 			tip = "登录成功!\n欢迎回来:%s\n今日签到情况:%s".formatted(users.getUserName(), attribute);
 		} else {
 			tip = "登录成功!\n欢迎回来:%s".formatted(users.getUserName());
@@ -110,6 +115,7 @@ public class LoginController {
 
 	@PostMapping("/userLogin")
 	@ResponseBody
+	@Transactional
 	public ReturnResult<UsersWithBLOBs> userLogin(
 			@Valid @RequestBody
 			LoginUserMxg userMxg,
@@ -163,6 +169,7 @@ public class LoginController {
 
 	@PostMapping("/userRegister")
 	@ResponseBody
+	@Transactional
 	public ReturnResult<Users> userRegister(
 			@Valid @RequestBody UsersWithBLOBs usersMxg,
 			BindingResult testResult
@@ -186,6 +193,7 @@ public class LoginController {
 
 	@GetMapping("/userExit")
 	@ResponseBody
+	@Transactional
 	public ReturnResult<Users> exit(
 			HttpServletRequest request,
 			HttpServletResponse response

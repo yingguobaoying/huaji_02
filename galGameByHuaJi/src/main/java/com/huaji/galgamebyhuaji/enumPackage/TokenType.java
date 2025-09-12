@@ -1,19 +1,30 @@
 package com.huaji.galgamebyhuaji.enumPackage;
 
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
+import com.huaji.galgamebyhuaji.model.jwtToken.BuyResourcesUser;
+import com.huaji.galgamebyhuaji.model.jwtToken.LostPasswordUser;
+import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
+import com.huaji.galgamebyhuaji.model.jwtToken.VerifyEmail;
 
 public enum TokenType {
 	/**
 	 * 此状态为默认值,为临时登录时使用
 	 */
-	DEFAULT_STATUS(0, "保持登录"),
-	LOST_PASSWORD(1, "密码丢失"),
-	GET_DOWNLOAD(2, "下载"),
+	DEFAULT_STATUS(0, "保持登录", OnlineUser.class),
+	LOST_PASSWORD(1, "密码丢失", LostPasswordUser.class),
+	GET_DOWNLOAD(2, "下载", BuyResourcesUser.class),
+	VERIFY_EMAIL(3,"验证邮箱", VerifyEmail.class)
 	;
+	
+	public Class getTokenClazz() {
+		return tokenClazz;
+	}
+	
 	private final String statusName;
-
-	private TokenType(Integer statusNum, String statusName) {
+	private final Class tokenClazz;
+	private TokenType(Integer statusNum, String statusName,Class tokenClazz) {
 		this.statusName = statusName;
+		this.tokenClazz = tokenClazz;
 		this.statusNum = statusNum;
 	}
 

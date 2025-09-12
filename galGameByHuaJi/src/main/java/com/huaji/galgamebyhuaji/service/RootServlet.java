@@ -14,7 +14,7 @@ public interface RootServlet {
 	/**
 	 * 管理员更改用户头像信息
 	 * @param users 更改后的信息(不可改动ID)
-	 * @param jpeg 更新的图片
+	 * @param jpeg 更新的图片,为null时为禁用
 	 * @param root 管理员账号
 	 * @return 更新后的信息
 	 * @throws WriteError 数据库读写错误(小概率)

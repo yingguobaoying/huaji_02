@@ -18,11 +18,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/index")
 public class IndexController {
-	@Autowired
+	final
 	ResourcesService resourcesService;
-	@Autowired
+	final
 	RedisMemoryService redisMemoryService;
-
+	
+	public IndexController(ResourcesService resourcesService, RedisMemoryService redisMemoryService) {
+		this.resourcesService = resourcesService;
+		this.redisMemoryService = redisMemoryService;
+	}
+	
 	@GetMapping("/getResources/{star}/{end}")
 	public ReturnResult<Resources> getResourcesList(@PathVariable("star") int star, @PathVariable("end") int end) {
 		int c = star + end;
@@ -35,15 +40,10 @@ public class IndexController {
 		}
 		return ReturnResult.isTrue("资源获取成功", resourceList, resourcesService.getResourceListSize());
 	}
-
-
+	
+	
 	@GetMapping("/getResources/{rId}")
 	public ReturnResult<Resources> getResources(@PathVariable("rId") int rId) {
 		return ReturnResult.isTrue("资源获取成功", resourcesService.getResource(rId));
-	}
-
-	@PostConstruct
-	public void init() {
-		System.out.println("IndexController 加载成功");
 	}
 }

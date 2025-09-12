@@ -2,14 +2,16 @@ package com.huaji.galgamebyhuaji.entity;
 
 import java.util.Date;
 
-public class Download {
+public class UserDownload {
     private Integer rId;
 
     private Integer userId;
 
     private Date time;
 
-    private String type;
+    private String dType;
+
+    private String fileName;
 
     public Integer getrId() {
         return rId;
@@ -35,11 +37,19 @@ public class Download {
         this.time = time;
     }
 
-    public String getType() {
-        return type;
+    public String getdType() {
+        return dType;
     }
 
-    public void setType(String type) {
-        this.type = type == null ? null : type.trim();
+    public void setdType(String dType) {
+        this.dType = dType == null ? null : dType.trim();
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName == null ? null : fileName.trim();
     }
 }

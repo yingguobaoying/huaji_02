@@ -5,12 +5,16 @@ import com.huaji.galgamebyhuaji.entity.Resources;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
-import com.huaji.galgamebyhuaji.service.*;
+import com.huaji.galgamebyhuaji.service.RedisMemoryService;
+import com.huaji.galgamebyhuaji.service.ResourcesService;
+import com.huaji.galgamebyhuaji.service.SessionService;
+import com.huaji.galgamebyhuaji.service.TagService;
+import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.ServletContext;
 import org.redisson.api.RBloomFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -24,40 +28,48 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CONSTANT_PASSWORD;
 import static com.huaji.galgamebyhuaji.constant.Constant.RESOURCE_SAVE_PATH;
 
 @Component
+@DependsOn({"vaultConfigValidator", "JWTConfig"})
 public class IntoListen {
 	
-	@Autowired
-	private ResourcesService resourcesService;
-	@Autowired
-	private TagService tagService;
-	@Autowired
-	private SessionService sessionService;
-	@Autowired
-	private UserMxgServlet userMxgServlet;
-	@Autowired
+	private final ResourcesService resourcesService;
+	private final TagService tagService;
+	private final SessionService sessionService;
+	private final UserMxgServlet userMxgServlet;
+	final
 	ServletContext servletContext;
-	@Autowired
-	@Qualifier("RNameBloomFilter")
+	final
 	RBloomFilter<String> RNameBloomFilter;
-	@Autowired
-	@Qualifier("manufacturerFilterBloomFilter")
+	final
 	RBloomFilter<String> manufacturerFilterBloomFilter;
-	@Autowired
+	final
 	PasswordEncryptionUtil passwordEncryptionUtil;
 	@Value("${resource-save-path}")
 	private String resourceSavePath;
-	@Autowired
+	final
 	RedisMemoryService redisMemoryService;
 	
+	public IntoListen(ResourcesService resourcesService, TagService tagService, SessionService sessionService, UserMxgServlet userMxgServlet, ServletContext servletContext, @Qualifier("RNameBloomFilter") RBloomFilter<String> RNameBloomFilter, @Qualifier("manufacturerFilterBloomFilter") RBloomFilter<String> manufacturerFilterBloomFilter, PasswordEncryptionUtil passwordEncryptionUtil, RedisMemoryService redisMemoryService) {
+		this.resourcesService = resourcesService;
+		this.tagService = tagService;
+		this.sessionService = sessionService;
+		this.userMxgServlet = userMxgServlet;
+		this.servletContext = servletContext;
+		this.RNameBloomFilter = RNameBloomFilter;
+		this.manufacturerFilterBloomFilter = manufacturerFilterBloomFilter;
+		this.passwordEncryptionUtil = passwordEncryptionUtil;
+		this.redisMemoryService = redisMemoryService;
+	}
+	
 	@EventListener
-	public void onContextRefreshed (ContextRefreshedEvent event) {
-		if ( event.getApplicationContext().getParent() == null ) {
+	public void onContextRefreshed(ContextRefreshedEvent event) {
+		if (event.getApplicationContext().getParent() == null) {
+			
 			redisMemoryService.delAllData();//清空旧数据
 			tagService.getTagMap();
 			List<Resources> allResources = resourcesService.getAllResources();
 			userMxgServlet.getAllUserListMxg();
 			//将资源加入过滤器
-			for ( Resources resource : allResources ) {
+			for (Resources resource : allResources) {
 				RNameBloomFilter.add(resource.getrName());
 				manufacturerFilterBloomFilter.add(resource.getrManufacturer());
 			}
@@ -65,22 +77,22 @@ public class IntoListen {
 			CONSTANT_PASSWORD = passwordEncryptionUtil.hashPassword("红豆可爱滴捏_Vigna_very_loveliness");
 			System.out.println(resourceSavePath);
 			File dir = new File(resourceSavePath);
-			if ( !dir.exists() ) {
-				if ( dir.mkdirs() )
+			if (!dir.exists()) {
+				if (dir.mkdirs())
 					MyLogUtil.info(IntoListen.class, "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath);
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath);
 			}
 			File imgFile = new File(resourceSavePath + File.separator + "img");
 			File rarFile = new File(resourceSavePath + File.separator + "rar");
-			if ( !imgFile.exists() ) {
-				if ( imgFile.mkdirs() )
+			if (!imgFile.exists()) {
+				if (imgFile.mkdirs())
 					MyLogUtil.info(IntoListen.class, "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath + "\\img");
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath + "\\img");
 			}
-			if ( !rarFile.exists() ) {
-				if ( rarFile.mkdirs() )
+			if (!rarFile.exists()) {
+				if (rarFile.mkdirs())
 					MyLogUtil.info(IntoListen.class, "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath + "\\rar");
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath + "\\rar");
@@ -90,7 +102,7 @@ public class IntoListen {
 	}
 	
 	@EventListener
-	public void onContextClosed (ContextClosedEvent event) {
+	public void onContextClosed(ContextClosedEvent event) {
 		int i = sessionService.manbaOut();
 		MyLogUtil.info(ContextClosedEvent.class, TimeUtil.getSimpleDateFormatTime(new Date()) + "服务器关闭");
 		MyLogUtil.info(ContextClosedEvent.class, "在服务器关闭时,使" + i + "位在线用户离线");

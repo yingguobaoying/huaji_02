@@ -22,8 +22,12 @@ import static com.huaji.galgamebyhuaji.myUtil.ElseUtil.getToken;
 @RequestMapping("/api/user")
 @ResponseBody
 public class UserBehaviorController extends BaseController {
-	@Autowired
+	final
 	UserMxgServlet userMxgServlet;
+	
+	public UserBehaviorController(UserMxgServlet userMxgServlet) {
+		this.userMxgServlet = userMxgServlet;
+	}
 	
 	@GetMapping("/getUserMxg")
 	public ReturnResult<UsersWithBLOBs> getUserMxg () {

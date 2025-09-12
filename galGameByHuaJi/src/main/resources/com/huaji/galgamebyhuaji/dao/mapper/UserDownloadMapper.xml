@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.huaji.galgamebyhuaji.dao.DownloadMapper">
-  <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.Download">
+<mapper namespace="com.huaji.galgamebyhuaji.dao.UserDownloadMapper">
+  <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.UserDownload">
     <result column="r_id" jdbcType="INTEGER" property="rId" />
     <result column="user_id" jdbcType="INTEGER" property="userId" />
     <result column="time" jdbcType="TIMESTAMP" property="time" />
-    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="d_type" jdbcType="VARCHAR" property="dType" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -66,15 +67,15 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    r_id, user_id, time, type
+    r_id, user_id, time, d_type, file_name
   </sql>
-  <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.DownloadExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserDownloadExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from download
+    from user_download
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -82,20 +83,20 @@
       order by ${orderByClause}
     </if>
   </select>
-  <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.DownloadExample">
-    delete from download
+  <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserDownloadExample">
+    delete from user_download
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.Download">
-    insert into download (r_id, user_id, time, 
-      type)
+  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.UserDownload">
+    insert into user_download (r_id, user_id, time, 
+      d_type, file_name)
     values (#{rId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{time,jdbcType=TIMESTAMP}, 
-      #{type,jdbcType=VARCHAR})
+      #{dType,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Download">
-    insert into download
+  <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.UserDownload">
+    insert into user_download
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="rId != null">
         r_id,
@@ -106,8 +107,11 @@
       <if test="time != null">
         time,
       </if>
-      <if test="type != null">
-        type,
+      <if test="dType != null">
+        d_type,
+      </if>
+      <if test="fileName != null">
+        file_name,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -120,19 +124,22 @@
       <if test="time != null">
         #{time,jdbcType=TIMESTAMP},
       </if>
-      <if test="type != null">
-        #{type,jdbcType=VARCHAR},
+      <if test="dType != null">
+        #{dType,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null">
+        #{fileName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.DownloadExample" resultType="java.lang.Long">
-    select count(*) from download
+  <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserDownloadExample" resultType="java.lang.Long">
+    select count(*) from user_download
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update download
+    update user_download
     <set>
       <if test="row.rId != null">
         r_id = #{row.rId,jdbcType=INTEGER},
@@ -143,8 +150,11 @@
       <if test="row.time != null">
         time = #{row.time,jdbcType=TIMESTAMP},
       </if>
-      <if test="row.type != null">
-        type = #{row.type,jdbcType=VARCHAR},
+      <if test="row.dType != null">
+        d_type = #{row.dType,jdbcType=VARCHAR},
+      </if>
+      <if test="row.fileName != null">
+        file_name = #{row.fileName,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="example != null">
@@ -152,11 +162,12 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update download
+    update user_download
     set r_id = #{row.rId,jdbcType=INTEGER},
       user_id = #{row.userId,jdbcType=INTEGER},
       time = #{row.time,jdbcType=TIMESTAMP},
-      type = #{row.type,jdbcType=VARCHAR}
+      d_type = #{row.dType,jdbcType=VARCHAR},
+      file_name = #{row.fileName,jdbcType=VARCHAR}
     <if test="example != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>

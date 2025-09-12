@@ -15,8 +15,12 @@ import java.util.List;
 @RequestMapping("/api/user")
 @ResponseBody
 public class CollectController extends BaseController {
-	@Autowired
+	final
 	CollectServlet collectServlet;
+	
+	public CollectController(CollectServlet collectServlet) {
+		this.collectServlet = collectServlet;
+	}
 	
 	@GetMapping("/getUserCollectList")
 	public ReturnResult<Integer> getUserCollectList () {

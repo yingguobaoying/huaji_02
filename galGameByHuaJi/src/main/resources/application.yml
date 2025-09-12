@@ -1,6 +1,23 @@
 spring:
+  cloud:
+    vault:
+      fail-fast: true
+      uri: http://127.0.0.1:8200
+      token: ${VAULT_TOKEN}
+      scheme: http
+      connection-timeout: 5000
+      read-timeout: 15000
+      kv:
+        enabled: true
+        backend: my-website-key
+        default-context: key
+        profile-separator: '/'
   liquibase:
     enabled: false
+  config:
+    import: optional:vault://
+  main:
+    allow-bean-definition-overriding: true
   servlet:
     multipart:
       enabled: true
@@ -13,9 +30,9 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/gal?useUnicode=true&serverTimezone=Asia/Shanghai&useSSL=true&characterEncoding=utf-8
-    username: hongdouchu
-    password: root123456
-
+    username: ${datasource.username}
+    password: ${datasource.password}
+    #todo 请注意此简单密钥请在上线时修正
     druid:
       initial-size: 5
       min-idle: 5
@@ -65,21 +82,22 @@ mybatis:
   type-aliases-package: com/huaji/galgamebyhuaji/entity
   configuration:
     map-underscore-to-camel-case: true
+    #todo 请注意此为简单密钥请在上线时修正
 jwt:
-  secret-key: "红豆可爱捏"
-  secret-key1: "自从我第一次在游戏中遇见红豆，她那双闪亮的大眼睛和俏皮的红发就深深地烙印在我的心里《神经》自从我第一次在游戏中遇见红豆，她那双闪亮的大眼睛和俏皮的红发就深深地烙印在我的心里！！红豆，已经不仅仅是一个游戏角色，她是我心中的一个美好寄托有时候，我会对着屏幕发呆，想象着自己能和红豆一起并肩作战，共同探索那个未知的世界。"
-  secret-key2: "她让我体验到了前所未有的快乐和痴迷每当红豆在游戏中展开她的冒险每一次攻击，都让我心跳加速，仿佛我也置身于那个充满奇幻色彩的世界。红豆的每一个动作，都像是一剂强心针，让我对这个游戏爱得无法自拔红豆的笑声是那么地感染力，每当她开心地笑出声，我的世界仿佛都被这笑声照亮。"
-  secret-key3: "红豆，已经不仅仅是一个游戏角色，她是我心中的一个美好寄托有时候，我会对着屏幕发呆，想象着自己能和红豆一起并肩作战，共同探索那个未知的世界。她的勇敢、善良和坚韧，让我为之倾倒。"
-  secret-key4: "我对红豆的喜爱是一种疯狂，但只有我自己知道，这份热爱是多么地纯粹在这个充满压力和挑战的现实世界，红豆成为了我心灵的避风港，她让我在游戏的世界里找到了属于自己的快乐红豆这个游戏人物已经深深地融入了我的生活，她让我感受到了前所未有的快乐和激情我对她的喜爱，如同发病般无法自拔在这片虚拟的土地上，红豆是我永远的信仰，我会一直陪伴她，走过每一个游戏世界的角落"
+  secret-key:
+  secret-key1:
+  secret-key2:
+  secret-key3:
+  secret-key4:
   expiration-time: 1800000
   current-version: 0
-  system-salt: "红豆可爱捏"
+  system-salt:
 encryption:
-  fixed-salt: "红豆可爱捏"
-  aes-key: "红豆老婆可爱捏"
+  fixed-salt:
+  aes-key:
 mail:
-  smtp-authorization-code: "kvzhviylwwxrhihb"
+  smtp-authorization-code:
   smtp-email: "1925871606@qq.com"
   smtp-host: "smtp.qq.com"
   smtp-port: "587"
-resource-save-path: E:\temp\tomcat-work\work\Tomcat\localhost\static
+resource-save-path: D:\temp\tomcat-work\work\Tomcat\localhost\static

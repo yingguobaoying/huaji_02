@@ -39,17 +39,19 @@ public class ResourceServiceIMPL implements ResourcesService {
 	ResourceStatisticsMapper resourceStatisticsMapper;
 	@Autowired
 	TagMapper tagMapper;
+	@Autowired
+	ResourcesFileMapMapper resourcesFileMap;
 	
 	@Override
-	public ReturnResult<Resources> addResources (Resources resources) {
+	public ReturnResult<Resources> addResources(Resources resources) {
 		testNewResourcesMxg(resources);
 		//主键由数据库管理,这里保证只要不重复就可以进行添加,防止错误传递
 		resources.setrId(null);
 		WriteError.tryWrite(resourcesMapper.insertSelective(resources));
-		if ( resources.getrId() == null ) throw new WriteError(1, 0);
+		if (resources.getrId() == null) throw new WriteError(1, 0);
 		ResourceExtensionInformation resourceExtensionInformation = resources.getResourceExtensionInformation();
 		//无价格信息
-		if ( resourceExtensionInformation == null ) {
+		if (resourceExtensionInformation == null) {
 			resourceExtensionInformation = new ResourceExtensionInformation();
 			resourceExtensionInformation.setrId(resources.getrId());
 			resourceExtensionInformation.setDownloadLocallyPrice(Constant.DOWNLOAD_LOCALLY);
@@ -57,9 +59,9 @@ public class ResourceServiceIMPL implements ResourcesService {
 			resourceExtensionInformation.setHasDownloadLocally("no");
 		} else {
 			resourceExtensionInformation.setrId(resources.getrId());
-			if ( resourceExtensionInformation.getDownloadLocallyPrice() == null )
+			if (resourceExtensionInformation.getDownloadLocallyPrice() == null)
 				resourceExtensionInformation.setDownloadLocallyPrice(Constant.DOWNLOAD_LOCALLY);
-			if ( resourceExtensionInformation.getLinkPrice() == null )
+			if (resourceExtensionInformation.getLinkPrice() == null)
 				resourceExtensionInformation.setLinkPrice(Constant.EXTERNAL_CLOUD_DISK);
 			//均不匹配或者为空时使用默认值
 			if (
@@ -72,9 +74,9 @@ public class ResourceServiceIMPL implements ResourcesService {
 			
 		}
 		//添加tag
-		if ( resources.getTags() != null && !resources.getTags().isEmpty() ) {
+		if (resources.getTags() != null && !resources.getTags().isEmpty()) {
 			List<Integer> rTags = new ArrayList<>();
-			for ( Tag tag : resources.getTags() ) {
+			for (Tag tag : resources.getTags()) {
 				rTags.add(tag.getTagId());
 			}
 			tagMapper.addResourcesTag(rTags, resources.getrId());
@@ -85,30 +87,30 @@ public class ResourceServiceIMPL implements ResourcesService {
 		return ReturnResult.isTrue("资源信息插入成功", resources);
 	}
 	
-	private ReturnResult<Resources> testNewResourcesMxg (Resources resources) {
+	private ReturnResult<Resources> testNewResourcesMxg(Resources resources) {
 		ResourcesExample resourcesExample = new ResourcesExample();
 		resourcesExample.createCriteria()
 				.andRManufacturerEqualTo(resources.getrManufacturer())
 				.andRNameEqualTo(resources.getrName());
 		List<Resources> resources1 = resourcesMapper.selectByExample(resourcesExample);
-		if ( resources1.isEmpty() ) return new ReturnResult<Resources>().operationTrue("资源信息可用", null);
-		if ( resources1.size() == 1 && resources1.getFirst().getrId().equals(resources.getrId()) )
+		if (resources1.isEmpty()) return new ReturnResult<Resources>().operationTrue("资源信息可用", null);
+		if (resources1.size() == 1 && resources1.getFirst().getrId().equals(resources.getrId()))
 			return new ReturnResult<Resources>().operationTrue("资源信息可用", null);
 		throw new OperationException("资源的资源名称和资源厂家/发行商重复");
 	}
 	
 	@Override
-	public ReturnResult<Resources> updateResources (Resources resources) {
+	public ReturnResult<Resources> updateResources(Resources resources) {
 		ReturnResult<Resources> resourcesReturnResult = testNewResourcesMxg(resources);
-		if ( !resourcesReturnResult.isOperationResult() ) return resourcesReturnResult;
+		if (!resourcesReturnResult.isOperationResult()) return resourcesReturnResult;
 		WriteError.tryWrite(resourcesMapper.updateByPrimaryKeyWithBLOBs(resources));
 		//更新tag信息
 		ResourcesTagMapExample resourcesTagMapExample = new ResourcesTagMapExample();
 		resourcesTagMapExample.createCriteria().andRIdEqualTo(resources.getrId());
 		resourcesTagMapMapper.deleteByExample(resourcesTagMapExample);
-		if ( resources.getTags() != null && !resources.getTags().isEmpty() ) {//更新数据库中的映射关系
+		if (resources.getTags() != null && !resources.getTags().isEmpty()) {//更新数据库中的映射关系
 			List<Integer> rTags = new ArrayList<>();
-			for ( Tag tag : resources.getTags() ) rTags.add(tag.getTagId());
+			for (Tag tag : resources.getTags()) rTags.add(tag.getTagId());
 			WriteError.tryWrite(tagMapper.addResourcesTag(rTags, resources.getrId()), resources.getTags().size());
 		}
 		redisMemoryService.saveData(resources);
@@ -116,7 +118,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 	}
 	
 	@Override
-	public ReturnResult<Resources> deleteResources (Integer rId) {
+	public ReturnResult<Resources> deleteResources(Integer rId) {
 		//更新数据库
 		Resources resources = resourcesMapper.selectByPrimaryKey(rId);
 		ResourcesTagMapExample example = new ResourcesTagMapExample();
@@ -126,8 +128,9 @@ public class ResourceServiceIMPL implements ResourcesService {
 		redisMemoryService.deleteKey(rId, Resources.class);
 		return new ReturnResult<Resources>().operationTrue("资源成功删除", resources);
 	}
+	
 	@Override
-	public List<Resources> getAllResources () {
+	public List<Resources> getAllResources() {
 		//  从数据库获取所有资源及相关信息
 		Map<Integer, Resources> resourcesMap = resourcesMapper.gatResourcesMap();
 		
@@ -169,7 +172,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 			
 			//设置拓展信息
 			ResourceExtensionInformation ext = extensionMap.get(res.getrId());
-			if ( ext != null ) {
+			if (ext != null) {
 				res.setResourceExtensionInformation(ext);
 			}
 		});
@@ -182,42 +185,55 @@ public class ResourceServiceIMPL implements ResourcesService {
 	}
 	
 	@Override
-	public ReturnResult<SelectViewMag> getResourceStatics () {
+	public ReturnResult<SelectViewMag> getResourceStatics() {
 		List<ResourceStatics> resourceStatics = resourceStatisticsMapper.getResourceStatics();
 		Map<String, Long> result = new HashMap<>();
-		for ( ResourceStatics r : resourceStatics ) {
+		for (ResourceStatics r : resourceStatics) {
 			result.put(r.getrType(), r.getSize());
 		}
 		SelectViewMag selectViewMag = new SelectViewMag();
-		if ( resourceStatics.isEmpty() ) return ReturnResult.isFalse("全局统计信息获取失败!");
+		if (resourceStatics.isEmpty()) return ReturnResult.isFalse("全局统计信息获取失败!");
 		selectViewMag.setResourceStatistics(result);
 		return ReturnResult.isTrue("全局统计信息获取成功!", selectViewMag);
 	}
 	
 	@Override
-	public Resources getResource (int rId) {
+	public Resources getResource(int rId) {
 		Resources resources = redisMemoryService.getData(rId, Resources.class);
-		if ( resources == null || resources.getrId() == null ) {
+		if (resources == null || resources.getrId() == null) {
 			resources = resourcesMapper.selectByPrimaryKey(rId);
 			redisMemoryService.saveData(resources);
 		}
-		if ( resources == null || resources.getrId() == null ) throw new OperationException("您请求的资源不存在!");
+		if (resources == null || resources.getrId() == null) throw new OperationException("您请求的资源不存在!");
 		return resources;
 	}
 	
 	@Override
-	public List<Resources> getResourceList (int start, int end) {
+	public List<Resources> getResourceList(int start, int end) {
 		List<Resources> resources = redisMemoryService.getPagedResources(start, end);
-		if ( resources == null || resources.isEmpty() )
+		if (resources == null || resources.isEmpty())
 			resources = resourcesMapper.selectPage(start, end - start + 1);
-		if ( resources == null || resources.isEmpty() ) throw new OperationException("您请求的资源不存在!");
+		if (resources == null || resources.isEmpty()) throw new OperationException("您请求的资源不存在!");
 		return resources;
 	}
 	
 	@Override
-	public Integer getResourceListSize () {
+	public Integer getResourceListSize() {
 		int size = redisMemoryService.getResourceListSize();
-		if ( size == 0 ) size = resourcesMapper.getResourceListSize();
+		if (size == 0) size = resourcesMapper.getResourceListSize();
 		return size;
+	}
+	
+	@Override
+	public List<ResourcesFileMap> getResourceFileList(int rId) {
+		if (rId < 0) throw new OperationException("错误!不存在的资源信息");
+		ResourcesFileMapExample example = new ResourcesFileMapExample();
+		example.createCriteria()
+				.andRIdEqualTo(rId);
+		List<ResourcesFileMap> list = resourcesFileMap.selectByExample(example);
+		if (list == null || list.isEmpty())
+			return List.of();
+		else
+			return list;
 	}
 }

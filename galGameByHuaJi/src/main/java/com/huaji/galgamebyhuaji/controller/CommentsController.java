@@ -18,10 +18,15 @@ import java.util.List;
 @Controller
 @RequestMapping("/api")
 public class CommentsController extends BaseController {
-	@Autowired
+	final
 	CommentService commentService;
-	@Autowired
+	final
 	CollectServlet collectServlet;
+	
+	public CommentsController(CommentService commentService, CollectServlet collectServlet) {
+		this.commentService = commentService;
+		this.collectServlet = collectServlet;
+	}
 	
 	@GetMapping("/Resources/getComments/{rId}")
 	@ResponseBody

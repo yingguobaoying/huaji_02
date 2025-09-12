@@ -1,7 +1,7 @@
 package com.huaji.galgamebyhuaji.service.impl;
 
 import com.huaji.galgamebyhuaji.config.JWTConfig;
-import com.huaji.galgamebyhuaji.constant.Constant;
+import com.huaji.galgamebyhuaji.constant.SystemConstant;
 import com.huaji.galgamebyhuaji.dao.UserTokenMapper;
 import com.huaji.galgamebyhuaji.entity.UserToken;
 import com.huaji.galgamebyhuaji.enumPackage.ErrorEnum;
@@ -11,7 +11,6 @@ import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
-import com.huaji.galgamebyhuaji.myUtil.JWTTokenCacheUtil;
 import com.huaji.galgamebyhuaji.myUtil.JWTUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.TokenService;
@@ -29,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static com.huaji.galgamebyhuaji.constant.GlobalLock.getLockForUser;
 import static com.huaji.galgamebyhuaji.constant.GlobalLock.unlockForUser;
 
+
 @Service
 @Transactional
 public class TokenServiceImpl implements TokenService {
@@ -39,23 +39,24 @@ public class TokenServiceImpl implements TokenService {
 	@Autowired
 	JWTConfig jwtConfig;
 	
-	public UserToken verifyToken (String token, int userId, TokenType type,
-	                              @Nullable String ip, boolean needUpdate)
+	public <T extends OnlineUser> UserToken verifyToken(String token, int userId, TokenType type,
+	                                                    @Nullable String ip, boolean needUpdate)
 			throws SessionExceptions {
 		
 		// 1. 基础令牌验证
-		if ( !jwtUtil.isTokenUsable(token) ) {
+		if (!jwtUtil.isTokenUsable(token)) {
 			throw new OperationException("令牌已过期");
 		}
 		// 2. 解析JWT内容
-		ReturnResult<OnlineUser> result = jwtUtil.parseToken(token, Constant.JWT_TOKEN_NAME, OnlineUser.class);
-		if ( userId == -1 )
+		Class<T> tClass = (Class<T>) type.getTokenClazz();
+		ReturnResult<T> result = jwtUtil.parseToken(token, SystemConstant.JWT_TOKEN_NAME, tClass);
+		if (userId == -1)
 			userId = result.getReturnResult().getUserId();
-		if ( result.isHasError() ) {
+		if (result.isHasError()) {
 			throw new OperationException("令牌解析失败: " + result.getMxg());
 		}
-		OnlineUser onlineUser = result.getReturnResult();
-		if ( -1 != userId && !TokenType.DEFAULT_STATUS.equals(type) )
+		T onlineUser = result.getReturnResult();
+		if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
 			// 3. 关键信息校验
 			validateTokenConsistency(userId, type, ip, onlineUser);
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
@@ -63,16 +64,15 @@ public class TokenServiceImpl implements TokenService {
 			lock.lock();
 			// 4. 数据库令牌验证
 			List<UserToken> validTokens = userTokenMapper.verifyToken(token, userId, type.getStatusNum());
-			if ( validTokens.size() != 1 ) {
-				if ( validTokens.size() > 1 )
+			if (validTokens.size() != 1) {
+				if (validTokens.size() > 1)
 					throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
 				else
 					throw new SessionExceptions("错误!您的会话信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
 			}
 			UserToken userToken = validTokens.getFirst();
-			JWTTokenCacheUtil.setCache(token, onlineUser);
 			// 5. 安全延期令牌
-			if ( needUpdate )
+			if (needUpdate)
 				return maybeRefreshToken(token, userToken);
 			else
 				return userToken;
@@ -82,64 +82,71 @@ public class TokenServiceImpl implements TokenService {
 	}
 	
 	@Override
-	public OnlineUser VerifyAndParse (String token, int userId, TokenType type,
-	                                  @Nullable String ip)
+	public <T extends OnlineUser> T VerifyAndParse(String token, int userId, TokenType type,
+	                                               @Nullable String ip)
 			throws SessionExceptions {
 		
 		// 1. 基础令牌验证
-		if ( !jwtUtil.isTokenUsable(token) ) {
+		if (!jwtUtil.isTokenUsable(token)) {
 			throw new OperationException("令牌已过期");
 		}
+		
 		// 2. 解析JWT内容
-		ReturnResult<OnlineUser> result = jwtUtil.parseToken(token, Constant.JWT_TOKEN_NAME, OnlineUser.class);
-		if ( userId == -1 )
+		if (type == null) type = TokenType.DEFAULT_STATUS;
+		Class<T> clazz = (Class<T>) type.getTokenClazz();
+		ReturnResult<T> result = jwtUtil.parseToken(token, SystemConstant.JWT_TOKEN_NAME, clazz);
+		
+		if (userId == -1)
 			userId = result.getReturnResult().getUserId();
-		if ( result.isHasError() ) {
+		if (result.isHasError()) {
 			throw new OperationException("令牌解析失败: " + result.getMxg());
 		}
-		OnlineUser onlineUser = result.getReturnResult();
-		if ( -1 != userId && !TokenType.DEFAULT_STATUS.equals(type) )
+		
+		T onlineUser = result.getReturnResult();
+		
+		if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
 			// 3. 关键信息校验
 			validateTokenConsistency(userId, type, ip, onlineUser);
+		
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
 		try {
 			lock.lock();
 			// 4. 数据库令牌验证
 			List<UserToken> validTokens = userTokenMapper.verifyToken(token, userId, type.getStatusNum());
-			if ( validTokens.size() != 1 ) {
-				if ( validTokens.size() > 1 )
+			if (validTokens.size() != 1) {
+				if (validTokens.size() > 1)
 					throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
 				else
-					throw new SessionExceptions("错误!您的会话信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
+					throw new SessionExceptions("错误!您的令牌信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
 			}
-			// 5. 安全延期令牌
 			return onlineUser;
 		} finally {
 			unlockForUser(lock, onlineUser.getUserId());
 		}
 	}
 	
-	private void validateTokenConsistency (int userId, TokenType type,
-	                                       @Nullable String ip,
-	                                       OnlineUser onlineUser) throws SessionExceptions {
-		if ( onlineUser == null || type == null ) {
+	private void validateTokenConsistency(int userId, TokenType type,
+	                                      @Nullable String ip,
+	                                      OnlineUser onlineUser) throws SessionExceptions {
+		if (onlineUser == null || type == null) {
 			throw new SessionExceptions("令牌不匹配", ErrorEnum.SESSION_TOKEN_ERROR);
 		}
 		// 用户ID和类型校验
-		if ( onlineUser.getUserId() != userId ||
-				!type.equals(onlineUser.getTokenType()) ) {
+		if (onlineUser.getUserId() != userId ||
+				!type.equals(onlineUser.getTokenType())) {
 			throw new SessionExceptions("令牌不匹配", ErrorEnum.SESSION_TOKEN_ERROR);
 		}
 		
 		// IP校验（当提供IP时）
-		if ( !MyStringUtil.isNull(ip) && !ip.equals(onlineUser.getIp()) ) {
-			throw new SessionExceptions("IP变更", ErrorEnum.SESSION_IP_CHANGED);
+		if (!MyStringUtil.isNull(ip) && !ip.equals(onlineUser.getIp())) {
+			if (!MyStringUtil.isNull(onlineUser.getIp()))
+				throw new SessionExceptions("IP变更", ErrorEnum.SESSION_IP_CHANGED);
 		}
 		
 	}
 	
-	private UserToken maybeRefreshToken (String oldToken, UserToken userToken) {
-		if ( !jwtUtil.isAboutToExpire(oldToken) ) {
+	private <T extends OnlineUser> UserToken maybeRefreshToken(String oldToken, UserToken userToken) {
+		if (!jwtUtil.isAboutToExpire(oldToken)) {
 			return userToken;
 		}
 		
@@ -148,15 +155,15 @@ public class TokenServiceImpl implements TokenService {
 		try {
 			lock.lock();
 			// 双重检查锁模式
-			if ( !jwtUtil.isAboutToExpire(oldToken) ) {
+			if (!jwtUtil.isAboutToExpire(oldToken)) {
 				return userToken;
 			}
-			
-			String newToken = jwtUtil.getTokenUsableTime(oldToken, Constant.JWT_TOKEN_NAME, OnlineUser.class);
+			Class<T> c = (Class<T>) TokenType.getTokenType(userToken.getType()).getTokenClazz();
+			String newToken = jwtUtil.getTokenUsableTime(oldToken, SystemConstant.JWT_TOKEN_NAME, c);
 			
 			userToken.setToken(newToken);
 			userToken.setDieTime(jwtUtil.getTokenExpireTime(newToken));
-			if ( userToken.getTokenId() == null )
+			if (userToken.getTokenId() == null)
 				throw new OperationException("错误!您的会话令牌更新失败!请联系管理员或者重新进行登录");
 			WriteError.tryWrite(userTokenMapper.updateByPrimaryKeySelective(userToken));
 			return userToken;
@@ -167,21 +174,21 @@ public class TokenServiceImpl implements TokenService {
 	
 	@Override
 	@Cacheable(value = "tokenValid", key = "#token")
-	public UserToken verifyToken (String token, int userId, @Nullable String ip, boolean needUpdate) throws SessionExceptions {
+	public UserToken verifyToken(String token, int userId, @Nullable String ip, boolean needUpdate) throws SessionExceptions {
 		return verifyToken(token, userId, TokenType.DEFAULT_STATUS, ip, needUpdate);
 	}
 	
 	@Override
 	@CacheEvict(value = "tokenValid", key = "#token")
-	public UserToken invalidateToken (String token, int userId, TokenType type) throws SessionExceptions {
-		if ( MyStringUtil.isNull(token) )
+	public UserToken invalidateToken(String token, int userId, TokenType type) throws SessionExceptions {
+		if (MyStringUtil.isNull(token))
 			throw new OperationException("错误!!令牌为空!");
 		// 令牌验证保证用户是登录的,令牌失效后需要重新登录
 		UserToken userToken = verifyToken(token, userId, type, null, false);
 		//应该是有效的登录用户,并且传入的id,type和token一致
 		int i = userTokenMapper.invalidateToken(token, userId, type.getStatusNum(), new Date(114514));
-		if ( i != 1 ) {
-			if ( i == 0 )
+		if (i != 1) {
+			if (i == 0)
 				throw new SessionExceptions("错误!您的会话信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
 			else
 				throw new SessionExceptions("错误!您当前存在多个会话信息!请联系管理员进行解除", ErrorEnum.SESSION_REPEAT_ERROR);
@@ -192,32 +199,32 @@ public class TokenServiceImpl implements TokenService {
 	
 	@Override
 	@CacheEvict(value = "tokenValid", key = "#token")
-	public UserToken invalidateToken (String token, int userId) throws SessionExceptions {
+	public UserToken invalidateToken(String token, int userId) throws SessionExceptions {
 		return invalidateToken(token, userId, TokenType.DEFAULT_STATUS);
 	}
 	
 	
 	@Override
-	public UserToken insertToken (OnlineUser onlineUser, TokenType type, @Nullable long time) throws SessionExceptions {
+	public UserToken insertToken(OnlineUser onlineUser, TokenType type, @Nullable long time) throws SessionExceptions {
 		//可能需要覆盖原有失效令牌
-		if ( type == null ) type = TokenType.DEFAULT_STATUS;
-		if ( onlineUser == null ) throw new OperationException("令牌生成失败!");
-		if ( time <= 0 || TokenType.DEFAULT_STATUS.equals(type) )
+		if (type == null) type = TokenType.DEFAULT_STATUS;
+		if (onlineUser == null) throw new OperationException("令牌生成失败!");
+		if (time <= 0 || TokenType.DEFAULT_STATUS.equals(type))
 			time = jwtConfig.getExpirationTime();
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
 		try {
 			lock.lock();
 			List<UserToken> tokens = userTokenMapper.getTokens(onlineUser.getUserId(), type.getStatusNum());
-			if ( tokens.size() > 1 )
+			if (tokens.size() > 1)
 				throw new SessionExceptions("错误!您当前存在多个会话信息!请联系管理员进行解除", ErrorEnum.SESSION_REPEAT_ERROR);
-			if ( tokens.size() == 1 ) {
+			if (tokens.size() == 1) {
 				UserToken userToken = tokens.getFirst();
-				userToken.setToken(jwtUtil.generateToken(Constant.JWT_TOKEN_NAME, onlineUser, time));
+				userToken.setToken(jwtUtil.generateToken(SystemConstant.JWT_TOKEN_NAME, onlineUser, time));
 				userToken.setDieTime(jwtUtil.getTokenExpireTime(userToken.getToken()));
 				WriteError.tryWrite(userTokenMapper.updateByPrimaryKeySelective(userToken));
 				return userToken;
 			} else {
-				String s = jwtUtil.generateToken(Constant.JWT_TOKEN_NAME, onlineUser, time);
+				String s = jwtUtil.generateToken(SystemConstant.JWT_TOKEN_NAME, onlineUser, time);
 				UserToken userToken = new UserToken();
 				userToken.setUserId(onlineUser.getUserId());
 				userToken.setToken(s);

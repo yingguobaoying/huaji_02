@@ -32,18 +32,18 @@ public interface TokenService {
      * @return 验证通过的用户令牌信息
      * @throws SessionExceptions 如果令牌验证失败或已过期
      */
-    UserToken verifyToken(String token, int userId, TokenType type, @Nullable String ip, boolean needUpdate) throws SessionExceptions;
+    <T extends OnlineUser> UserToken verifyToken(String token, int userId, TokenType type, @Nullable String ip, boolean needUpdate) throws SessionExceptions;
     
     /**
      * 验证并解析用户,请注意此方法不支持自动续期
      * @param token 需要解析和验证的令牌
-     * @param userId 用户ID
+     * @param userId 用户ID,为-1时代表不验证用户ID
      * @param type 类型
      * @param ip 用户IP
      * @return 通过解析的用户
      * @throws SessionExceptions 如果令牌验证失败或已过期
      */
-    OnlineUser VerifyAndParse (String token, int userId, TokenType type,
+    <T extends OnlineUser> T VerifyAndParse (String token, int userId, TokenType type,
                                @Nullable String ip)
             throws SessionExceptions;
     
@@ -107,5 +107,5 @@ public interface TokenService {
      * @return 新创建或更新的用户令牌
      * @throws SessionExceptions 如果令牌创建失败或用户信息不完整
      */
-    UserToken insertToken(OnlineUser user, TokenType type, @Nullable long time) throws SessionExceptions;
+     UserToken  insertToken(OnlineUser user, TokenType type, @Nullable long time) throws SessionExceptions;
 }

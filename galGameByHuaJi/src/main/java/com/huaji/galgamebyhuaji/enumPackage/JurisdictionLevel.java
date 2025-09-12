@@ -90,4 +90,11 @@ public enum JurisdictionLevel {
 				.map(Enum::name) // 注意这里用 name(), 与 hasAnyRole 对应
 				.toArray(String[]::new);
 	}
+	
+	public static String[] getOwnedJurisdictions(int userLevel) {
+		return Arrays.stream(VALUES)
+				.filter(v -> v.getLevel() <= userLevel) //获取用户等级及以下的所有权限
+				.map(Enum::name)
+				.toArray(String[]::new);
+	}
 }

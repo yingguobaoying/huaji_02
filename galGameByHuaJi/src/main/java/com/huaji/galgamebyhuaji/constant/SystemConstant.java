@@ -2,7 +2,7 @@ package com.huaji.galgamebyhuaji.constant;
 
 public class SystemConstant {
 	/**
-	 * 令牌在cookie中的名称
+	 * 令牌的名称
 	 */
 	public static final String JWT_TOKEN_NAME = "GalGameWebsiteByHuaJiUserJWT";
 	/**

@@ -1,7 +1,6 @@
 package com.huaji.galgamebyhuaji.myUtil;
 
 import com.huaji.galgamebyhuaji.config.EncryptionKey;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -40,10 +39,11 @@ public class PasswordEncryptionUtil {
 	/**
 	 * 固定盐值
 	 */
-	@Autowired
-	private EncryptionKey encryptionProperties;
-
-
+	private final EncryptionKey encryptionProperties;
+	
+	public PasswordEncryptionUtil(EncryptionKey encryptionProperties) {this.encryptionProperties = encryptionProperties;}
+	
+	
 	/**
 	 * 生成随机盐值。
 	 *

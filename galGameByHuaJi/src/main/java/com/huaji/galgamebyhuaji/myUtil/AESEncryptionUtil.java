@@ -4,6 +4,7 @@ import com.huaji.galgamebyhuaji.config.EncryptionKey;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 import java.util.Base64;
 
 @Component
+@Lazy
 public class AESEncryptionUtil {
 	private static final String ALGORITHM = "AES";
 	private static final String TRANSFORMATION = "AES/GCM/NoPadding";

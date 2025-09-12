@@ -5,6 +5,7 @@ import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -22,6 +23,7 @@ import java.util.*;
  * 支持密钥轮换、版本管理和安全增强
  */
 @Component
+@DependsOn("vaultConfigValidator")
 public class JWTConfig {
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	private static final String KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA512";
@@ -99,7 +101,7 @@ public class JWTConfig {
 	}
 
 	/**
-	 * 使用PBKDF2派生安全密钥（替代不安全的迭代哈希）
+	 * 使用PBKDF2派生安全密钥
 	 */
 	private byte[] deriveKey(String rawKey, byte[] salt) {
 		try {

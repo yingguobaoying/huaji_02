@@ -8,7 +8,9 @@ import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
 import java.util.Date;
 
 public class Constant {
-	//全局游客信息,此处使用的是伪单例
+	/**
+	 * 全局游客信息,此处使用的是伪单例
+	 */
 	public final static Users TOURIST = new Tourist();
 	/**
 	 * 资源保存位置
@@ -30,10 +32,6 @@ public class Constant {
 	 * 用来防止时序攻击的恒定比较密码
 	 */
 	public static String CONSTANT_PASSWORD;
-	/**
-	 * 令牌名称
-	 */
-	public final static String JWT_TOKEN_NAME = "galGameByHuaJi";
 	/**
 	 * 初始硬币
 	 */
@@ -62,146 +60,147 @@ public class Constant {
 	 * 资源购买后的有效时间,单位为小时
 	 */
 	public static final int RESOURCE_EXPIRATION_TIME = 24;
+	/**
+	 * 验证邮件有效期,单位毫秒
+	 */
+	public static final long VERIFY_EMAIL_VALID_TIME = 1000*60*60*12;
 }
 
 class Tourist extends UsersWithBLOBs {
 	@Override
-	public void setUserPassword (String userPassword) {
+	public void setUserPassword(String userPassword) {
 	}
 	
 	@Override
-	public void setBio (String bio) {
+	public void setBio(String bio) {
 	}
 	
 	@Override
-	public void setUserId (Integer userId) {
+	public void setUserId(Integer userId) {
 	}
 	
 	@Override
-	public void setUserName (String userName) {
+	public void setUserName(String userName) {
 	}
 	
 	@Override
-	public void setUserNameLogin (String userNameLogin) {
+	public void setUserNameLogin(String userNameLogin) {
 	}
 	
 	@Override
-	public void setCoin (Integer coin) {
+	public void setCoin(Integer coin) {
 	}
 	
 	@Override
-	public void setMailbox (String mailbox) {
+	public void setMailbox(String mailbox) {
 	}
 	
 	@Override
-	public void setUserHeadPortraitUrl (String userHeadPortraitUrl) {
+	public void setUserHeadPortraitUrl(String userHeadPortraitUrl) {
 	}
 	
 	@Override
-	public void setStatus (String status) {
+	public void setStatus(String status) {
 	}
 	
 	@Override
-	public void setSex (String sex) {
+	public void setSex(String sex) {
 	}
 	
 	@Override
-	public void setJurisdiction (Integer jurisdiction) {
+	public void setJurisdiction(Integer jurisdiction) {
 	}
 	
 	@Override
-	public void setBirthday (Date birthday) {
+	public void setBirthday(Date birthday) {
 	}
 	
 	@Override
-	public void setRegisterTime (Date registerTime) {
+	public void setRegisterTime(Date registerTime) {
 	}
 	
 	@Override
-	public void setUserPe (String userPe) {
+	public void setUserPe(String userPe) {
 	}
 	
 	@Override
-	public String getBio () {
+	public String getBio() {
 		return null;
 	}
 	
 	@Override
-	public String getUserName () {
+	public String getUserName() {
 		return "游客用户";
 	}
 	
 	@Override
-	public String getUserNameLogin () {
+	public String getUserNameLogin() {
 		return "未登录的游客";
 	}
 	
 	@Override
-	public String getUserPassword () {
+	public String getUserPassword() {
 		return null;
 	}
 	
 	@Override
-	public Integer getUserId () {
+	public Integer getUserId() {
 		return -1;
 	}
 	
 	@Override
-	public Integer getCoin () {
+	public Integer getCoin() {
 		return 0;
 	}
 	
 	@Override
-	public String getMailbox () {
+	public String getMailbox() {
 		return "未登录的游客";
 	}
 	
 	@Override
-	public String getUserHeadPortraitUrl () {
+	public String getUserHeadPortraitUrl() {
 		return null;
 	}
 	
 	@Override
-	public String getStatus () {
+	public String getStatus() {
 		return "未登录的游客";
 	}
 	
 	@Override
-	public String getSex () {
+	public String getSex() {
 		return "未知";
 	}
 	
 	@Override
-	public Date getBirthday () {
+	public Date getBirthday() {
 		return new Date(0);
 	}
 	
 	@Override
-	public Date getRegisterTime () {
+	public Date getRegisterTime() {
 		return null;
 	}
 	
 	@Override
-	public String getUserPe () {
+	public String getUserPe() {
 		return null;
 	}
 	
 	@Override
-	public Integer getJurisdiction () {
+	public Integer getJurisdiction() {
 		return JurisdictionLevel.TOURIST_JURISDICTION.getLevel();
 	}
 	
-	/**
-	 * @param o
-	 *
-	 * @return
-	 */
+
 	@Override
-	public boolean equals (Object o) {
-		if ( this == o ) return true;
-		if ( o == null || getClass() != o.getClass() ) return false;
-		//防止是其他地方新建的游客
-		Users users = (Users) o;
-		return getUserId().equals(users.getUserId());
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		return switch (o) {
+			case Tourist tourist -> true;
+			case Users users -> getUserId().equals(users.getUserId());
+			case null, default -> false;
+		};
 	}
 }

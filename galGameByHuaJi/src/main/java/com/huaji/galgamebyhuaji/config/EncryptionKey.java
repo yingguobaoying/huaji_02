@@ -1,9 +1,11 @@
 package com.huaji.galgamebyhuaji.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 @Component
+@DependsOn("vaultConfigValidator")
 public class EncryptionKey {
 	/**
 	 * 加密密码用的密钥
@@ -12,6 +14,6 @@ public class EncryptionKey {
 	private String key;
 
 	public String getKey() {
-		return key;
+	        	return key;
 	}
 }

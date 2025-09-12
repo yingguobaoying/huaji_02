@@ -13,21 +13,21 @@ import java.util.Collection;
 public class LoginUserDetails implements UserDetails {
 	private final Users user;
 	
-	public LoginUserDetails (Users user) {
+	public LoginUserDetails(Users user) {
 		this.user = user;
 	}
 	
-	public LoginUserDetails (UsersWithBLOBs user) {
+	public LoginUserDetails(UsersWithBLOBs user) {
 		this.user = new Users(user);
 	}
 	
 	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities () {
+	public Collection<? extends GrantedAuthority> getAuthorities() {
 		// 获取用户等级
 		JurisdictionLevel userLevel = JurisdictionLevel.getJurisdiction(user.getJurisdiction());
 		
 		// 获取所有权限 >= 用户等级（匹配 SecurityConfig 中 hasAnyRole）
-		String[] roles = JurisdictionLevel.getNeedJurisdiction(userLevel.getLevel());
+		String[] roles = JurisdictionLevel.getOwnedJurisdictions(userLevel.getLevel());
 		
 		// 转换为 GrantedAuthority
 		return Arrays.stream(roles)
@@ -36,26 +36,27 @@ public class LoginUserDetails implements UserDetails {
 	}
 	
 	@Override
-	public String getUsername () {return user.getUserId() + ":" + user.getUserName();}
+	public String getUsername() {return user.getUserId() + ":" + user.getUserName();}
 	
 	/**
 	 * 当前系统未使用密码认证
+	 *
 	 * @return null
 	 */
 	@Override
-	public String getPassword () {return null;}
+	public String getPassword() {return null;}
 	
 	@Override
-	public boolean isAccountNonExpired () {return true;}
+	public boolean isAccountNonExpired() {return true;}
 	
 	@Override
-	public boolean isAccountNonLocked () {return true;}
+	public boolean isAccountNonLocked() {return true;}
 	
 	@Override
-	public boolean isCredentialsNonExpired () {return true;}
+	public boolean isCredentialsNonExpired() {return true;}
 	
 	@Override
-	public boolean isEnabled () {return true;}
+	public boolean isEnabled() {return true;}
 	
-	public Users getUser () {return user;}
+	public Users getUser() {return user;}
 }
