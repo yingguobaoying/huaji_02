@@ -1,7 +1,5 @@
 package com.huaji.galgamebyhuaji.dto;
 
-import com.huaji.galgamebyhuaji.enumPackage.TokenType;
-import com.huaji.galgamebyhuaji.model.jwtToken.BestEntityToken;
 import com.huaji.galgamebyhuaji.model.jwtToken.BuyResourcesUser;
 
 public class BuyResourcesUserDTO {
