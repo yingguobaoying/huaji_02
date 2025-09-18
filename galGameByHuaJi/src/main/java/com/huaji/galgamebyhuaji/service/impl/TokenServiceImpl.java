@@ -53,7 +53,7 @@ public class TokenServiceImpl implements TokenService {
 		if (userId == -1)
 			userId = result.getReturnResult().getUserId();
 		if (result.isHasError()) {
-			throw new OperationException("令牌解析失败: " + result.getMxg());
+			throw new OperationException("令牌解析失败: " + result.getMsg());
 		}
 		T onlineUser = result.getReturnResult();
 		if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
@@ -99,7 +99,7 @@ public class TokenServiceImpl implements TokenService {
 		if (userId == -1)
 			userId = result.getReturnResult().getUserId();
 		if (result.isHasError()) {
-			throw new OperationException("令牌解析失败: " + result.getMxg());
+			throw new OperationException("令牌解析失败: " + result.getMsg());
 		}
 		
 		T onlineUser = result.getReturnResult();

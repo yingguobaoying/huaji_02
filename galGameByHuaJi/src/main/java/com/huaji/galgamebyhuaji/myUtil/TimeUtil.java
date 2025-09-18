@@ -19,6 +19,9 @@ public class TimeUtil {
 			date = new Date();
 		return new SimpleDateFormat("yyyy年MM月dd日HH:mm:ss").format(date);
 	}
+	public static String getVisualDateFormatTime() {
+		return new SimpleDateFormat("yyyy年MM月dd日HH:mm:ss").format(new Date());
+	}
 	
 	public static String getNowTime () {
 		return new SimpleDateFormat("_yyyy_MM_dd_HH_mm_ss").format(new Date());

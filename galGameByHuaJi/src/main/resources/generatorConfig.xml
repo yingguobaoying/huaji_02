@@ -20,13 +20,13 @@
         </commentGenerator>
         <!--连接数据库信息-->
         <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-                        connectionURL="jdbc:mysql://localhost:3306/gal"
-                        userId="hongdouchu"
+                        connectionURL="jdbc:mysql://localhost:3306/game"
+                        userId="root"
                         password="root123456">
         </jdbcConnection>
 
         <!-- 生成pojo包名和位置 -->
-        <javaModelGenerator targetPackage="com.huaji.galgamebyhuaji.entity" targetProject="src/main/java">
+        <javaModelGenerator targetPackage="com.huaji.gamebyhuaji.entity" targetProject="src/main/java">
             <!--是否开启子包-->
             <property name="enableSubPackages" value="true"/>
             <!--是否去除字段名的前后空白-->
@@ -34,7 +34,7 @@
         </javaModelGenerator>
 
         <!-- 生成SQL映射文件的包名和位置 -->
-        <sqlMapGenerator targetPackage="com.huaji.galgamebyhuaji.dao.mapper" targetProject="src/main/resources">
+        <sqlMapGenerator targetPackage="com.huaji.gamebyhuaji.dao.mapper" targetProject="src/main/resources">
             <!--是否开启子包-->
             <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
@@ -42,27 +42,30 @@
         <!-- 生成Mapper接口的包名和位置 -->
         <javaClientGenerator
                 type="xmlMapper"
-                targetPackage="com.huaji.galgamebyhuaji.dao"
+                targetPackage="com.huaji.gamebyhuaji.dao"
                 targetProject="src/main/java">
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
         <!-- 表名和对应的实体类名-->
-<!--        <table tableName="comment" domainObjectName="Comment"/>-->
-        <table tableName="user_download" domainObjectName="UserDownload" modelType="flat"/>
-<!--        <table tableName="feedback" domainObjectName="Feedback"/>-->
-<!--        <table tableName="fen" domainObjectName="Fen"/>-->
-<!--        <table tableName="friend_map" domainObjectName="FriendMap"/>-->
-<!--        <table tableName="links" domainObjectName="Links"/>-->
-<!--        <table tableName="long_text" domainObjectName="LongText"/>-->
-<!--        <table tableName="resource_extension_information" domainObjectName="ResourceExtensionInformation"/>-->
-<!--        <table tableName="resources" domainObjectName="Resources"/>-->
-<!--        <table tableName="resources_jpeg_map" domainObjectName="ResourcesJpegMap"/>-->
-<!--        <table tableName="resources_tag_map" domainObjectName="ResourcesTagMap"/>-->
-<!--        <table tableName="session" domainObjectName="Session"/>-->
-<!--        <table tableName="tag" domainObjectName="Tag"/>-->
-<!--        <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
-<!--        <table tableName="user_token" domainObjectName="UserToken"/>-->
-<!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
-<!--        <table tableName="users" domainObjectName="Users"/>-->
+        <!--        不用的时候一定注释掉所有表!!!!!!!!!-->
+        <!--        不用的时候一定注释掉所有表!!!!!!!!!-->
+        <!--        不用的时候一定注释掉所有表!!!!!!!!!-->
+        <!--        <table tableName="comment" domainObjectName="Comment"/>-->
+        <!--        <table tableName="user_download" domainObjectName="UserDownload" modelType="flat"/>-->
+        <!--        <table tableName="feedback" domainObjectName="Feedback"/>-->
+        <!--        <table tableName="fen" domainObjectName="Fen"/>-->
+        <!--        <table tableName="friend_map" domainObjectName="FriendMap"/>-->
+        <!--        <table tableName="links" domainObjectName="Links"/>-->
+        <!--        <table tableName="long_text" domainObjectName="LongText"/>-->
+        <!--        <table tableName="resource_extension_information" domainObjectName="ResourceExtensionInformation"/>-->
+        <!--        <table tableName="resources" domainObjectName="Resources"/>-->
+        <!--        <table tableName="resources_jpeg_map" domainObjectName="ResourcesJpegMap"/>-->
+        <!--        <table tableName="resources_tag_map" domainObjectName="ResourcesTagMap"/>-->
+        <!--        <table tableName="session" domainObjectName="Session"/>-->
+        <!--        <table tableName="tag" domainObjectName="Tag"/>-->
+        <!--        <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
+        <!--        <table tableName="user_token" domainObjectName="UserToken"/>-->
+        <!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
+        <!--        <table tableName="users" domainObjectName="Users"/>-->
     </context>
 </generatorConfiguration>

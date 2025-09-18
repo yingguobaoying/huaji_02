@@ -13,8 +13,6 @@ public class Session {
 
     private String lastLoginIp;
 
-    private Long tokenId;
-
     public Long getSessionId() {
         return sessionId;
     }
@@ -53,13 +51,5 @@ public class Session {
 
     public void setLastLoginIp(String lastLoginIp) {
         this.lastLoginIp = lastLoginIp == null ? null : lastLoginIp.trim();
-    }
-
-    public Long getTokenId() {
-        return tokenId;
-    }
-
-    public void setTokenId(Long tokenId) {
-        this.tokenId = tokenId;
     }
 }

@@ -2,14 +2,11 @@ package com.huaji.galgamebyhuaji.listen;
 
 
 import com.huaji.galgamebyhuaji.entity.Resources;
+import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
-import com.huaji.galgamebyhuaji.service.RedisMemoryService;
-import com.huaji.galgamebyhuaji.service.ResourcesService;
-import com.huaji.galgamebyhuaji.service.SessionService;
-import com.huaji.galgamebyhuaji.service.TagService;
-import com.huaji.galgamebyhuaji.service.UserMxgServlet;
+import com.huaji.galgamebyhuaji.service.*;
 import jakarta.servlet.ServletContext;
 import org.redisson.api.RBloomFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,8 +44,9 @@ public class IntoListen {
 	private String resourceSavePath;
 	final
 	RedisMemoryService redisMemoryService;
+	final RootServlet rootServlet;
 	
-	public IntoListen(ResourcesService resourcesService, TagService tagService, SessionService sessionService, UserMxgServlet userMxgServlet, ServletContext servletContext, @Qualifier("RNameBloomFilter") RBloomFilter<String> RNameBloomFilter, @Qualifier("manufacturerFilterBloomFilter") RBloomFilter<String> manufacturerFilterBloomFilter, PasswordEncryptionUtil passwordEncryptionUtil, RedisMemoryService redisMemoryService) {
+	public IntoListen(ResourcesService resourcesService, TagService tagService, SessionService sessionService, UserMxgServlet userMxgServlet, ServletContext servletContext, @Qualifier("RNameBloomFilter") RBloomFilter<String> RNameBloomFilter, @Qualifier("manufacturerFilterBloomFilter") RBloomFilter<String> manufacturerFilterBloomFilter, PasswordEncryptionUtil passwordEncryptionUtil, RedisMemoryService redisMemoryService, RootServlet rootServlet) {
 		this.resourcesService = resourcesService;
 		this.tagService = tagService;
 		this.sessionService = sessionService;
@@ -58,13 +56,14 @@ public class IntoListen {
 		this.manufacturerFilterBloomFilter = manufacturerFilterBloomFilter;
 		this.passwordEncryptionUtil = passwordEncryptionUtil;
 		this.redisMemoryService = redisMemoryService;
+		this.rootServlet = rootServlet;
 	}
 	
 	@EventListener
-	public void onContextRefreshed(ContextRefreshedEvent event) {
+	public void onContextRefreshed(ContextRefreshedEvent event) throws SessionExceptions {
 		if (event.getApplicationContext().getParent() == null) {
-			
 			redisMemoryService.delAllData();//清空旧数据
+			rootServlet.rootUserInit();
 			tagService.getTagMap();
 			List<Resources> allResources = resourcesService.getAllResources();
 			userMxgServlet.getAllUserListMxg();

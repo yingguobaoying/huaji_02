@@ -88,5 +88,5 @@ public interface LoginService {
 	 * @param token 用户登录使用的token
 	 * @return 正确信息
 	 */
-	public UserToken loginByToken(String token, HttpServletRequest request) throws BestException;
+	 UserToken loginByToken(String token, HttpServletRequest request) throws BestException;
 }

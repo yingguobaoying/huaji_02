@@ -12,15 +12,19 @@ import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.ErrorEnum;
 import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
 import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
-import com.huaji.galgamebyhuaji.exceptions.*;
+import com.huaji.galgamebyhuaji.exceptions.BestException;
+import com.huaji.galgamebyhuaji.exceptions.OperationException;
+import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
+import com.huaji.galgamebyhuaji.exceptions.UserException;
+import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,18 +50,21 @@ public class LoginServiceIMPL implements LoginService {
 	TagService tagService;
 	final
 	TokenService tokenService;
+	final
+	RootServlet rootServlet;
 	private static final String EMAIL_REGEX =
 			"^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+)*" +
-					"@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
+			"@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
 	private static final Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
 	
-	public LoginServiceIMPL(UsersMapper usersMapper, PasswordEncryptionUtil passwordEncryptionUtil, SessionService sessionService, RedisMemoryService redisMemoryService, TagService tagService, TokenService tokenService) {
+	public LoginServiceIMPL(UsersMapper usersMapper, PasswordEncryptionUtil passwordEncryptionUtil, SessionService sessionService, RedisMemoryService redisMemoryService, TagService tagService, TokenService tokenService, RootServlet rootServlet, RootServlet rootServlet1) {
 		this.usersMapper = usersMapper;
 		this.passwordEncryptionUtil = passwordEncryptionUtil;
 		this.sessionService = sessionService;
 		this.redisMemoryService = redisMemoryService;
 		this.tagService = tagService;
 		this.tokenService = tokenService;
+		this.rootServlet = rootServlet1;
 	}
 	
 	
@@ -70,9 +77,16 @@ public class LoginServiceIMPL implements LoginService {
 			passwordEncryptionUtil.verifyPassword("1145141919810", Constant.CONSTANT_PASSWORD);
 			throw new OperationException("账号或密码不正确，请检查后重试。");
 		}
-		if (login.size() != 1)
+		if (login.size() != 1) {
 			throw new UserException("系统检测到账户信息存在异常，为确保您的账户安全，请稍后重试或联系站长。", login, ErrorEnum.USER_REPEAT_ERROR);
+		}
 		UsersWithBLOBs loginUser = login.getFirst();
+		if (loginUser.getUserId().equals(1) ||
+		    loginUser.getUserId().equals(0)) {//特殊管理员禁止使用密码登录
+			UserToken userToken = rootServlet.rootLogin(users.getUserPassword(), request);
+			request.setAttribute(SystemConstant.SYSTEM_MSG, ClockIn(loginUser.getUserId()));
+			return userToken;
+		}
 		ReentrantLock lock = GlobalLock.getLockForUser(loginUser.getUserId());
 		boolean b = passwordEncryptionUtil.verifyPassword(
 				users.getUserPassword()
@@ -96,7 +110,6 @@ public class LoginServiceIMPL implements LoginService {
 		} finally {
 			GlobalLock.unlockForUser(lock, loginUser.getUserId());
 		}
-		
 	}
 	
 	@Override
@@ -112,19 +125,15 @@ public class LoginServiceIMPL implements LoginService {
 			if (!usersReturnResult.isOperationResult()) return usersReturnResult;
 			users.setUserId(null);//自动递增主键置空,等待数据库填充
 			users.setUserPassword(passwordEncryptionUtil.hashPassword(users.getUserPassword()));
-			if (MyStringUtil.isNull(users.getBio()))
-				users.setBio("ta还没有填写简介信息");
+			if (MyStringUtil.isNull(users.getBio())) {users.setBio("ta还没有填写简介信息");}
 			users.setRegisterTime(new Date());
 			users.setUserHeadPortraitUrl(Constant.DEFAULT_HEAD_PORTRAIT);
 			users.setJurisdiction(JurisdictionLevel.NOT_VALIDATED.getLevel());
 			users.setCoin(Constant.INIT_COIN);
-			if (MyStringUtil.isNull(users.getSex()))
-				users.setSex("不愿透露");
-			if (users.getBirthday() == null)
-				users.setBirthday(new Date(0));
+			if (MyStringUtil.isNull(users.getSex())) {users.setSex("不愿透露");}
+			if (users.getBirthday() == null) {users.setBirthday(new Date(0));}
 			WriteError.tryWrite(usersMapper.insertSelective(users));
-			if (users.getUserId() == null)
-				throw new OperationException("注册失败,请重试");
+			if (users.getUserId() == null) {throw new OperationException("注册失败,请重试");}
 			Users u = new Users();
 			u.setUserId(users.getUserId());
 			u.setUserHeadPortraitUrl(users.getUserHeadPortraitUrl());
@@ -149,32 +158,36 @@ public class LoginServiceIMPL implements LoginService {
 		sessionService.testLoginTime(userToken.getUserId());
 		//获取用户信息
 		Users userJurisdictionMsg = usersMapper.getUserJurisdiction(userToken.getUserId());
-		if (userJurisdictionMsg == null || userJurisdictionMsg.getUserId() == null)
+		if (userJurisdictionMsg == null || userJurisdictionMsg.getUserId() == null) {
 			throw new OperationException("错误!不存在用户ID为:%s的用户!".formatted(userToken.getUserId()));
+		}
 		//检查权限是否足够
 		Integer jurisdictionLever = userJurisdictionMsg.getJurisdiction();
 		if ( //但用户的权限为为认证,并且需要的权限恰好为正常用户时触发特殊提醒
 				jurisdictionLever == JurisdictionLevel.NOT_VALIDATED.getLevel()
-						&& needJurisdiction.getLevel() == JurisdictionLevel.USERS_JURISDICTION.getLevel()) {
+				&& needJurisdiction.getLevel() == JurisdictionLevel.USERS_JURISDICTION.getLevel()) {
 			throw new OperationException("此项操作需要您先完成邮箱验证。请前往【个人中心】完善验证，以便获得完整的使用体验。");
 		}
-		if (needJurisdiction.getLevel() > jurisdictionLever)
+		if (needJurisdiction.getLevel() > jurisdictionLever) {
 			throw new OperationException(
 					"抱歉，您当前的权限（{%s}）无法执行此操作。该功能需要 {%s} 及以上权限才能访问"
 							.formatted(
 									needJurisdiction.getName(),
 									JurisdictionLevel.getJurisdiction(jurisdictionLever).getName())
 			);
+		}
 		return userJurisdictionMsg;
 	}
 	
 	@Override
 	public ReturnResult<Users> testRegisterMxg(Users users, Integer testUserId) {
-		if (MyStringUtil.isNull(users.getUserPe()))
+		if (MyStringUtil.isNull(users.getUserPe())) {
 			users.setUserPe(null);//防止出现,非必要的登录字段为空
+		}
 		if (MyStringUtil.isNull(users.getMailbox())) throw new OperationException("邮箱不可为空，请填写邮箱地址。");
-		if (MyStringUtil.isNull(users.getUserNameLogin()))
+		if (MyStringUtil.isNull(users.getUserNameLogin())) {
 			throw new OperationException("用户名不可为空，请设置您的昵称或用户名。");
+		}
 		if (!emailPattern.matcher(users.getMailbox()).matches()) {
 			throw new OperationException("邮箱格式不正确，请检查后重新输入。");
 		}
@@ -182,16 +195,18 @@ public class LoginServiceIMPL implements LoginService {
 			throw new OperationException("手机号码格式有误，请输入有效的中国大陆手机号。");
 		}
 		List<Users> users1 = usersMapper.testRegisterMxg(users);
-		if (users1 == null || users1.isEmpty())
+		if (users1 == null || users1.isEmpty()) {
 			return new ReturnResult<Users>().operationTrue("信息验证成功,当前信息无人使用", null);
+		}
 		boolean isLoginName = true;
 		boolean isUserEmail = true;
 		boolean isUserPE = true;
 		boolean hasPe = !MyStringUtil.isNull(users.getUserPe());
 		Users returnUser = new Users();
 		if (users1.size() == 1 && testUserId != null) {
-			if (testUserId.equals(users1.getFirst().getUserId()))
+			if (testUserId.equals(users1.getFirst().getUserId())) {
 				return new ReturnResult<Users>().operationTrue("信息验证成功,当前信息无人使用", null);
+			}
 		}
 		for (Users u : users1) {
 			if (isLoginName && equalsRepetition(users.getUserNameLogin(), u)) {
@@ -219,26 +234,33 @@ public class LoginServiceIMPL implements LoginService {
 	
 	private boolean equalsRepetition(String s, Users u) {
 		return s.equals(u.getMailbox()) ||
-				s.equals(u.getUserPe()) ||
-				s.equals(u.getUserNameLogin());
+		       s.equals(u.getUserPe()) ||
+		       s.equals(u.getUserNameLogin());
 	}
 	
 	public String ClockIn(Integer userId) throws SessionExceptions {
 		boolean clockInResult = false;
-		if (userId == null)
+		if (userId == null) {
 			throw new SessionExceptions("用户信息不存在或已被删除，请重新登录。", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
+		}
 		Session session = sessionService.getSession(userId);
 		ReentrantLock lockForUser = GlobalLock.getLockForUser(userId);
 		try {
 			lockForUser.lock();
 			if (session == null) {//不存在会话时说明是第一次登陆签到成功
 				clockInResult = true;
-			} else {
+			}
+			else {
 				Date lastLoginTime = session.getLastLoginTime();
 				clockInResult = TimeUtil.isYesterdayOrEarlier(lastLoginTime);
 			}
 			if (clockInResult) {//上次登陆时间在昨天或者以前,开始签到
 				WriteError.tryWrite(usersMapper.userClockIn(userId, CHECK_IN_SCORE));
+				MyLogUtil.info(UserBehaviorService.class,
+				               "ID为{%d}的用户于%s签到成功!获取积分%d".formatted(
+						               userId,
+						               TimeUtil.getVisualDateFormatTime(),
+						               CHECK_IN_SCORE));
 				return "签到成功!您获得了%d个硬币(积分)".formatted(CHECK_IN_SCORE);
 			}
 			return "";

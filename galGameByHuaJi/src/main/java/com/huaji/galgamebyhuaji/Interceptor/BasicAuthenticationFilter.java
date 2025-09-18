@@ -71,7 +71,8 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 							int keepTime = 3600;
 							ElseUtil.setUserMxgCookie(response, users, keepTime);
 							response.setHeader(SystemConstant.JWT_TOKEN_NAME, userToken.getToken());
-							MyLogUtil.info(BasicAuthenticationFilter.class,
+							//由于是登录行为因此归类到登录日志里面去
+							MyLogUtil.info(LoginService.class,
 							               "用户ID为{%d}的用户{%s}在基础过滤器中完成了登录, 登录IP: {%s}".formatted(
 									               users.getUserId(),
 									               users.getUserName(),
@@ -81,10 +82,12 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 				} catch (Exception e) {
 					// Token认证失败，降级为游客
 					user = Constant.TOURIST;
-					MyLogUtil.error(BasicAuthenticationFilter.class,
+					//由于是登录行为因此归类到登录日志里面去
+					MyLogUtil.error(LoginService.class,
 					                "用户在基础过滤器中登录失败, 降级为游客, 登录IP: {%s}".formatted(ElseUtil.getClientIp(request)), e);
 				}
-			} else {
+			}
+			else {
 				// 没有Token，设置为游客
 				user = Constant.TOURIST;
 			}
@@ -93,7 +96,8 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 		// 设置认证信息到SecurityContext
 		if (user != null && user != Constant.TOURIST) {
 			userDetails = new LoginUserDetails(user);
-		} else {
+		}
+		else {
 			userDetails = new LoginUserDetails(Constant.TOURIST);
 		}
 		//添加到安全上下文

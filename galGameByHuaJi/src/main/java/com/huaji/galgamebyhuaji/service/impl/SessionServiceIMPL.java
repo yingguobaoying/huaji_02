@@ -44,7 +44,8 @@ public class SessionServiceIMPL implements SessionService {
 		}
 		if (!isFirstLogin) {//非第一次登录时检查之前令牌状态
 			if (!session.getStatus()) {//ture为当前在线
-				if (!MyStringUtil.isNull(session.getLastLoginIp()) && !session.getLastLoginIp().equals(loginIP))//上次登录地点不为空,并且不匹配
+				if (!MyStringUtil.isNull(session.getLastLoginIp()) &&
+				    !session.getLastLoginIp().equals(loginIP))//上次登录地点不为空,并且不匹配
 					throw new SessionExceptions("错误!您的账号已经在其他地点登陆了登录ip为:%s".formatted(session.getLastLoginIp()), ErrorEnum.SESSION_DIFFERENT_ERROR);
 			}
 		}
@@ -56,7 +57,6 @@ public class SessionServiceIMPL implements SessionService {
 		session.setLastLoginIp(loginIP);
 		session.setLastLoginTime(new Date());
 		session.setStatus(true);
-		session.setTokenId(userToken.getTokenId());
 		if (isFirstLogin)
 			WriteError.tryWrite(sessionMapper.insertSelective(session));
 		else
@@ -89,7 +89,8 @@ public class SessionServiceIMPL implements SessionService {
 		if (sessionList == null || sessionList.isEmpty()) {
 			//不存在会话时返回空
 			return null;
-		} else if (sessionList.size() == 1) {
+		}
+		else if (sessionList.size() == 1) {
 			//存在一个会话时
 			return sessionList.getFirst();
 		}

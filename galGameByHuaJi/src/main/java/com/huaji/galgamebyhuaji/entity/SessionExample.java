@@ -414,66 +414,6 @@ public class SessionExample {
             addCriterion("last_login_IP not between", value1, value2, "lastLoginIp");
             return (Criteria) this;
         }
-
-        public Criteria andTokenIdIsNull() {
-            addCriterion("token_id is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdIsNotNull() {
-            addCriterion("token_id is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdEqualTo(Long value) {
-            addCriterion("token_id =", value, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdNotEqualTo(Long value) {
-            addCriterion("token_id <>", value, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdGreaterThan(Long value) {
-            addCriterion("token_id >", value, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("token_id >=", value, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdLessThan(Long value) {
-            addCriterion("token_id <", value, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdLessThanOrEqualTo(Long value) {
-            addCriterion("token_id <=", value, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdIn(List<Long> values) {
-            addCriterion("token_id in", values, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdNotIn(List<Long> values) {
-            addCriterion("token_id not in", values, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdBetween(Long value1, Long value2) {
-            addCriterion("token_id between", value1, value2, "tokenId");
-            return (Criteria) this;
-        }
-
-        public Criteria andTokenIdNotBetween(Long value1, Long value2) {
-            addCriterion("token_id not between", value1, value2, "tokenId");
-            return (Criteria) this;
-        }
     }
 
     public static class Criteria extends GeneratedCriteria {

@@ -49,7 +49,7 @@ public class LoginController {
 		int i = s.hashCode();
 		return userNameLocks.computeIfAbsent(i, k -> new ReentrantLock());
 	}
-
+	
 	private void unlockForUserName(ReentrantLock reentrantLock, String s) {
 		try {
 			// 只在当前线程持有锁的情况下释放
@@ -64,7 +64,7 @@ public class LoginController {
 			}
 		}
 	}
-
+	
 	@GetMapping("/loginByToken")
 	@ResponseBody
 	@Transactional
@@ -78,7 +78,7 @@ public class LoginController {
 		// 若仍为空，抛出异常
 		if (MyStringUtil.isNull(usersToken))
 			throw new OperationException("登录失败，因为未提供有效的token。请稍后重试或重新登录。");
-
+		
 		// 通过 token 登录，获取用户 token 对象
 		UserToken usersTokenObj = loginService.loginByToken(usersToken, request);
 		if (usersTokenObj == null || usersTokenObj.getUserId() == null)
@@ -89,7 +89,7 @@ public class LoginController {
 			throw new OperationException("登录失败，未找到对应用户信息。请检查账号是否正确。");
 		}
 		// 设置 session 属性
-
+		
 		// 设置 Cookie 的过期时间为 1 小时
 		int keepTime = 60 * 60; // 秒
 		request.getSession(true).setAttribute(SystemConstant.JWT_SESSION_USER_NAME, users);
@@ -99,20 +99,21 @@ public class LoginController {
 		response.setHeader(SystemConstant.JWT_TOKEN_NAME, usersTokenObj.getToken());
 		return getUsersReturnResult(request, users);
 	}
-
+	
 	private ReturnResult<UsersWithBLOBs> getUsersReturnResult(HttpServletRequest request, UsersWithBLOBs users) {
 		String tip;
 		String attribute = (String) request.getAttribute(SystemConstant.SYSTEM_MSG);
 		if (!MyStringUtil.isNull(attribute)) {
 			tip = "登录成功!\n欢迎回来:%s\n今日签到情况:%s".formatted(users.getUserName(), attribute);
-		} else {
+		}
+		else {
 			tip = "登录成功!\n欢迎回来:%s".formatted(users.getUserName());
 		}
 		request.removeAttribute(SystemConstant.SYSTEM_MSG);
 		return ReturnResult.isTrue(tip, users);
 	}
-
-
+	
+	
 	@PostMapping("/userLogin")
 	@ResponseBody
 	@Transactional
@@ -139,11 +140,13 @@ public class LoginController {
 				keepTime = Math.min(30, keepTime);
 				time = TimeUnit.DAYS.toMillis(keepTime);
 				keepTime *= 24 * 60 * 60;
-			} else {
+			}
+			else {
 				time = TimeUnit.HOURS.toMillis(keepTime);
 				keepTime *= 60 * 60;
 			}
-		} else {
+		}
+		else {
 			time = TimeUnit.HOURS.toMillis(1);
 			keepTime = 60 * 60;
 		}
@@ -166,7 +169,7 @@ public class LoginController {
 			unlockForUserName(lock, userMxg.getUserName() + "_" + userMxg.getUserPassword());
 		}
 	}
-
+	
 	@PostMapping("/userRegister")
 	@ResponseBody
 	@Transactional
@@ -190,7 +193,7 @@ public class LoginController {
 			unlockForUserName(lockForUserName, s);
 		}
 	}
-
+	
 	@GetMapping("/userExit")
 	@ResponseBody
 	@Transactional
@@ -216,21 +219,24 @@ public class LoginController {
 		SecurityContextHolder.clearContext();
 		return ReturnResult.isTrue(s, users);
 	}
-
+	
 	@PostMapping("/testRegisterMxg")
 	@ResponseBody
 	public ReturnResult<Users> testRegisterMxg(
 			@RequestBody Users usersMxg
 	) {
-		return loginService.testRegisterMxg(usersMxg,null );
+		return loginService.testRegisterMxg(usersMxg, null);
 	}
-
+	
 	private void testUserMsgIsNull(UsersWithBLOBs users) {
 		if (users == null) throw new OperationException("用户信息不存在，请填写完整的注册信息。");
-		if (MyStringUtil.isNull(users.getUserNameLogin())) throw new OperationException("用户登录名不可为空，请填写登录名。");
-		if (MyStringUtil.isNull(users.getUserPassword())) throw new OperationException("用户密码不可为空，请设置登录密码");
+		if (MyStringUtil.isNull(users.getUserNameLogin()))
+			throw new OperationException("用户登录名不可为空，请填写登录名。");
+		if (MyStringUtil.isNull(users.getUserPassword()))
+			throw new OperationException("用户密码不可为空，请设置登录密码");
 		if (MyStringUtil.isNull(users.getMailbox())) throw new OperationException("邮箱不可为空，请填写邮箱地址。");
-		if (MyStringUtil.isNull(users.getUserName())) throw new OperationException("用户名不可为空，请设置您的昵称或用户名。");
+		if (MyStringUtil.isNull(users.getUserName()))
+			throw new OperationException("用户名不可为空，请设置您的昵称或用户名。");
 	}
-
+	
 }

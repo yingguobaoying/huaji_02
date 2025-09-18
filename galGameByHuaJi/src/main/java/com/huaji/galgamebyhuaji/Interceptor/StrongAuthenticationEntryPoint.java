@@ -31,11 +31,11 @@ public class StrongAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		ReturnResult<Exception> byd = ReturnResult.isFalse("");
 		// 根据异常类型提供更具体的错误信息
 		if (authException instanceof InsufficientAuthenticationException) {
-			byd.setMxg("您的权限不足,无法进行此操作");
+			byd.setMsg("您的权限不足,无法进行此操作");
 		} else if (authException instanceof AuthenticationServiceException) {
-			byd.setMxg("Token无效或验证失败,请重新登录后重试");
+			byd.setMsg("Token无效或验证失败,请重新登录后重试");
 		} else {
-			byd.setMxg(authException.getMessage());
+			byd.setMsg(authException.getMessage());
 		}
 		// 使用Jackson序列化
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -51,12 +51,12 @@ public class StrongAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		response.setStatus(HttpStatus.UNAUTHORIZED.value());
 		ReturnResult<Exception> byd = ReturnResult.isFalse("");
 		if (ex instanceof OperationException o) {
-			byd.setMxg(o.getMsg());
+			byd.setMsg(o.getMsg());
 		} else if (ex instanceof BatchException e) {
-			byd.setMxg(e.getMessage());
+			byd.setMsg(e.getMessage());
 			MyLogUtil.error(StrongAuthenticationEntryPoint.class, e);
 		} else {
-			byd.setMxg("出错了!请您重新登录后再试一次");
+			byd.setMsg("出错了!请您重新登录后再试一次");
 			MyLogUtil.error(StrongAuthenticationEntryPoint.class, ex);
 		}
 		ObjectMapper objectMapper = new ObjectMapper();

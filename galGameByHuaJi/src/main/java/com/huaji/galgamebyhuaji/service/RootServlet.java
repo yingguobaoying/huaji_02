@@ -1,65 +1,76 @@
 package com.huaji.galgamebyhuaji.service;
 
 
+import com.huaji.galgamebyhuaji.entity.UserToken;
 import com.huaji.galgamebyhuaji.entity.Users;
+import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
+import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
-import com.huaji.galgamebyhuaji.model.ReturnResult;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * 此接口的操作均会验证管理员身份后才可继续
+ * 此接口设计的所有数据均直接从数据库获取,不会走缓存(将同步更新缓存)
  */
 public interface RootServlet {
 	/**
 	 * 管理员更改用户头像信息
-	 * @param users 更改后的信息(不可改动ID)
-	 * @param jpeg 更新的图片,为null时为禁用
-	 * @param root 管理员账号
+	 *
+	 * @param usersId 更改后的信息(不可改动ID)
+	 * @param jpeg    更新的图片,为null时为禁用
+	 * @param rootId  管理员账号
 	 * @return 更新后的信息
-	 * @throws WriteError 数据库读写错误(小概率)
 	 */
-	ReturnResult<Users> RootEditUserHeadPortrait(Users users, Users root, MultipartFile jpeg) throws WriteError;
-
+	Users RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError;
+	
 	/**
 	 * 管理员更改用户信息
-	 * @param users 更改后的信息(不可改动ID)
-	 * @param root 管理员账号
+	 *
+	 * @param users  更改后的信息(不可改动ID)
+	 * @param rootId 管理员账号
 	 * @return 更新后的信息
-	 * @throws WriteError 数据库读写错误(小概率)
 	 */
-	ReturnResult<Users> RootEditUserMxg(Users users, Users root) throws WriteError;
-
+	Users RootEditUserMxg(UsersWithBLOBs users, int rootId) throws WriteError;
+	
 	/**
 	 * 更改用户的状态
-	 * @param users 被更改用户状态的用户
-	 * @param root 管理员账号
+	 *
+	 * @param usersId    被更改用户状态的用户
+	 * @param rootId     管理员账号
 	 * @param userStatus 新的状态
 	 * @return 更新后的信息
-	 * @throws WriteError 数据库读写错误(小概率)
 	 */
-	ReturnResult<Users> RootUpdateUSerStatus(Users users, Users root, UserStatus userStatus) throws WriteError;
-
+	Users RootUpdateUSerStatus(int usersId, int rootId, UserStatus userStatus) throws WriteError;
+	
 	/**
 	 * 管理员查询用户
+	 *
 	 * @param usersId 被查询的ID
-	 * @param root 管理员
+	 * @param rootId  管理员
 	 * @return 用户信息
 	 */
-	ReturnResult<Users> RootSelectUserById(Integer usersId, Users root);
-
+	Users RootSelectUserById(int usersId, int rootId);
+	
 	/**
-	 * 根据名字查询
+	 * 根据名字查询用户
+	 *
 	 * @param usersName 用户名/登陆名
-	 * @param root 管理员
+	 * @param root      管理员
 	 * @return 用户信息
 	 */
-	ReturnResult<Users> RootSelectUserByName(String usersName, Users root);
-
+	List<Users> RootSelectUserByName(String usersName, int root);
+	UserToken rootLogin(String token, HttpServletRequest request) throws SessionExceptions;
+	
 	/**
-	 * 获取用户列表
-	 * @param root 管理员
-	 * @return 用户列表
+	 * 特殊root用户初始化方法
+	 * 此方法仅在初始化监听器里面使用
+	 * 如果在运行时被调用的话好像也没什么问题......
+	 * 只会影响已经登录的特殊root,不过由于这两玩意都是维护者在使用,用户看不到,问题不大
+	 * 之后考虑使用特殊链接来进行root登录令牌的重置
 	 */
-	ReturnResult<Users> getUserList(Users root);
+	void rootUserInit() throws SessionExceptions;
 }

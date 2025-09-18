@@ -7,7 +7,6 @@
         <result column="user_id" jdbcType="INTEGER" property="userId"/>
         <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime"/>
         <result column="last_login_IP" jdbcType="VARCHAR" property="lastLoginIp"/>
-        <result column="token_id" jdbcType="BIGINT" property="tokenId"/>
     </resultMap>
     <sql id="Example_Where_Clause">
         <where>
@@ -70,7 +69,7 @@
         </where>
     </sql>
     <sql id="Base_Column_List">
-        session_id, status, user_id, last_login_time, last_login_IP, token_id
+        session_id, status, user_id, last_login_time, last_login_IP
     </sql>
     <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.SessionExample"
             resultMap="BaseResultMap">
@@ -106,12 +105,11 @@
     </delete>
     <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.Session">
         insert into session (session_id, status, user_id,
-                             last_login_time, last_login_IP, token_id)
+                             last_login_time, last_login_IP)
         values (#{sessionId,jdbcType=BIGINT}, #{status,jdbcType=BIT}, #{userId,jdbcType=INTEGER},
-                #{lastLoginTime,jdbcType=TIMESTAMP}, #{lastLoginIp,jdbcType=VARCHAR}, #{tokenId,jdbcType=BIGINT})
+                #{lastLoginTime,jdbcType=TIMESTAMP}, #{lastLoginIp,jdbcType=VARCHAR})
     </insert>
-    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Session" useGeneratedKeys="true"
-            keyProperty="sessionId">
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Session">
         insert into session
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="sessionId != null">
@@ -129,9 +127,6 @@
             <if test="lastLoginIp != null">
                 last_login_IP,
             </if>
-            <if test="tokenId != null">
-                token_id,
-            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="sessionId != null">
@@ -148,9 +143,6 @@
             </if>
             <if test="lastLoginIp != null">
                 #{lastLoginIp,jdbcType=VARCHAR},
-            </if>
-            <if test="tokenId != null">
-                #{tokenId,jdbcType=BIGINT},
             </if>
         </trim>
     </insert>
@@ -179,9 +171,6 @@
             <if test="row.lastLoginIp != null">
                 last_login_IP = #{row.lastLoginIp,jdbcType=VARCHAR},
             </if>
-            <if test="row.tokenId != null">
-                token_id = #{row.tokenId,jdbcType=BIGINT},
-            </if>
         </set>
         <if test="example != null">
             <include refid="Update_By_Example_Where_Clause"/>
@@ -193,8 +182,7 @@
         status = #{row.status,jdbcType=BIT},
         user_id = #{row.userId,jdbcType=INTEGER},
         last_login_time = #{row.lastLoginTime,jdbcType=TIMESTAMP},
-        last_login_IP = #{row.lastLoginIp,jdbcType=VARCHAR},
-        token_id = #{row.tokenId,jdbcType=BIGINT}
+        last_login_IP = #{row.lastLoginIp,jdbcType=VARCHAR}
         <if test="example != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
@@ -214,9 +202,6 @@
             <if test="lastLoginIp != null">
                 last_login_IP = #{lastLoginIp,jdbcType=VARCHAR},
             </if>
-            <if test="tokenId != null">
-                token_id = #{tokenId,jdbcType=BIGINT},
-            </if>
         </set>
         where session_id = #{sessionId,jdbcType=BIGINT}
     </update>
@@ -225,22 +210,8 @@
         set status          = #{status,jdbcType=BIT},
             user_id         = #{userId,jdbcType=INTEGER},
             last_login_time = #{lastLoginTime,jdbcType=TIMESTAMP},
-            last_login_IP   = #{lastLoginIp,jdbcType=VARCHAR},
-            token_id        = #{tokenId,jdbcType=BIGINT}
+            last_login_IP   = #{lastLoginIp,jdbcType=VARCHAR}
         where session_id = #{sessionId,jdbcType=BIGINT}
-    </update>
-    <update id="userClockIn">
-        UPDATE users
-            LEFT JOIN `session` ON `session`.user_id = users.user_id
-        set users.Coin=users.Coin + #{checkInScore}
-        where `session`.`status` = 'offline'
-          and users.user_id = #{UserId}
-    </update>
-    <update id="elbowingUser">
-        update session
-        set status=0
-        where user_id = #{UserId}
-          and status = 1;
     </update>
     <update id="helicopterAirCrash">
         update session

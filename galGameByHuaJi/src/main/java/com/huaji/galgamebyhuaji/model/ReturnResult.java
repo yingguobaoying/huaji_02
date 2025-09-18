@@ -24,11 +24,7 @@ public class ReturnResult<T> {
 	 */
 	private List<T> resultList;
 	/**
-	 * 当前页数
-	 */
-	private int page;
-	/**
-	 * 总共记录数量,或者本条记录中包含的数据条数
+	 * 大部分时候代表本条记录中包含的数据条数,偶尔代表总共记录数量,偶尔代表时会特别说明
 	 */
 	private int all;
 	/**
@@ -48,7 +44,7 @@ public class ReturnResult<T> {
 	/**
 	 * 返回信息
 	 */
-	private String Mxg;
+	private String msg;
 	/**
 	 * 操作是否出现错误/异常
 	 */
@@ -93,13 +89,6 @@ public class ReturnResult<T> {
 		this.resultList = resultList;
 	}
 	
-	public int getPage() {
-		return page;
-	}
-	
-	public void setPage(int page) {
-		this.page = page;
-	}
 	
 	public int getAll() {
 		return all;
@@ -117,12 +106,12 @@ public class ReturnResult<T> {
 		this.operationResult = operationResult;
 	}
 	
-	public String getMxg() {
-		return Mxg;
+	public String getMsg() {
+		return msg;
 	}
 	
-	public void setMxg(String mxg) {
-		Mxg = mxg;
+	public void setMsg(String msg) {
+		this.msg = msg;
 	}
 	
 	
@@ -143,19 +132,6 @@ public class ReturnResult<T> {
 		return this;
 	}
 	
-	/**
-	 * 返回错误
-	 *
-	 * @param errorMxg 错误信息
-	 * @param e        错误
-	 * @return 打包好的错误信息
-	 */
-	public ReturnResult<T> operationError(String errorMxg, T e) {
-		this.operationFalse(errorMxg);
-		this.returnResult = e;
-		setHasError(true);
-		return this;
-	}
 	
 	/**
 	 * 返回错误
@@ -164,12 +140,12 @@ public class ReturnResult<T> {
 	 * @param e        错误
 	 * @param errorNum 错误代码
 	 *                 错误代码:描述
-	 *                 <li>null/0:未设置</li>
+	 *                 <li>null/0/-1:未设置</li>
 	 *                 <li>1:未知错误</li>
 	 * @return 打包好的错误信息
 	 */
 	public ReturnResult<T> operationError(String errorMxg, T e, int errorNum) {
-		this.operationFalse(errorMxg);
+		this.operationFalse(errorMxg);//因为出现错误时可能是操作失败,所以先设置为操作失败再设置为出错
 		setReturnResult(e);
 		setErrorNum(errorNum);
 		setHasError(true);
@@ -182,11 +158,10 @@ public class ReturnResult<T> {
 	 * @param mxg 反馈信息
 	 */
 	public ReturnResult<T> operationFalse(String mxg) {
-		setMxg(mxg);
+		setMsg(mxg);
 		setOperationResult(false);
 		setResultList(null);
 		setReturnResult(null);
-		setPage(1);
 		setAll(0);
 		setHasError(false);
 		retrunDate = new Date();
@@ -200,16 +175,12 @@ public class ReturnResult<T> {
 	 * @param val 结果
 	 */
 	public ReturnResult<T> operationTrue(String mxg, T val) {
-		setMxg(mxg);
+		setMsg(mxg);
 		setOperationResult(true);
 		setResultList(null);
 		setReturnResult(val);
 		setHasError(false);
-		setPage(1);
-		if (val == null)
-			setAll(0);
-		else
-			setAll(1);
+		if (val == null) {setAll(0);} else {setAll(1);}
 		retrunDate = new Date();
 		return this;
 	}
@@ -223,10 +194,9 @@ public class ReturnResult<T> {
 	 * @param all 总共记录条数为-1时将自动设置
 	 */
 	public ReturnResult<T> operationTrue(String mxg, List<T> val, int all) {
-		setMxg(mxg);
+		setMsg(mxg);
 		setOperationResult(true);
 		setResultList(val);
-		setPage(1);
 		if (all <= 0) {
 			if (val == null) {
 				setAll(0);
@@ -243,16 +213,15 @@ public class ReturnResult<T> {
 	@Override
 	public String toString() {
 		return "ReturnResult{" +
-				"return_result=" + returnResult +
-				", resultList=" + resultList +
-				", page=" + page +
-				", all=" + all +
-				", operationResult=" + operationResult +
-				", Mxg='" + Mxg + '\'' +
-				", hasError=" + hasError +
-				", date=" + retrunDate +
-				", errorNum=" + errorNum +
-				'}';
+		       "return_result=" + returnResult +
+		       ", resultList=" + resultList +
+		       ", all=" + all +
+		       ", operationResult=" + operationResult +
+		       ", Mxg='" + msg + '\'' +
+		       ", hasError=" + hasError +
+		       ", date=" + retrunDate +
+		       ", errorNum=" + errorNum +
+		       '}';
 	}
 	
 	/**
@@ -292,20 +261,11 @@ public class ReturnResult<T> {
 	 * @param e   异常类或者描述
 	 */
 	public static <T> ReturnResult<T> isError(String mxg, T e) {
-		if (e instanceof BestException e1)
-			return new ReturnResult<T>().operationError(e1.getMessage(), e, e1.getErrorType() * 1000 + e1.getErrorNum());
+		if (e instanceof BestException e1) {//为自定义错误时调用另一个方法自动设置错误代码
+			return new ReturnResult<T>().operationError(e1.getMessage(), e,
+			                                            e1.getErrorType() * 1000 + e1.getErrorNum());
+		}
 		return new ReturnResult<T>().operationError(mxg, e, 1);
-	}
-	
-	/**
-	 * 自动打包返回错误结果
-	 *
-	 * @param mxg      反馈信息
-	 * @param e        异常类或者描述
-	 * @param errorNum 错误代码
-	 */
-	public static <T> ReturnResult<T> isError(String mxg, T e, int errorNum) {
-		return new ReturnResult<T>().operationError(mxg, e, errorNum);
 	}
 	
 	public static <T> ReturnResult<T> isFalse(String mxg) {

@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 public class GalGameByHuaJiApplication {
 
 	public static void main(String[] args) {
-		// 解决中文乱码
 		System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
 		System.setErr(new PrintStream(System.err, true, StandardCharsets.UTF_8));
 		SpringApplication.run(GalGameByHuaJiApplication.class, args);

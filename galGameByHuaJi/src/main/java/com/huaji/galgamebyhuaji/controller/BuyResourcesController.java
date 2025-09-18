@@ -109,7 +109,7 @@ public class BuyResourcesController extends BaseController {
 			else if (isDownload)
 				stringReturnResult = userBehaviorService.buyDown(loginUser.getUserId(), resourceId, ip);
 			else stringReturnResult = userBehaviorService.buyOutsideDown(loginUser.getUserId(), resourceId, ip);
-			message = stringReturnResult.getMxg();
+			message = stringReturnResult.getMsg();
 			token = stringReturnResult.getReturnResult();
 			expireDate = TimeUtil.getFutureTimeByHour(Constant.RESOURCE_EXPIRATION_TIME);
 		} else {
