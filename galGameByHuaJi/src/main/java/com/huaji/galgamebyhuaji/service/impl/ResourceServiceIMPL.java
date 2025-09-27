@@ -13,7 +13,6 @@ import com.huaji.galgamebyhuaji.service.RedisMemoryService;
 import com.huaji.galgamebyhuaji.service.ResourcesService;
 import com.huaji.galgamebyhuaji.service.TagService;
 import com.huaji.galgamebyhuaji.vo.SelectViewMag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,24 +22,36 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ResourceServiceIMPL implements ResourcesService {
-	@Autowired
+	final
 	ResourcesMapper resourcesMapper;
-	@Autowired
+	final
 	ResourcesTagMapMapper resourcesTagMapMapper;
-	@Autowired
+	final
 	ResourcesJpegMapMapper resourcesJpegMapMapper;
-	@Autowired
+	final
 	ResourceExtensionInformationMapper resourceExtensionInformationMapper;
-	@Autowired
+	final
 	RedisMemoryService redisMemoryService;
-	@Autowired
+	final
 	TagService tagService;
-	@Autowired
+	final
 	ResourceStatisticsMapper resourceStatisticsMapper;
-	@Autowired
+	final
 	TagMapper tagMapper;
-	@Autowired
+	final
 	ResourcesFileMapMapper resourcesFileMap;
+	
+	public ResourceServiceIMPL(ResourcesMapper resourcesMapper, ResourcesTagMapMapper resourcesTagMapMapper, ResourcesJpegMapMapper resourcesJpegMapMapper, ResourceExtensionInformationMapper resourceExtensionInformationMapper, RedisMemoryService redisMemoryService, TagService tagService, ResourceStatisticsMapper resourceStatisticsMapper, TagMapper tagMapper, ResourcesFileMapMapper resourcesFileMap) {
+		this.resourcesMapper = resourcesMapper;
+		this.resourcesTagMapMapper = resourcesTagMapMapper;
+		this.resourcesJpegMapMapper = resourcesJpegMapMapper;
+		this.resourceExtensionInformationMapper = resourceExtensionInformationMapper;
+		this.redisMemoryService = redisMemoryService;
+		this.tagService = tagService;
+		this.resourceStatisticsMapper = resourceStatisticsMapper;
+		this.tagMapper = tagMapper;
+		this.resourcesFileMap = resourcesFileMap;
+	}
 	
 	@Override
 	public ReturnResult<Resources> addResources(Resources resources) {

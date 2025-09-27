@@ -98,10 +98,6 @@ public class MyStringUtil {
 		return str == null || "null".equals(str) || "NULL".equals(str) || str.isEmpty() || "NaN".equals(str) || str.trim().isEmpty();
 	}
 	
-	public static boolean isNotNull(String str) {
-		return !isNull(str);
-	}
-	
 	/**
 	 * 加密字符串,返回的是一个经过了has256加密的结果 使用的是不可逆的映射加密()
 	 *
@@ -163,7 +159,7 @@ public class MyStringUtil {
 		return PHONE_PATTERN.matcher(phoneNumber).matches();
 	}
 	
-	public boolean isValidEmail(String email) {
+	public static boolean isValidEmail(String email) {
 		if (isNull(email)) {
 			return false;
 		}

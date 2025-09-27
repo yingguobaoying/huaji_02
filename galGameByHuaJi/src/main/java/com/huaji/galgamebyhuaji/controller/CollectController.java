@@ -3,9 +3,9 @@ package com.huaji.galgamebyhuaji.controller;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.service.CollectServlet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -23,11 +23,18 @@ public class CollectController extends BaseController {
 	}
 	
 	@GetMapping("/getUserCollectList")
-	public ReturnResult<Integer> getUserCollectList () {
+	public ReturnResult<Integer> getUserCollectList() {
 		Users loginUser = getLoginUser(true);
 		List<Integer> r = collectServlet.getCollectResources(loginUser.getUserId());
 		return r.isEmpty() ?
 				ReturnResult.isTrue("您未收藏任何资源", null)
 				: ReturnResult.isTrue("获取收藏列表成功", r, -1);
+	}
+	
+	@GetMapping("/collect/add/{id}")
+	public ReturnResult<Integer> addCollect(@PathVariable("id") int id) {
+		Users loginUser = getLoginUser(true);
+		collectServlet.collectResources(loginUser.getUserId(), id);
+		return ReturnResult.isTrue("收藏列表已更新", null);
 	}
 }

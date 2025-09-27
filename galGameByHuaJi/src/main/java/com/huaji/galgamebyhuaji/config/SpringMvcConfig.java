@@ -3,7 +3,6 @@ package com.huaji.galgamebyhuaji.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaji.galgamebyhuaji.Interceptor.LoginInterceptor;
 import com.huaji.galgamebyhuaji.constant.SystemConstant;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -29,8 +28,10 @@ public class SpringMvcConfig implements WebMvcConfigurer {
 		System.err.println("********************************** SpringMvcConfig 加载 ***************************************");
 	}
 	
-	@Autowired
+	final
 	LoginInterceptor loginInterceptor;
+	
+	public SpringMvcConfig(LoginInterceptor loginInterceptor) {this.loginInterceptor = loginInterceptor;}
 	
 	@Override
 	public void addCorsMappings (CorsRegistry registry) {

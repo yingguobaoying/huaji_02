@@ -12,6 +12,7 @@ import java.util.Map;
  * 这个是打包的统一返回结果集
  *
  * @param <T> 返回的类型
+ *
  * @author 滑稽/因果报应
  */
 public class ReturnResult<T> {
@@ -31,6 +32,7 @@ public class ReturnResult<T> {
 	 * 拓展字段
 	 */
 	private Map<String, Object> map;
+	
 	
 	public void addMap(String key, Object value) {
 		if (map == null) map = new HashMap<>();
@@ -124,6 +126,7 @@ public class ReturnResult<T> {
 	 * 返回错误
 	 *
 	 * @param errorMxg 错误信息
+	 *
 	 * @return 打包好的错误信息
 	 */
 	public ReturnResult<T> operationError(String errorMxg) {
@@ -142,6 +145,7 @@ public class ReturnResult<T> {
 	 *                 错误代码:描述
 	 *                 <li>null/0/-1:未设置</li>
 	 *                 <li>1:未知错误</li>
+	 *
 	 * @return 打包好的错误信息
 	 */
 	public ReturnResult<T> operationError(String errorMxg, T e, int errorNum) {
@@ -180,7 +184,8 @@ public class ReturnResult<T> {
 		setResultList(null);
 		setReturnResult(val);
 		setHasError(false);
-		if (val == null) {setAll(0);} else {setAll(1);}
+		if (val == null) {setAll(0);}
+		else {setAll(1);}
 		retrunDate = new Date();
 		return this;
 	}
@@ -200,10 +205,12 @@ public class ReturnResult<T> {
 		if (all <= 0) {
 			if (val == null) {
 				setAll(0);
-			} else {
+			}
+			else {
 				setAll(val.size());
 			}
-		} else {
+		}
+		else {
 			setAll(all);
 		}
 		retrunDate = new Date();

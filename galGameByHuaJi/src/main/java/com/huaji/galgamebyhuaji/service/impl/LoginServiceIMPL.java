@@ -39,7 +39,7 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CHECK_IN_SCORE;
 @Service
 @Transactional
 public class LoginServiceIMPL implements LoginService {
-	private final UsersMapper usersMapper;
+	final UsersMapper usersMapper;
 	final
 	PasswordEncryptionUtil passwordEncryptionUtil;
 	final
@@ -57,14 +57,14 @@ public class LoginServiceIMPL implements LoginService {
 			"@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
 	private static final Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
 	
-	public LoginServiceIMPL(UsersMapper usersMapper, PasswordEncryptionUtil passwordEncryptionUtil, SessionService sessionService, RedisMemoryService redisMemoryService, TagService tagService, TokenService tokenService, RootServlet rootServlet, RootServlet rootServlet1) {
+	public LoginServiceIMPL(UsersMapper usersMapper, PasswordEncryptionUtil passwordEncryptionUtil, SessionService sessionService, RedisMemoryService redisMemoryService, TagService tagService, TokenService tokenService, RootServlet rootServlet) {
 		this.usersMapper = usersMapper;
 		this.passwordEncryptionUtil = passwordEncryptionUtil;
 		this.sessionService = sessionService;
 		this.redisMemoryService = redisMemoryService;
 		this.tagService = tagService;
 		this.tokenService = tokenService;
-		this.rootServlet = rootServlet1;
+		this.rootServlet = rootServlet;
 	}
 	
 	

@@ -15,11 +15,11 @@ public enum UserStatus {
 	}
 	
 	
-	private String value;
-	private String name;
+	private final String value;
+	private final String name;
 	
 	// 构造方法，只用于设置初始值
-	private UserStatus(String value, String name) {
+	UserStatus(String value, String name) {
 		this.value = value;
 		this.name = name;
 	}

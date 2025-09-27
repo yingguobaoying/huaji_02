@@ -21,7 +21,6 @@ import com.huaji.galgamebyhuaji.service.FileServlet;
 import com.huaji.galgamebyhuaji.service.LoginService;
 import com.huaji.galgamebyhuaji.service.RedisMemoryService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,16 +33,24 @@ import java.util.Map;
 @Service
 @Transactional
 public class UserMxgServletImpl implements UserMxgServlet {
-	@Autowired
+	final
 	UsersMapper usersMapper;
-	@Autowired
+	final
 	RedisMemoryService redisMemoryService;
-	@Autowired
+	final
 	PasswordEncryptionUtil passwordEncryptionUtil;
-	@Autowired
+	final
 	LoginService loginService;
-	@Autowired
+	final
 	FileServlet fileServlet;
+	
+	public UserMxgServletImpl(UsersMapper usersMapper, RedisMemoryService redisMemoryService, PasswordEncryptionUtil passwordEncryptionUtil, LoginService loginService, FileServlet fileServlet) {
+		this.usersMapper = usersMapper;
+		this.redisMemoryService = redisMemoryService;
+		this.passwordEncryptionUtil = passwordEncryptionUtil;
+		this.loginService = loginService;
+		this.fileServlet = fileServlet;
+	}
 	
 	@Override
 	public UsersWithBLOBs updateUsers (UserMxgWithOldUserMxg userMxgWithOldUserMxg) {

@@ -8,7 +8,6 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaji.galgamebyhuaji.config.JWTConfig;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -20,11 +19,9 @@ public class JWTUtil {
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private static final String ISSUER = "galGameByHuaJi";
 
-	@Autowired
-	private JWTConfig jwtConfig;
+	private final JWTConfig jwtConfig;
 
-	@Autowired
-	private AESEncryptionUtil aesUtil;
+	private final AESEncryptionUtil aesUtil;
 
 	/**
 	 * 生成 JWT 令牌（对象内容先加密再存储，使用当前版本密钥）
@@ -101,7 +98,9 @@ public class JWTUtil {
 		return generateToken(key, result.getReturnResult(), jwtConfig.getExpirationTime());
 	}
 
-	public JWTUtil() {
+	public JWTUtil(JWTConfig jwtConfig, AESEncryptionUtil aesUtil) {
+		this.jwtConfig = jwtConfig;
+		this.aesUtil = aesUtil;
 	}
 
 	/**

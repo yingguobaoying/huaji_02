@@ -59,19 +59,18 @@ public class VerifyController extends BaseController {
 		verifyEmail.setEmail(loginUser.getMailbox());
 		UserToken userToken = tokenService.insertToken(verifyEmail, TokenType.VERIFY_EMAIL, Constant.VERIFY_EMAIL_VALID_TIME);
 		token = userToken.getToken();
-		StringBuilder sb = new StringBuilder();
-		sb.append(BASE_URL);
-		sb.append("verifyEmail?token=");
-		sb.append(token);
-		sb.append("&userId=");
-		sb.append(loginUser.getUserId());
+		String sb = BASE_URL +
+		            "verifyEmail?token=" +
+		            token +
+		            "&userId=" +
+		            loginUser.getUserId();
 		String content =
 				"您好，您正在使用邮箱 %s 注册本站账户。请点击下方按钮完成邮箱验证，验证链接有效期为 %d 小时。<br>如果您未申请过此操作，请忽略此邮件。为保证您的账户安全，请及时检查您的账号情况。".formatted(
 						loginUser.getMailbox(), l);
 		String eml = LongTextConstant.getEmailText(
 				"邮箱验证通知",
 				content,
-				sb.toString(),
+				sb,
 				emailService.getFROM_EMAIL()
 		);
 		emailService.sendEmail(verifyEmail, eml, "验证您的邮箱", true);

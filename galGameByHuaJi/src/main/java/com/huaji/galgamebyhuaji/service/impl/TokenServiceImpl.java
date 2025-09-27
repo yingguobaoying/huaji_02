@@ -15,7 +15,6 @@ import com.huaji.galgamebyhuaji.myUtil.JWTUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import io.micrometer.common.lang.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -32,12 +31,18 @@ import static com.huaji.galgamebyhuaji.constant.GlobalLock.unlockForUser;
 @Service
 @Transactional
 public class TokenServiceImpl implements TokenService {
-	@Autowired
+	final
 	UserTokenMapper userTokenMapper;
-	@Autowired
+	final
 	JWTUtil jwtUtil;
-	@Autowired
+	final
 	JWTConfig jwtConfig;
+	
+	public TokenServiceImpl(UserTokenMapper userTokenMapper, JWTUtil jwtUtil, JWTConfig jwtConfig) {
+		this.userTokenMapper = userTokenMapper;
+		this.jwtUtil = jwtUtil;
+		this.jwtConfig = jwtConfig;
+	}
 	
 	public <T extends OnlineUser> UserToken verifyToken(String token, int userId, TokenType type,
 	                                                    @Nullable String ip, boolean needUpdate)

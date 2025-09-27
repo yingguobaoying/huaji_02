@@ -19,7 +19,6 @@ import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,15 +32,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @Controller
 @RequestMapping("/api/login")
 public class LoginController {
-	@Autowired
-	private LoginService loginService;
+	private final LoginService loginService;
 	private final SessionService sessionService;
-	@Autowired
-	private UserMxgServlet userMxgServlet;
+	private final UserMxgServlet userMxgServlet;
 	private static final ConcurrentHashMap<Integer, ReentrantLock> userNameLocks = new ConcurrentHashMap<>();
 	
-	public LoginController(SessionService sessionService) {
+	public LoginController(SessionService sessionService, LoginService loginService, UserMxgServlet userMxgServlet) {
 		this.sessionService = sessionService;
+		this.loginService = loginService;
+		this.userMxgServlet = userMxgServlet;
 	}
 	
 	
@@ -125,7 +124,7 @@ public class LoginController {
 			HttpServletResponse response
 	) throws BestException {
 		if (testResult.hasErrors())
-			if (testResult.getFieldError() == null)
+			if (testResult.getFieldError() != null)
 				return ReturnResult.isFalse(testResult.getFieldError().getField());
 			else
 				return ReturnResult.isFalse("未知错误，请稍后重试。");
@@ -184,7 +183,7 @@ public class LoginController {
 				return ReturnResult.isFalse("未知错误，请稍后重试。");
 		testUserMsgIsNull(usersMxg);
 		System.out.println(usersMxg);
-		String s = usersMxg.getMailbox() + usersMxg.getMailbox() + usersMxg.getUserPe();
+		String s = usersMxg.getUserNameLogin() + usersMxg.getMailbox() + usersMxg.getUserPe();
 		ReentrantLock lockForUserName = getLockForUserName(s);
 		try {
 			lockForUserName.lock();

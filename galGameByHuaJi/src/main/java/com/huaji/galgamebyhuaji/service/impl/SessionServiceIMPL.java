@@ -15,7 +15,6 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.SessionService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import io.micrometer.common.lang.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +25,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 @Transactional
 public class SessionServiceIMPL implements SessionService {
-	@Autowired
+	final
 	SessionMapper sessionMapper;
-	@Autowired
+	final
 	TokenService tokenService;
+	
+	public SessionServiceIMPL(SessionMapper sessionMapper, TokenService tokenService) {
+		this.sessionMapper = sessionMapper;
+		this.tokenService = tokenService;
+	}
 	
 	//由于此服务类是仅由用户服务类调用,因此不需要考虑线程安全
 	@Override
@@ -43,7 +47,7 @@ public class SessionServiceIMPL implements SessionService {
 			session.setUserId(user);
 		}
 		if (!isFirstLogin) {//非第一次登录时检查之前令牌状态
-			if (!session.getStatus()) {//ture为当前在线
+			if (session.getStatus()) {//ture为当前在线
 				if (!MyStringUtil.isNull(session.getLastLoginIp()) &&
 				    !session.getLastLoginIp().equals(loginIP))//上次登录地点不为空,并且不匹配
 					throw new SessionExceptions("错误!您的账号已经在其他地点登陆了登录ip为:%s".formatted(session.getLastLoginIp()), ErrorEnum.SESSION_DIFFERENT_ERROR);

@@ -22,7 +22,7 @@ public enum TokenType {
 	
 	private final String statusName;
 	private final Class tokenClazz;
-	private TokenType(Integer statusNum, String statusName,Class tokenClazz) {
+	TokenType(Integer statusNum, String statusName, Class tokenClazz) {
 		this.statusName = statusName;
 		this.tokenClazz = tokenClazz;
 		this.statusNum = statusNum;
