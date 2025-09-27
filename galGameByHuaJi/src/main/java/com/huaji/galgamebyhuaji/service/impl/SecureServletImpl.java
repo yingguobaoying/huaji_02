@@ -8,34 +8,51 @@ import com.huaji.galgamebyhuaji.enumPackage.ErrorEnum;
 import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
 import com.huaji.galgamebyhuaji.enumPackage.TokenType;
 import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
-import com.huaji.galgamebyhuaji.exceptions.*;
+import com.huaji.galgamebyhuaji.exceptions.BestException;
+import com.huaji.galgamebyhuaji.exceptions.OperationException;
+import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
+import com.huaji.galgamebyhuaji.exceptions.UserException;
+import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.jwtToken.LostPasswordUser;
 import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
 import com.huaji.galgamebyhuaji.model.jwtToken.VerifyEmail;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
-import com.huaji.galgamebyhuaji.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.huaji.galgamebyhuaji.service.LoginService;
+import com.huaji.galgamebyhuaji.service.SecureServlet;
+import com.huaji.galgamebyhuaji.service.SessionService;
+import com.huaji.galgamebyhuaji.service.TokenService;
+import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class SecureServletImpl implements SecureServlet {
-	@Autowired
+	final
 	UsersMapper usersMapper;
-	@Autowired
+	final
 	UserMxgServlet userMxgServlet;
-	@Autowired
+	final
 	TokenService tokenService;
-	@Autowired
+	final
 	FeedbackMapper feedbackMapper;
-	@Autowired
+	final
 	SessionService sessionService;
-	@Autowired
+	final
 	PasswordEncryptionUtil passwordEncryptionUtil;
-	@Autowired
+	final
 	LoginService loginService;
+	
+	public SecureServletImpl(UsersMapper usersMapper, UserMxgServlet userMxgServlet, TokenService tokenService, FeedbackMapper feedbackMapper, SessionService sessionService, PasswordEncryptionUtil passwordEncryptionUtil, LoginService loginService) {
+		this.usersMapper = usersMapper;
+		this.userMxgServlet = userMxgServlet;
+		this.tokenService = tokenService;
+		this.feedbackMapper = feedbackMapper;
+		this.sessionService = sessionService;
+		this.passwordEncryptionUtil = passwordEncryptionUtil;
+		this.loginService = loginService;
+	}
 	
 	@Override
 	public String frozenUser(Users user) {

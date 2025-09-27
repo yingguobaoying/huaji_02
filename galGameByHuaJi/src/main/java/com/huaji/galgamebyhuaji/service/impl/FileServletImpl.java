@@ -16,6 +16,7 @@ import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.FileServlet;
 import com.huaji.galgamebyhuaji.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -50,10 +51,11 @@ import static com.huaji.galgamebyhuaji.constant.Constant.*;
  * @author 滑稽/因果报应
  */
 @Service
+@Primary
 public class FileServletImpl implements FileServlet {
 	
 	//获取的为:servletContext.getRealPath("/static/");
-	private String basePath = Constant.RESOURCE_SAVE_PATH;
+	protected String basePath = Constant.RESOURCE_SAVE_PATH;
 	
 	@Autowired
 	LoginService loginService;
@@ -61,12 +63,12 @@ public class FileServletImpl implements FileServlet {
 	UserDownloadMapper downloadMapper;
 	@Autowired
 	ResourcesMapper resourcesMapper;
-	private static final String[] PROTECTED_NAME = new String[]{
+	protected static final String[] PROTECTED_NAME = new String[]{
 			"default.jpeg", "error.jpeg", "ZhenZhanTu.jpg",
 			"default", "error", "ZhenZhanTu"
 	};
 	
-	private static boolean isProtected(String fileName) {
+	protected static boolean isProtected(String fileName) {
 		for (String s : PROTECTED_NAME) {
 			if (fileName.equals(s)) {
 				return true;
@@ -75,7 +77,7 @@ public class FileServletImpl implements FileServlet {
 		return false;
 	}
 	
-	private static final Map<byte[], String> SUPPORTED_ARCHIVES = Map.ofEntries(
+	protected static final Map<byte[], String> SUPPORTED_ARCHIVES = Map.ofEntries(
 			Map.entry(new byte[]{0x50, 0x4B, 0x03, 0x04}, "zip"),
 			Map.entry(new byte[]{0x52, 0x61, 0x72, 0x21}, "rar"),
 			Map.entry(new byte[]{0x37, 0x7A, (byte) 0xBC}, "7z"),
@@ -83,7 +85,7 @@ public class FileServletImpl implements FileServlet {
 			Map.entry(new byte[]{0x1F, (byte) 0x8B}, "gz") // 修正：gzip
 	);
 	
-	private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+	protected static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
 			"image/jpeg", "image/png");
 	
 	/**
@@ -222,7 +224,7 @@ public class FileServletImpl implements FileServlet {
 	 * @param max  最大文件大小(字节)
 	 * @throws OperationException 当文件大小不在指定范围内时抛出
 	 */
-	private void validateFileSize(MultipartFile file, long min, long max) {
+	protected void validateFileSize(MultipartFile file, long min, long max) {
 		if (file.getSize() < min || file.getSize() > max) {
 			throw new OperationException("错误!文件大小不符合要求: 上传范围为%s - %s,您提供的文件为:%s".formatted(
 					formatFileSize(min), // 转换为 KB
@@ -239,7 +241,7 @@ public class FileServletImpl implements FileServlet {
 	 * @param magicBytes 要匹配的魔数字节数组
 	 * @return 如果匹配返回true，否则返回false
 	 */
-	private boolean startsWith(byte[] fileHeader, byte[] magicBytes) {
+	protected boolean startsWith(byte[] fileHeader, byte[] magicBytes) {
 		if (fileHeader.length < magicBytes.length) {
 			return false;
 		}
@@ -259,7 +261,7 @@ public class FileServletImpl implements FileServlet {
 	 * @return 保存结果
 	 * @throws IOException 文件IO异常
 	 */
-	private ReturnResult<String> saveArchive(MultipartFile file, String fileName) throws IOException {
+	protected ReturnResult<String> saveArchive(MultipartFile file, String fileName) throws IOException {
 		Path targetDir = getOrCreateDirectory("rar").toPath();
 		if (!targetDir.startsWith(basePath)) {
 			throw new IOException("非法路径");
@@ -296,7 +298,7 @@ public class FileServletImpl implements FileServlet {
 	 * @return 文件类型字符串，如"zip"、"rar"等，如果不支持则返回null
 	 * @throws IOException 文件读取异常
 	 */
-	private String detectArchiveType(MultipartFile file) throws IOException {
+	protected String detectArchiveType(MultipartFile file) throws IOException {
 		try (InputStream is = file.getInputStream()) {
 			byte[] header = new byte[10];
 			is.read(header);
@@ -315,7 +317,7 @@ public class FileServletImpl implements FileServlet {
 	 * @param size 文件大小(字节)
 	 * @return 格式化后的文件大小字符串
 	 */
-	private String formatFileSize(long size) {
+	protected String formatFileSize(long size) {
 		if (size < 1024) return size + "B";
 		else if (size < 1024 * 1024) return String.format("%.2fKB", size / 1024.0);
 		else if (size < 1024L * 1024 * 1024) return String.format("%.2fMB", size / (1024.0 * 1024));
@@ -330,7 +332,7 @@ public class FileServletImpl implements FileServlet {
 	 * @return 保存结果
 	 * @throws IOException 文件IO异常
 	 */
-	private ReturnResult<String> saveImage(MultipartFile image, String fileName) throws IOException {
+	protected ReturnResult<String> saveImage(MultipartFile image, String fileName) throws IOException {
 		File targetDir = getOrCreateDirectory("img");
 		File targetFile = new File(targetDir, fileName);
 		
@@ -373,7 +375,7 @@ public class FileServletImpl implements FileServlet {
 	 * @param source 源图片
 	 * @return 转换后的JPEG图片
 	 */
-	private BufferedImage convertToJpeg(BufferedImage source) {
+	protected BufferedImage convertToJpeg(BufferedImage source) {
 		BufferedImage jpegImage = new BufferedImage(
 				source.getWidth(),
 				source.getHeight(),
@@ -394,7 +396,7 @@ public class FileServletImpl implements FileServlet {
 	 * @return 目录文件对象
 	 * @throws IOException 目录创建失败时抛出
 	 */
-	private File getOrCreateDirectory(String subPath) throws IOException {
+	protected File getOrCreateDirectory(String subPath) throws IOException {
 		File dir = new File(basePath, subPath);
 		if (!dir.exists() && !dir.mkdirs()) {
 			throw new IOException("无法创建目录: " + dir.getAbsolutePath());
@@ -444,7 +446,7 @@ public class FileServletImpl implements FileServlet {
 	 * @param output 输出文件
 	 * @throws IOException 文件IO异常
 	 */
-	private void saveAsJpeg(BufferedImage image, File output) throws IOException {
+	protected void saveAsJpeg(BufferedImage image, File output) throws IOException {
 		Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
 		
 		ImageWriter writer = null;

@@ -21,8 +21,8 @@ public interface UserBehaviorService {
 	 * @param rId    购买资源id
 	 * @return 生成的令牌
 	 */
-	ReturnResult<String> buyDown (Integer userId, Integer rId, String ip) throws SessionExceptions; ;
-
+	ReturnResult<String> buyDown (Integer userId, Integer rId, String ip) throws SessionExceptions;
+	
 	/**
 	 * 使用积分换取下载连接,需要用户积分足够,此处连接为外部网盘
 	 *

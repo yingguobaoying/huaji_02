@@ -1,7 +1,6 @@
 package com.huaji.galgamebyhuaji.Interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huaji.galgamebyhuaji.model.LoginUserDetails;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
@@ -30,9 +29,6 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 		ReturnResult r = ReturnResult.isFalse("您的权限不足,无法访问该选项");
 		// 获取当前用户信息
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication != null && authentication.getPrincipal() instanceof LoginUserDetails) {
-			LoginUserDetails userDetails = (LoginUserDetails) authentication.getPrincipal();
-		}
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.writeValue(response.getOutputStream(), r);
 		

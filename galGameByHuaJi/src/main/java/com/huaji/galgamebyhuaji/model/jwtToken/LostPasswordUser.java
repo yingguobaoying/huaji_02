@@ -2,7 +2,7 @@ package com.huaji.galgamebyhuaji.model.jwtToken;
 
 import com.huaji.galgamebyhuaji.enumPackage.TokenType;
 
-public class LostPasswordUser extends OnlineUser {
+public class LostPasswordUser extends BestEntityToken {
 	private String email;
 	
 	public String getEmail() {

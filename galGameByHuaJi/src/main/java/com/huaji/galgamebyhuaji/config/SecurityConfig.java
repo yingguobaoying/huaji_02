@@ -7,7 +7,6 @@ import com.huaji.galgamebyhuaji.Interceptor.StrongAuthenticationFilter;
 import com.huaji.galgamebyhuaji.service.LoginService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -23,7 +22,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -31,19 +29,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 	
-	@Autowired
-	private LoginService loginService;
+	private final LoginService loginService;
 	
-	@Autowired
-	private UserMxgServlet userMxgServlet;
+	private final UserMxgServlet userMxgServlet;
 	
-	@Autowired
-	private StrongAuthenticationEntryPoint strongAuthenticationEntryPoint;
+	private final StrongAuthenticationEntryPoint strongAuthenticationEntryPoint;
 	
-	@Autowired
-	private CustomAccessDeniedHandler accessDeniedHandler;
-	@Autowired
+	private final CustomAccessDeniedHandler accessDeniedHandler;
+	final
 	TokenService tokenService;
+	
+	public SecurityConfig(LoginService loginService, UserMxgServlet userMxgServlet, StrongAuthenticationEntryPoint strongAuthenticationEntryPoint, CustomAccessDeniedHandler accessDeniedHandler, TokenService tokenService) {
+		this.loginService = loginService;
+		this.userMxgServlet = userMxgServlet;
+		this.strongAuthenticationEntryPoint = strongAuthenticationEntryPoint;
+		this.accessDeniedHandler = accessDeniedHandler;
+		this.tokenService = tokenService;
+	}
 	
 	// 手动创建过滤器Bean
 	@Bean
@@ -65,9 +67,10 @@ public class SecurityConfig {
 		http
 				// 禁用CSRF
 				.csrf(csrf -> csrf.disable())
-				// 会话管理 - 保持无状态
 				.sessionManagement(session -> session
-						.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)  // 按需创建Session
+						.maximumSessions(1)  // 实现您的单设备登录需求
+						.maxSessionsPreventsLogin(false)  // 允许新登录踢掉旧会话
 				)
 				// 授权配置
 				.authorizeHttpRequests(authz -> authz
@@ -86,7 +89,8 @@ public class SecurityConfig {
 							if (request.getServletPath().startsWith("/api/user/")) {
 								// 强认证路径使用专门的入口点
 								strongAuthenticationEntryPoint.commence(request, response, authException);
-							} else {
+							}
+							else {
 								response.setStatus(HttpStatus.UNAUTHORIZED.value());
 							}
 						})
@@ -99,8 +103,6 @@ public class SecurityConfig {
 		return http.build();
 	}
 	
-	@Bean
-	public AccessDeniedHandler GlobalAccessDeniedHandler(){}
 	/**
 	 * 静态资源完全不走 SecurityFilterChain，性能最高
 	 */

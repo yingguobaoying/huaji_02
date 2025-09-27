@@ -7,13 +7,13 @@ public enum LinksEnum {
 
     //'百度网盘','夸克网盘','微软云盘','第三方资源站','从服务器下载','请填写'
     // 构造方法，只用于设置初始值
-    private LinksEnum(String name, String value)     {
+    LinksEnum(String name, String value)     {
         this.name = name;
         this.value = value;
     }
 
-    private String value;
-    private String name;
+    private final String value;
+    private final String name;
 
     public String getValue() {
         return value;

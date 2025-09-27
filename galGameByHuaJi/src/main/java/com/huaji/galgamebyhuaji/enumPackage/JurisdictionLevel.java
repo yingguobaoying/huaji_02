@@ -37,7 +37,7 @@ public enum JurisdictionLevel {
 	private final int level;
 	private final String name;
 	
-	private JurisdictionLevel (int level, String name) {
+	JurisdictionLevel(int level, String name) {
 		this.level = level;
 		this.name = name;
 	}

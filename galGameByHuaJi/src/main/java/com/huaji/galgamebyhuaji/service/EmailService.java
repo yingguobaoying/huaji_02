@@ -8,7 +8,6 @@ import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +19,7 @@ import java.util.Properties;
  */
 @Service
 public class EmailService {
-	@Autowired
+	final
 	RedisMemoryService redisMemoryService;
 	/**
 	 * ip:userId
@@ -29,6 +28,8 @@ public class EmailService {
 	// 发件人的邮箱地址
 	@Value("${mail.smtp-email}")
 	private String FROM_EMAIL;
+	
+	public EmailService(RedisMemoryService redisMemoryService) {this.redisMemoryService = redisMemoryService;}
 	
 	public String getFROM_EMAIL() {
 		return FROM_EMAIL;
@@ -61,7 +62,7 @@ public class EmailService {
 		Date lastSendTime = redisMemoryService.getData(key, Date.class);
 		if (
 				lastSendTime!=null&&
-				1000 * 60 * 60 >= (System.nanoTime() - lastSendTime.getTime())
+				1000 * 60 * 60 >= (System.currentTimeMillis() - lastSendTime.getTime())
 		) {//每小时仅允许发送一次
 			throw new OperationException("我们已经发送了邮件到您的邮箱%s中,如果未发现请检查垃圾邮件\n如果您还未收到邮件请于%s再次获取或者是再次检查您的邮箱             ".formatted(
 					targetMailbox.getEmail(), TimeUtil.getVisualDateFormatTime(new Date(
