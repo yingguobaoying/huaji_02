@@ -9,24 +9,24 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.CollectServlet;
 import com.huaji.galgamebyhuaji.service.CommentService;
 import com.huaji.galgamebyhuaji.vo.CommentWithUser;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
 @Controller
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class CommentsController extends BaseController {
 	final
 	CommentService commentService;
 	final
 	CollectServlet collectServlet;
-	
-	public CommentsController(CommentService commentService, CollectServlet collectServlet) {
-		this.commentService = commentService;
-		this.collectServlet = collectServlet;
-	}
 	
 	@GetMapping("/Resources/getComments/{rId}")
 	@ResponseBody

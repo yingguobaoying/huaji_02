@@ -14,6 +14,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,14 +29,12 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 	
 	private final UserMxgServlet userMxgServlet;
 	
-	private final StrongAuthenticationEntryPoint authenticationEntryPoint;
 	
 	private final TokenService tokenService;
 	
-	public StrongAuthenticationFilter(TokenService tokenService, UserMxgServlet userMxgServlet, StrongAuthenticationEntryPoint authenticationEntryPoint) {
+	public StrongAuthenticationFilter(TokenService tokenService, UserMxgServlet userMxgServlet) {
 		this.tokenService = tokenService;
 		this.userMxgServlet = userMxgServlet;
-		this.authenticationEntryPoint = authenticationEntryPoint;
 	}
 	
 	@Override
@@ -54,15 +53,13 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 		String token = ElseUtil.getToken(request);
 		if (!StringUtils.hasText(token)) {
 			// 没有Token，返回强认证错误
-			authenticationEntryPoint.isFalse(request, response,
-			                                 new OperationException("您还未登录,请先进行登录后再进行此操作"));
-			return;
+			throw new AuthenticationServiceException("您还未登录,请先进行登录后再进行此操作");
 		}
 		
 		try {
 			UserToken userToken = tokenService.verifyToken(token, -1, ElseUtil.getClientIp(request), false);
 			if (userToken == null || userToken.getUserId() == null) {
-				throw new AuthenticationServiceException("无效的Token");
+				throw new BadCredentialsException("无效的Token");
 			}
 			
 			//加载用户信息
@@ -86,19 +83,15 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 		} catch (OperationException ex) {
 			// 认证失败，清理上下文并返回错误
 			SecurityContextHolder.clearContext();
-			authenticationEntryPoint.isFalse(request, response, ex);
-			return;
+			throw new AuthenticationServiceException("认证过程中发生错误,请重新进行登录后再进行此操作");
 		} catch (BestException e) {
 			SecurityContextHolder.clearContext();
-			authenticationEntryPoint.isFalse(request, response, e);
-			return;
+			throw new AuthenticationServiceException(e.getMessage());
 		} catch (Exception ex) {
 			// 其他异常，返回认证错误
 			SecurityContextHolder.clearContext();
-			authenticationEntryPoint.commence(request, response,
-			                                  new AuthenticationServiceException("认证过程中发生错误请稍后再试"));
 			MyLogUtil.error(StrongAuthenticationFilter.class, ex);
-			return;
+			throw new AuthenticationServiceException("认证过程中发生错误请稍后再试");
 		}
 		chain.doFilter(request, response);
 	}

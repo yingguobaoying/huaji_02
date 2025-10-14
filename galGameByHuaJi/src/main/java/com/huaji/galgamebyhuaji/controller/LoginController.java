@@ -19,6 +19,7 @@ import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +32,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Controller
 @RequestMapping("/api/login")
+@RequiredArgsConstructor
 public class LoginController {
 	private final LoginService loginService;
 	private final SessionService sessionService;
 	private final UserMxgServlet userMxgServlet;
 	private static final ConcurrentHashMap<Integer, ReentrantLock> userNameLocks = new ConcurrentHashMap<>();
-	
-	public LoginController(SessionService sessionService, LoginService loginService, UserMxgServlet userMxgServlet) {
-		this.sessionService = sessionService;
-		this.loginService = loginService;
-		this.userMxgServlet = userMxgServlet;
-	}
 	
 	
 	private ReentrantLock getLockForUserName(String s) {

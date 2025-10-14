@@ -7,14 +7,18 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
+@Getter
+@Setter
 public class UserNewMsg {
 	@NotNull(message = "错误!不存在的用户!")
 	private Integer userId;
 	
-	public void encryptionPassword () {
+	public void encryptionPassword() {
 		this.setUserPassword(MyStringUtil.encryption(userPassword));
 	}
 	
@@ -50,119 +54,7 @@ public class UserNewMsg {
 	
 	private String bio;
 	
-	public Integer getUserId () {
-		return userId;
-	}
-	
-	public void setUserId (Integer userId) {
-		this.userId = userId;
-	}
-	
-	public String getUserName () {
-		return userName;
-	}
-	
-	public void setUserName (String userName) {
-		this.userName = userName == null ? null : userName.trim();
-	}
-	
-	public String getUserNameLogin () {
-		return userNameLogin;
-	}
-	
-	public void setUserNameLogin (String userNameLogin) {
-		this.userNameLogin = userNameLogin == null ? null : userNameLogin.trim();
-	}
-	
-	public String getUserPassword () {
-		return userPassword;
-	}
-	
-	public void setUserPassword (String userPassword) {
-		this.userPassword = userPassword == null ? null : userPassword.trim();
-	}
-	
-	public Integer getCoin () {
-		return coin;
-	}
-	
-	public void setCoin (Integer coin) {
-		this.coin = coin;
-	}
-	
-	public String getMailbox () {
-		return mailbox;
-	}
-	
-	public void setMailbox (String mailbox) {
-		this.mailbox = mailbox == null ? null : mailbox.trim();
-	}
-	
-	public String getUserHeadPortraitUrl () {
-		return userHeadPortraitUrl;
-	}
-	
-	public void setUserHeadPortraitUrl (String userHeadPortraitUrl) {
-		this.userHeadPortraitUrl = userHeadPortraitUrl == null ? null : userHeadPortraitUrl.trim();
-	}
-	
-	public String getStatus () {
-		return status;
-	}
-	
-	public void setStatus (String status) {
-		this.status = status == null ? null : status.trim();
-	}
-	
-	public String getSex () {
-		return sex;
-	}
-	
-	public void setSex (String sex) {
-		this.sex = sex == null ? null : sex.trim();
-	}
-	
-	public Integer getJurisdiction () {
-		return jurisdiction;
-	}
-	
-	public void setJurisdiction (Integer jurisdiction) {
-		this.jurisdiction = jurisdiction;
-	}
-	
-	public Date getBirthday () {
-		return birthday;
-	}
-	
-	public void setBirthday (Date birthday) {
-		this.birthday = birthday;
-	}
-	
-	public Date getRegisterTime () {
-		return registerTime;
-	}
-	
-	public void setRegisterTime (Date registerTime) {
-		this.registerTime = registerTime;
-	}
-	
-	public String getUserPe () {
-		return userPe;
-	}
-	
-	public void setUserPe (String userPe) {
-		this.userPe = userPe == null ? null : userPe.trim();
-	}
-	
-	public String getBio () {
-		return bio;
-	}
-	
-	public void setBio (String bio) {
-		this.bio = bio == null ? null : bio.trim();
-	}
-	
-	public UsersWithBLOBs passUser () {
+	public UsersWithBLOBs passUser() {
 		UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
 		usersWithBLOBs.setUserName(userName);
 		usersWithBLOBs.setUserNameLogin(userNameLogin);

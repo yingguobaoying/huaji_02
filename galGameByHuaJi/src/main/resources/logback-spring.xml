@@ -75,10 +75,6 @@
     <logger name="com.huaji.galgamebyhuaji.service.RootServlet" level="INFO" additivity="false">
         <appender-ref ref="loginFile"/>
     </logger>
-    <logger name="com.huaji.galgamebyhuaji.Interceptor" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
-    </logger>
-
     <!-- 用户行为日志 -->
     <appender name="userFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE_PATH}/userBehavior.log</file>
@@ -102,6 +98,12 @@
         <appender-ref ref="userFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.UserMxgServlet" level="INFO" additivity="false">
+        <appender-ref ref="userFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.service.impl.FileAccessServiceImpl" level="INFO" additivity="false">
+        <appender-ref ref="userFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.service.impl.FileUploadServiceImpl" level="INFO" additivity="false">
         <appender-ref ref="userFile"/>
     </logger>
     <!-- 验证日志 -->

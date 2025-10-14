@@ -24,7 +24,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 	                   AccessDeniedException accessDeniedException) throws IOException {
 		
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		response.setStatus(HttpStatus.FORBIDDEN.value());
+		response.setStatus(HttpStatus.OK.value());
 		
 		ReturnResult r = ReturnResult.isFalse("您的权限不足,无法访问该选项");
 		// 获取当前用户信息

@@ -1,15 +1,14 @@
 package com.huaji.galgamebyhuaji.listen;
 
 
-import com.huaji.galgamebyhuaji.entity.Resources;
-import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
+import com.huaji.galgamebyhuaji.constant.Constant;
+import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.*;
 import jakarta.servlet.ServletContext;
-import org.redisson.api.RBloomFilter;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ContextClosedEvent;
@@ -19,13 +18,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.Date;
-import java.util.List;
+import java.util.Random;
 
 import static com.huaji.galgamebyhuaji.constant.Constant.CONSTANT_PASSWORD;
-import static com.huaji.galgamebyhuaji.constant.Constant.RESOURCE_SAVE_PATH;
 
 @Component
 @DependsOn({"vaultConfigValidator", "JWTConfig"})
+@RequiredArgsConstructor
 public class IntoListen {
 	
 	private final ResourcesService resourcesService;
@@ -35,10 +34,6 @@ public class IntoListen {
 	final
 	ServletContext servletContext;
 	final
-	RBloomFilter<String> RNameBloomFilter;
-	final
-	RBloomFilter<String> manufacturerFilterBloomFilter;
-	final
 	PasswordEncryptionUtil passwordEncryptionUtil;
 	@Value("${resource-save-path}")
 	private String resourceSavePath;
@@ -46,59 +41,58 @@ public class IntoListen {
 	RedisMemoryService redisMemoryService;
 	final RootServlet rootServlet;
 	
-	public IntoListen(ResourcesService resourcesService, TagService tagService, SessionService sessionService, UserMxgServlet userMxgServlet, ServletContext servletContext, @Qualifier("RNameBloomFilter") RBloomFilter<String> RNameBloomFilter, @Qualifier("manufacturerFilterBloomFilter") RBloomFilter<String> manufacturerFilterBloomFilter, PasswordEncryptionUtil passwordEncryptionUtil, RedisMemoryService redisMemoryService, RootServlet rootServlet) {
-		this.resourcesService = resourcesService;
-		this.tagService = tagService;
-		this.sessionService = sessionService;
-		this.userMxgServlet = userMxgServlet;
-		this.servletContext = servletContext;
-		this.RNameBloomFilter = RNameBloomFilter;
-		this.manufacturerFilterBloomFilter = manufacturerFilterBloomFilter;
-		this.passwordEncryptionUtil = passwordEncryptionUtil;
-		this.redisMemoryService = redisMemoryService;
-		this.rootServlet = rootServlet;
-	}
 	
 	@EventListener
-	public void onContextRefreshed(ContextRefreshedEvent event) throws SessionExceptions {
+	public void onContextRefreshed(ContextRefreshedEvent event) throws Exception {
 		if (event.getApplicationContext().getParent() == null) {
 			redisMemoryService.delAllData();//清空旧数据
 			rootServlet.rootUserInit();
 			tagService.getTagMap();
-			List<Resources> allResources = resourcesService.getAllResources();
+			resourcesService.getAllResources();
 			userMxgServlet.getAllUserListMxg();
-			//将资源加入过滤器
-			for (Resources resource : allResources) {
-				RNameBloomFilter.add(resource.getrName());
-				manufacturerFilterBloomFilter.add(resource.getrManufacturer());
-			}
 			//设置防止时序攻击的固定密码,不过大部分情况下密码不会包括中文所以这里夹带了点私货
 			CONSTANT_PASSWORD = passwordEncryptionUtil.hashPassword("红豆可爱滴捏_Vigna_very_loveliness");
 			System.out.println(resourceSavePath);
 			File dir = new File(resourceSavePath);
 			if (!dir.exists()) {
 				if (dir.mkdirs())
-					MyLogUtil.info(IntoListen.class, "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath);
+					MyLogUtil.info(IntoListen.class,
+					               "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath);
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath);
 			}
-			File imgFile = new File(resourceSavePath + File.separator + "img");
-			File rarFile = new File(resourceSavePath + File.separator + "rar");
+			File imgFile = new File(resourceSavePath + File.separator + FileCategory.IMG.getFILE_SAVE_URL());
+			File rarFile = new File(resourceSavePath + File.separator + FileCategory.ARCHIVE.getFILE_SAVE_URL());
 			if (!imgFile.exists()) {
 				if (imgFile.mkdirs())
-					MyLogUtil.info(IntoListen.class, "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath + "\\img");
+					MyLogUtil.info(IntoListen.class,
+					               "静态资源存储文件夹不存在!进行创建!创建位置为:" + imgFile);
 				else
-					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath + "\\img");
+					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + imgFile);
 			}
 			if (!rarFile.exists()) {
 				if (rarFile.mkdirs())
-					MyLogUtil.info(IntoListen.class, "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath + "\\rar");
+					MyLogUtil.info(IntoListen.class,
+					               "静态资源存储文件夹不存在!进行创建!创建位置为:" + rarFile);
 				else
-					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath + "\\rar");
+					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
 			}
-			RESOURCE_SAVE_PATH = resourceSavePath;
+			// 使用反射修改静态常量字段
+			Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
+		}
+		System.out.println("=========================================");
+		System.out.println("===========滑稽/因果报应的个人小站===========");
+		System.out.println("=========================================");
+		System.out.println("=========================================");
+		System.out.println("==============此为后端部分=================");
+		System.out.println("=========================================");
+		Random random = new Random();
+		int i = random.nextInt(0, 500);
+		if (i == 430 || i == 43 || i == 4 || i == 3) {
+			MyLogUtil.info(IntoListen.class, "红豆可爱滴捏~~~~");
 		}
 	}
+	
 	
 	@EventListener
 	public void onContextClosed(ContextClosedEvent event) {

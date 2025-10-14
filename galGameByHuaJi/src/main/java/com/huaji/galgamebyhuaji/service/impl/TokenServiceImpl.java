@@ -11,10 +11,12 @@ import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
+import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
 import com.huaji.galgamebyhuaji.myUtil.JWTUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import io.micrometer.common.lang.Nullable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import static com.huaji.galgamebyhuaji.constant.GlobalLock.unlockForUser;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
 	final
 	UserTokenMapper userTokenMapper;
@@ -37,12 +40,6 @@ public class TokenServiceImpl implements TokenService {
 	JWTUtil jwtUtil;
 	final
 	JWTConfig jwtConfig;
-	
-	public TokenServiceImpl(UserTokenMapper userTokenMapper, JWTUtil jwtUtil, JWTConfig jwtConfig) {
-		this.userTokenMapper = userTokenMapper;
-		this.jwtUtil = jwtUtil;
-		this.jwtConfig = jwtConfig;
-	}
 	
 	public <T extends OnlineUser> UserToken verifyToken(String token, int userId, TokenType type,
 	                                                    @Nullable String ip, boolean needUpdate)
@@ -101,7 +98,7 @@ public class TokenServiceImpl implements TokenService {
 		Class<T> clazz = (Class<T>) type.getTokenClazz();
 		ReturnResult<T> result = jwtUtil.parseToken(token, SystemConstant.JWT_TOKEN_NAME, clazz);
 		
-		if (userId == -1)
+		if (userId == -1)//为-1时认为用户ID未知跳过ID校验
 			userId = result.getReturnResult().getUserId();
 		if (result.isHasError()) {
 			throw new OperationException("令牌解析失败: " + result.getMsg());
@@ -122,7 +119,7 @@ public class TokenServiceImpl implements TokenService {
 				if (validTokens.size() > 1)
 					throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
 				else
-					throw new SessionExceptions("错误!您的令牌信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
+					throw new SessionExceptions("您的会话已过期,请重新登录后在试一次", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
 			}
 			return onlineUser;
 		} finally {
@@ -138,13 +135,12 @@ public class TokenServiceImpl implements TokenService {
 		}
 		// 用户ID和类型校验
 		if (onlineUser.getUserId() != userId ||
-				!type.equals(onlineUser.getTokenType())) {
+		    !type.equals(onlineUser.getTokenType())) {
 			throw new SessionExceptions("令牌不匹配", ErrorEnum.SESSION_TOKEN_ERROR);
 		}
 		
-		// IP校验（当提供IP时）
-		if (!MyStringUtil.isNull(ip) && !ip.equals(onlineUser.getIp())) {
-			if (!MyStringUtil.isNull(onlineUser.getIp()))
+		if (!ElseUtil.equalsIp(ip, onlineUser.getIp())) {
+			if (!(MyStringUtil.isNull(onlineUser.getIp())))//如果数据库一方没记录就不算变更
 				throw new SessionExceptions("IP变更", ErrorEnum.SESSION_IP_CHANGED);
 		}
 		
@@ -214,7 +210,7 @@ public class TokenServiceImpl implements TokenService {
 		//可能需要覆盖原有失效令牌
 		if (type == null) type = TokenType.DEFAULT_STATUS;
 		if (onlineUser == null) throw new OperationException("令牌生成失败!");
-		if (time <= 0 || TokenType.DEFAULT_STATUS.equals(type))
+		if (time <= 0 )
 			time = jwtConfig.getExpirationTime();
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
 		try {

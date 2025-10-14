@@ -9,15 +9,15 @@ import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,17 +47,14 @@ public class SecurityConfig {
 		this.tokenService = tokenService;
 	}
 	
-	// 手动创建过滤器Bean
 	@Bean
-	@Order(1) // 添加顺序注解
 	public BasicAuthenticationFilter basicAuthenticationFilter() {
 		return new BasicAuthenticationFilter(loginService, userMxgServlet);
 	}
 	
 	@Bean
-	@Order(2) // 添加顺序注解
 	public StrongAuthenticationFilter strongAuthenticationFilter() {
-		return new StrongAuthenticationFilter(tokenService, userMxgServlet, strongAuthenticationEntryPoint);
+		return new StrongAuthenticationFilter(tokenService, userMxgServlet);
 	}
 	
 	
@@ -66,10 +63,14 @@ public class SecurityConfig {
 	) throws Exception {
 		http
 				// 禁用CSRF
-				.csrf(csrf -> csrf.disable())
+				.csrf(AbstractHttpConfigurer::disable)
+				// 添加安全头
+				.headers(headers -> headers
+						.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+				)
 				.sessionManagement(session -> session
 						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)  // 按需创建Session
-						.maximumSessions(1)  // 实现您的单设备登录需求
+						.maximumSessions(1)  // 单设备登录
 						.maxSessionsPreventsLogin(false)  // 允许新登录踢掉旧会话
 				)
 				// 授权配置
@@ -77,24 +78,15 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						// 静态资源和公开接口放行
 						.requestMatchers("/static/**", "/public/**", "/api/login", "/api/register").permitAll()
+						.requestMatchers("/druid/**").hasRole("ROOT_JURISDICTION")
 						// 强认证路径需要认证
 						.requestMatchers("/api/user/**").authenticated()
-						// 其他路径允许匿名访问（由基础认证过滤器处理）
+						// 其他路径允许匿名访问
 						.anyRequest().permitAll()
 				)
 				// 异常处理
 				.exceptionHandling(exceptions -> exceptions
-						// 认证入口点 - 区分强认证和普通认证
-						.authenticationEntryPoint((request, response, authException) -> {
-							if (request.getServletPath().startsWith("/api/user/")) {
-								// 强认证路径使用专门的入口点
-								strongAuthenticationEntryPoint.commence(request, response, authException);
-							}
-							else {
-								response.setStatus(HttpStatus.UNAUTHORIZED.value());
-							}
-						})
-						// 访问拒绝处理器
+						.authenticationEntryPoint(strongAuthenticationEntryPoint)
 						.accessDeniedHandler(accessDeniedHandler)
 				)
 				.addFilterBefore(basicAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)

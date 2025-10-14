@@ -15,7 +15,7 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.FileServlet;
 import com.huaji.galgamebyhuaji.service.LoginService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -44,25 +44,26 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.huaji.galgamebyhuaji.constant.Constant.*;
+import static com.huaji.galgamebyhuaji.myUtil.FileUtil.formatFileSize;
 
 /**
- * 文件服务实现类，处理文件上传、下载、删除等操作 支持图片压缩和压缩包文件处理
+ * 文件服务实现类，处理文件上传、下载、删除等操作 支持图片压缩和压缩包文件处理<br>
+ * 由于比较难维护于已废弃,保留原因是升级失败时方便回滚,推荐使用由此类拆分得到的子类
  *
  * @author 滑稽/因果报应
  */
 @Service
 @Primary
+@RequiredArgsConstructor
+@Deprecated(since = "1.0", forRemoval = true)
 public class FileServletImpl implements FileServlet {
 	
 	//获取的为:servletContext.getRealPath("/static/");
-	protected String basePath = Constant.RESOURCE_SAVE_PATH;
+	protected String basePath = Constant.getRESOURCE_SAVE_PATH();
 	
-	@Autowired
-	LoginService loginService;
-	@Autowired
-	UserDownloadMapper downloadMapper;
-	@Autowired
-	ResourcesMapper resourcesMapper;
+	final LoginService loginService;
+	final UserDownloadMapper downloadMapper;
+	final ResourcesMapper resourcesMapper;
 	protected static final String[] PROTECTED_NAME = new String[]{
 			"default.jpeg", "error.jpeg", "ZhenZhanTu.jpg",
 			"default", "error", "ZhenZhanTu"
@@ -95,7 +96,9 @@ public class FileServletImpl implements FileServlet {
 	 * @param fileType   文件类型(jpeg/zip)
 	 * @param usersToken 用户token
 	 * @param name       自定义文件名(可选)
+	 *
 	 * @return 返回操作结果
+	 *
 	 * @throws IOException        文件IO异常
 	 * @throws BestException      业务异常
 	 * @throws OperationException 操作异常
@@ -104,7 +107,7 @@ public class FileServletImpl implements FileServlet {
 	public ReturnResult<String> uploadFile(MultipartFile file, String fileType, String usersToken, String name)
 			throws IOException, BestException, OperationException {
 		if (MyStringUtil.isNull(basePath))
-			basePath = Constant.RESOURCE_SAVE_PATH;
+			basePath = Constant.getRESOURCE_SAVE_PATH();
 		Users users = loginService.testLogin(usersToken);
 		if (file.isEmpty())
 			throw new OperationException("上传文件为空");
@@ -112,9 +115,11 @@ public class FileServletImpl implements FileServlet {
 		try {
 			if ("jpeg".equalsIgnoreCase(fileType)) {
 				validateFileSize(file, JPEG_MIN, JPEG_MAX);
-			} else if ("zip".equalsIgnoreCase(fileType)) {
+			}
+			else if ("zip".equalsIgnoreCase(fileType)) {
 				validateFileSize(file, RAT_MIN, RAR_MAX);
-			} else throw new OperationException("不支持的文件类型!当前仅支持:\n图片: jpeg \n 压缩包: zip");
+			}
+			else throw new OperationException("不支持的文件类型!当前仅支持:\n图片: jpeg \n 压缩包: zip");
 		} catch (OperationException e) {
 			throw new OperationException(String.format(
 					"上传文件大小不符合要求!图片文件大小范围:%.2fKB-%.2fMB,压缩包大小范围:%.2fMB-%.2fGB",
@@ -130,7 +135,8 @@ public class FileServletImpl implements FileServlet {
 			String timestamp = TimeUtil.getNowTime();
 			String userId = String.valueOf(users.getUserId());
 			fileName = userId + timestamp;
-		} else {
+		}
+		else {
 			fileName = name.replaceAll("[\\\\/:*?\"<>|]", "_");
 		}
 		
@@ -164,16 +170,16 @@ public class FileServletImpl implements FileServlet {
 	public ReturnResult<ResponseEntity<InputStreamResource>> dowFile(String fileName, String downName, String usersToken, Integer rId, String type)
 			throws IOException, BestException, OperationException {
 		if (MyStringUtil.isNull(basePath))
-			basePath = Constant.RESOURCE_SAVE_PATH;
+			basePath = Constant.getRESOURCE_SAVE_PATH();
 		Users users = loginService.testLogin(usersToken);
 		if (rId != null && rId < 0) {
 			throw new OperationException("错误!不存在的该资源!");
 		}
 		switch (type) {
-			case "jpeg","png":
+			case "jpeg", "png":
 				type = "img";
 				break;
-			case "rar","zip":
+			case "rar", "zip":
 				type = "rar";
 				break;
 			case "js", "ts":
@@ -185,7 +191,8 @@ public class FileServletImpl implements FileServlet {
 		File file;
 		if (MyStringUtil.isNull(type)) {
 			file = Paths.get(basePath, fileName).toFile();
-		} else {
+		}
+		else {
 			file = Paths.get(basePath, type, fileName).toFile();
 		}
 		if (!file.exists()) {
@@ -222,6 +229,7 @@ public class FileServletImpl implements FileServlet {
 	 * @param file 要验证的文件
 	 * @param min  最小文件大小(字节)
 	 * @param max  最大文件大小(字节)
+	 *
 	 * @throws OperationException 当文件大小不在指定范围内时抛出
 	 */
 	protected void validateFileSize(MultipartFile file, long min, long max) {
@@ -239,6 +247,7 @@ public class FileServletImpl implements FileServlet {
 	 *
 	 * @param fileHeader 文件头字节数组
 	 * @param magicBytes 要匹配的魔数字节数组
+	 *
 	 * @return 如果匹配返回true，否则返回false
 	 */
 	protected boolean startsWith(byte[] fileHeader, byte[] magicBytes) {
@@ -258,7 +267,9 @@ public class FileServletImpl implements FileServlet {
 	 *
 	 * @param file     要保存的文件
 	 * @param fileName 目标文件名
+	 *
 	 * @return 保存结果
+	 *
 	 * @throws IOException 文件IO异常
 	 */
 	protected ReturnResult<String> saveArchive(MultipartFile file, String fileName) throws IOException {
@@ -295,7 +306,9 @@ public class FileServletImpl implements FileServlet {
 	 * 检测压缩包类型 通过读取文件头部的魔数来判断文件类型
 	 *
 	 * @param file 要检测的文件
+	 *
 	 * @return 文件类型字符串，如"zip"、"rar"等，如果不支持则返回null
+	 *
 	 * @throws IOException 文件读取异常
 	 */
 	protected String detectArchiveType(MultipartFile file) throws IOException {
@@ -311,25 +324,15 @@ public class FileServletImpl implements FileServlet {
 		return null;
 	}
 	
-	/**
-	 * 格式化文件大小，自动转换为合适的单位(B/KB/MB/GB)
-	 *
-	 * @param size 文件大小(字节)
-	 * @return 格式化后的文件大小字符串
-	 */
-	protected String formatFileSize(long size) {
-		if (size < 1024) return size + "B";
-		else if (size < 1024 * 1024) return String.format("%.2fKB", size / 1024.0);
-		else if (size < 1024L * 1024 * 1024) return String.format("%.2fMB", size / (1024.0 * 1024));
-		else return String.format("%.2fGB", size / (1024.0 * 1024 * 1024));
-	}
 	
 	/**
 	 * 保存图片文件 1. 验证图片格式 2. 转换为JPEG格式 3. 保存图片 4. 记录压缩信息
 	 *
 	 * @param image    图片文件
 	 * @param fileName 目标文件名
+	 *
 	 * @return 保存结果
+	 *
 	 * @throws IOException 文件IO异常
 	 */
 	protected ReturnResult<String> saveImage(MultipartFile image, String fileName) throws IOException {
@@ -373,6 +376,7 @@ public class FileServletImpl implements FileServlet {
 	 * 将图片转换为JPEG格式 创建一个新的RGB图片，并将原图绘制到新图片上
 	 *
 	 * @param source 源图片
+	 *
 	 * @return 转换后的JPEG图片
 	 */
 	protected BufferedImage convertToJpeg(BufferedImage source) {
@@ -393,7 +397,9 @@ public class FileServletImpl implements FileServlet {
 	 * 获取或创建目录 如果目录不存在则创建
 	 *
 	 * @param subPath 子目录路径
+	 *
 	 * @return 目录文件对象
+	 *
 	 * @throws IOException 目录创建失败时抛出
 	 */
 	protected File getOrCreateDirectory(String subPath) throws IOException {
@@ -409,12 +415,13 @@ public class FileServletImpl implements FileServlet {
 	 *
 	 * @param fileName 文件名
 	 * @param fileUrl  文件URL
+	 *
 	 * @return 删除结果
 	 */
 	@Override
 	public ReturnResult<String> deleteFile(String fileName, String fileUrl) {
 		if (MyStringUtil.isNull(basePath))
-			basePath = Constant.RESOURCE_SAVE_PATH;
+			basePath = Constant.getRESOURCE_SAVE_PATH();
 		if (MyStringUtil.isNull(fileUrl)) {
 			fileUrl = basePath;
 		}
@@ -444,6 +451,7 @@ public class FileServletImpl implements FileServlet {
 	 *
 	 * @param image  要保存的图片
 	 * @param output 输出文件
+	 *
 	 * @throws IOException 文件IO异常
 	 */
 	protected void saveAsJpeg(BufferedImage image, File output) throws IOException {
@@ -469,7 +477,8 @@ public class FileServletImpl implements FileServlet {
 		}
 		if (writer != null) {
 			MyLogUtil.info(FileServletImpl.class, "当前使用的 JPEG writer: " + writer.getClass().getName());
-		} else {
+		}
+		else {
 			MyLogUtil.info(FileServletImpl.class, "没有找到合适的 JPEG writer!使用默认兜底处理!");
 			ImageIO.write(image, "jpeg", output);
 			return;

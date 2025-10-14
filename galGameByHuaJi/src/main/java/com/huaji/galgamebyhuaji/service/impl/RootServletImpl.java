@@ -1,5 +1,6 @@
 package com.huaji.galgamebyhuaji.service.impl;
 
+import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.constant.GlobalLock;
 import com.huaji.galgamebyhuaji.dao.SessionMapper;
 import com.huaji.galgamebyhuaji.dao.UsersMapper;
@@ -7,6 +8,7 @@ import com.huaji.galgamebyhuaji.entity.Session;
 import com.huaji.galgamebyhuaji.entity.UserToken;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
+import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
 import com.huaji.galgamebyhuaji.enumPackage.TokenType;
 import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
@@ -22,27 +24,26 @@ import com.huaji.galgamebyhuaji.service.RootServlet;
 import com.huaji.galgamebyhuaji.service.SessionService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
+@RequiredArgsConstructor
 public class RootServletImpl implements RootServlet {
-	@Autowired
-	UsersMapper usersMapper;
-	@Autowired
-	TokenService tokenService;
-	@Autowired
-	PasswordEncryptionUtil passwordEncryptionUtil;
-	@Autowired
-	SessionMapper sessionMapper;
-	@Autowired
-	SessionService sessionService;
+	final UsersMapper usersMapper;
+	final TokenService tokenService;
+	final PasswordEncryptionUtil passwordEncryptionUtil;
+	final SessionMapper sessionMapper;
+	final SessionService sessionService;
 	
 	@Override
 	public Users RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError {
@@ -93,7 +94,8 @@ public class RootServletImpl implements RootServlet {
 			if (!MyStringUtil.isNull(token) && token.length() >= 20) {
 				lock = GlobalLock.getLockForUser(token.hashCode());
 				lock.lock();
-				userToken = tokenService.verifyToken(token, -1, ip, true);
+				//不自动校验ip
+				userToken = tokenService.verifyToken(token, -1, null, true);
 				//手动校验ip
 				boolean b = false;
 				for (String s : IP_WHITELIST) {
@@ -107,8 +109,7 @@ public class RootServletImpl implements RootServlet {
 					throw new OperationException("您使用的ip被防火墙隔离了,请换个ip试试");
 				}
 				return userToken;
-			}
-			else {
+			} else {
 				MyLogUtil.error(LoginService.class,
 				                "ip:{%s}登录特殊root用户时失败了,因为输入长度不达标".formatted(ip));
 			}
@@ -125,6 +126,49 @@ public class RootServletImpl implements RootServlet {
 	
 	@Override
 	public void rootUserInit() throws SessionExceptions {
+		UsersWithBLOBs root0 = usersMapper.selectByPrimaryKey(0);
+		if (root0 == null || root0.getUserId() == null) {
+			UsersWithBLOBs users = new UsersWithBLOBs();
+			users.setUserId(0);
+			users.setStatus(UserStatus.OK.getValue());
+			users.setUserNameLogin("hongdouchu");
+			users.setJurisdiction(JurisdictionLevel.ROOT_JURISDICTION.getLevel());
+			users.setUserHeadPortraitUrl(Constant.DEFAULT_HEAD_PORTRAIT);
+			users.setCoin(114514);
+			users.setUserName("一只滑稽/因果报应");
+			users.setMailbox("hongdouchu@hongdouchu.com");
+			users.setUserPassword("红豆可爱滴捏");//反正是密码的占位,也不可能解析的上
+			users.setSex("武装直升机");
+			users.setBio("一只红豆厨");
+			usersMapper.insert(users);
+		}
+		UsersWithBLOBs root1 = usersMapper.selectByPrimaryKey(1);
+		if (root1 == null || root1.getUserId() == null) {
+			UsersWithBLOBs users = new UsersWithBLOBs();
+			users.setUserId(1);
+			users.setStatus(UserStatus.OK.getValue());
+			users.setJurisdiction(JurisdictionLevel.ROOT_JURISDICTION.getLevel());
+			users.setUserHeadPortraitUrl(Constant.DEFAULT_HEAD_PORTRAIT);
+			users.setCoin(999999);
+			users.setUserName("红豆");
+			users.setUserPassword("红豆可爱滴捏");
+			users.setBio("罗德岛先锋干员红豆，握紧长枪，准备着进入战场。\n" +
+			             "\n" +
+			             "她很清楚，在需要全身心投入这一点上，战争和摇滚别无二致。萨卡兹少女，代号红豆，身高142cm。出生于卡兹戴尔，但自幼随父母在哥伦比亚城市中生活。作为萨卡兹人，她经历了动荡不安的童年和频繁的城市冲突，这使她形成了坚韧不拔、绝不妥协的性格。\n" +
+			             "\n" +
+			             "红豆热爱音乐，尤其是摇滚，并用省吃俭用的资金购买了她的第一把电吉他。她相信音乐能够打破歧视和隔阂，传递内心的呐喊。红豆不仅是一名技艺高超的吉他手，也是罗德岛小队的先锋人员，在战术突袭和开辟战场方面表现出色。\n" +
+			             "\n" +
+			             "尽管感染了矿石病，红豆依然积极向上，努力锻炼自己并改造她的武器。她坚信，人生的目标应靠自己的努力去达成，不管遇到什么困难，她都会坚持自己的信念。\n" +
+			             "\n" +
+			             "在罗德岛，红豆不仅是一名优秀的战士，更是一个充满活力和激情的年轻人。她用自己的热情和决心感染着身边的每一个人，无论是战斗还是生活，她都用心去面对每一个挑战。");
+			users.setMailbox("Vigna_BABIE_Arknights.com");
+			users.setBio("一只红豆厨");
+			users.setUserNameLogin("Vigna");
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate localDate = LocalDate.parse("2019-04-30", formatter);
+			users.setBirthday(Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+			usersMapper.insert(users);
+		}
 		//设置token
 		OnlineUser onlineUser0 = new OnlineUser();
 		onlineUser0.setIp(null);
@@ -143,22 +187,22 @@ public class RootServletImpl implements RootServlet {
 		MyLogUtil.info(LoginService.class, "***********************************************************");
 		MyLogUtil.info(LoginService.class, "0号root用户登录令牌:" + userToken0.getToken());
 		System.out.println("0号root用户登录令牌:" + userToken0.getToken());
+		System.out.println("1号root用户登录令牌:" + userToken1.getToken());
 		MyLogUtil.info(LoginService.class, "1号root用户登录令牌:" + userToken1.getToken());
 		MyLogUtil.info(LoginService.class, "***********************************************************");
 		MyLogUtil.info(LoginService.class, "***********此令牌仅本次服务器启动时有效,服务器关闭后失效************");
 		MyLogUtil.info(LoginService.class, "***********************************************************");
-		System.out.println("1号root用户登录令牌:" + userToken1.getToken());
 		//将两个root设置为在线
 		Session user0Session = sessionService.getSession(0);
-		boolean hasUser0 = user0Session != null;
+		boolean user0IsNull = user0Session == null;
 		Session user1Session = sessionService.getSession(1);
-		boolean hasUser1 = user1Session != null;
-		if (!hasUser0) {
+		boolean user1IsNull = user1Session == null;
+		if (user0IsNull) {
 			user0Session = new Session();
 			user0Session.setUserId(0);
 			user0Session.setLastLoginTime(new Date());
 		}
-		if (!hasUser1) {
+		if (user1IsNull) {
 			user1Session = new Session();
 			user1Session.setUserId(1);
 			user1Session.setLastLoginTime(new Date());
@@ -166,13 +210,13 @@ public class RootServletImpl implements RootServlet {
 		user0Session.setLastLoginIp("null");//置为空,因为手动接管了ip校验
 		user0Session.setStatus(true);//设置为在线
 		user1Session.setLastLoginIp("null");
-		user1Session.setStatus(true);//设置为在线
+		user1Session.setStatus(true);
 		//更新/插入
-		if (hasUser0)
+		if (!user0IsNull)
 			WriteError.tryWrite(sessionMapper.updateByPrimaryKeySelective(user0Session));
 		else
 			WriteError.tryWrite(sessionMapper.insert(user0Session));
-		if (hasUser1)
+		if (!user1IsNull)
 			WriteError.tryWrite(sessionMapper.updateByPrimaryKeySelective(user1Session));
 		else
 			WriteError.tryWrite(sessionMapper.insert(user1Session));

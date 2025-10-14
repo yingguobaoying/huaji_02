@@ -32,7 +32,7 @@ public interface SessionMapper {
 	
 	int helicopterAirCrash();
 	
-	List<Session> getSessionByUser(@Param("userId") int userId, @Param("ip") String loginIP);
+	List<Session> getSessionByUser(@Param("userId") int userId);
 	
 	int exitLogin(@Param("usersId") Integer usersId);
 }

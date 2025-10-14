@@ -1,18 +1,17 @@
 package com.huaji.galgamebyhuaji.enumPackage;
 
 
+import lombok.Getter;
+
+@Getter
 public enum UserStatus {
-	OK("ok", "正常"),//ok
-	BLACK_LIST("blacklist", "在黑名单中"),//拉黑
-	FROZEN("frozen", "用户冻结"),//被冻结
-	BANNED("banned", "用户被禁封"),//被封禁
-	IS_DISABLED("is disabled", "用户被禁用"),//被禁用
-	NOT_AUTHENTICATED("Not authenticated", "未认证邮箱");//未认证
-	
-	
-	public String getName() {
-		return name;
-	}
+	BANNED("banned", "被禁封"), //被封禁
+	BLACK_LIST("blacklist", "被拉进黑名单"), //拉黑
+	FROZEN("frozen", "被冻结"), //被冻结
+	IS_DISABLED("is disabled", "被禁用"), //被禁用
+	NOT_AUTHENTICATED("Not authenticated", "未认证邮箱"),//未认证
+	OK("ok", "正常") //ok
+	;
 	
 	
 	private final String value;
@@ -22,10 +21,6 @@ public enum UserStatus {
 	UserStatus(String value, String name) {
 		this.value = value;
 		this.name = name;
-	}
-	
-	public String getValue() {
-		return value;
 	}
 	
 	public static UserStatus testEnumValue(String value) {

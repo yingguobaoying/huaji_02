@@ -11,18 +11,17 @@ import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.service.FriendServlet;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class FriendServletImpl implements FriendServlet {
-	@Autowired
-	FriendMapMapper friendMapMapper;
-	@Autowired
-	UserMxgServlet userMxgServlet;
+	final FriendMapMapper friendMapMapper;
+	final UserMxgServlet userMxgServlet;
 	
 	/**
 	 * 拒绝好友申请

@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-public class DeBugTest {
+public class HealthProbeController {
+	//上线时请保留此类用于服务器链接测试,相当与web版本的ping
+	//todo:请只保留test(),用于当一个服务器探针,其他请删除掉!
 	@GetMapping("/api/user/test/root")
 	@ResponseBody
 	@PreAuthorize("hasRole('ROOT_JURISDICTION')")

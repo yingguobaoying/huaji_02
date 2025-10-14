@@ -17,6 +17,7 @@ import com.huaji.galgamebyhuaji.model.jwtToken.BuyResourcesUser;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserBehaviorService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import java.util.List;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserBehaviorServiceImpl implements UserBehaviorService {
 	final
 	UsersMapper usersMapper;
@@ -40,14 +42,6 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
 	LinksMapper linksMapper;
 	final
 	ResourcesFileMapMapper resourcesFileMap;
-	
-	public UserBehaviorServiceImpl(UsersMapper usersMapper, UserMxgServlet userMxgServlet, TokenService tokenService, LinksMapper linksMapper, ResourcesFileMapMapper resourcesFileMap) {
-		this.usersMapper = usersMapper;
-		this.userMxgServlet = userMxgServlet;
-		this.tokenService = tokenService;
-		this.linksMapper = linksMapper;
-		this.resourcesFileMap = resourcesFileMap;
-	}
 	
 	@Override
 	public ReturnResult<String> buyOutsideDown(Integer userId, Integer rId, String ip) throws SessionExceptions {

@@ -1,7 +1,12 @@
 package com.huaji.galgamebyhuaji.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Date;
 
+@Setter
+@Getter
 public class TokenMsg {
 	public TokenMsg(Date expiration, String token) {
 		this.expiration = expiration;
@@ -14,19 +19,4 @@ public class TokenMsg {
 	private String token;
 	private Date expiration;
 	
-	public String getToken() {
-		return token;
-	}
-	
-	public void setToken(String token) {
-		this.token = token;
-	}
-	
-	public Date getExpiration() {
-		return expiration;
-	}
-	
-	public void setExpiration(Date expiration) {
-		this.expiration = expiration;
-	}
 }

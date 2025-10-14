@@ -10,7 +10,7 @@ import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.service.CommentService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import com.huaji.galgamebyhuaji.vo.CommentWithUser;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -23,11 +23,11 @@ import java.util.*;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
-	@Autowired
-	CommentMapper commentMapper;
-	@Autowired
-	UserMxgServlet userMxgServlet;
+	final CommentMapper commentMapper;
+	final UserMxgServlet userMxgServlet;
+	
 	
 	@Override
 	@Cacheable(value = "commentCache", key = "#rId")

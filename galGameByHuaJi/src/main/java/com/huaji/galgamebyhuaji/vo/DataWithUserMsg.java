@@ -2,10 +2,14 @@ package com.huaji.galgamebyhuaji.vo;
 
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author 滑稽/因果报应
  */
+@Getter
+@Setter
 public class DataWithUserMsg<T> {
 	
 	private String userName;
@@ -27,28 +31,5 @@ public class DataWithUserMsg<T> {
 	public DataWithUserMsg() {
 	}
 	
-	public String getUserName() {
-		return userName;
-	}
-	
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
-	
-	public String getUserHeadPortraitUrl() {
-		return userHeadPortraitUrl;
-	}
-	
-	public void setUserHeadPortraitUrl(String userHeadPortraitUrl) {
-		this.userHeadPortraitUrl = userHeadPortraitUrl;
-	}
-	
-	public T getData() {
-		return data;
-	}
-	
-	public void setData(T data) {
-		this.data = data;
-	}
 	
 }

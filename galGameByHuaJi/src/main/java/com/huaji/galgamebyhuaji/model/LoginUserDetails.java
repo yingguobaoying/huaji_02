@@ -26,12 +26,12 @@ public class LoginUserDetails implements UserDetails {
 		// 获取用户等级
 		JurisdictionLevel userLevel = JurisdictionLevel.getJurisdiction(user.getJurisdiction());
 		
-		// 获取所有权限 >= 用户等级（匹配 SecurityConfig 中 hasAnyRole）
+		// 获取所有权限 >= 用户等级
 		String[] roles = JurisdictionLevel.getOwnedJurisdictions(userLevel.getLevel());
 		
 		// 转换为 GrantedAuthority
 		return Arrays.stream(roles)
-				.map(role -> new SimpleGrantedAuthority("ROLE_" + role)) // Spring Security 要求 ROLE_ 前缀
+				.map(role -> new SimpleGrantedAuthority("ROLE_" + role))
 				.toList();
 	}
 	

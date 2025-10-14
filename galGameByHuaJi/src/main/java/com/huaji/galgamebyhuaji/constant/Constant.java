@@ -4,18 +4,32 @@ package com.huaji.galgamebyhuaji.constant;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
+import lombok.Getter;
+import org.springframework.context.annotation.DependsOn;
 
 import java.util.Date;
 
+@DependsOn("intoListen")
 public class Constant {
 	/**
 	 * 全局游客信息,此处使用的是伪单例
 	 */
-	public final static Users TOURIST = new Tourist();
+	public final static Users TOURIST = Tourist.getTourist();
 	/**
 	 * 资源保存位置
 	 */
-	public static String RESOURCE_SAVE_PATH = "";
+	@Getter
+	private static String RESOURCE_SAVE_PATH;
+	private static boolean init = false;
+	
+	public static void setRESOURCE_SAVE_PATH(String resourceSavePath) {
+		if (init)
+			return;
+		RESOURCE_SAVE_PATH = resourceSavePath;
+		init = true;
+	}
+	
+	
 	/**
 	 * 单次签到给的积分
 	 */
@@ -63,10 +77,15 @@ public class Constant {
 	/**
 	 * 验证邮件有效期,单位毫秒
 	 */
-	public static final long VERIFY_EMAIL_VALID_TIME = 1000*60*60*12;
+	public static final long VERIFY_EMAIL_VALID_TIME = 1000 * 60 * 60 * 12;
 }
 
 class Tourist extends UsersWithBLOBs {
+	private Tourist() {}
+	
+	@Getter
+	private final static Tourist tourist = new Tourist();
+	
 	@Override
 	public void setUserPassword(String userPassword) {
 	}
@@ -193,12 +212,13 @@ class Tourist extends UsersWithBLOBs {
 		return JurisdictionLevel.TOURIST_JURISDICTION.getLevel();
 	}
 	
-
+	
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		return switch (o) {
-			case Tourist tourist -> true;
+			case Tourist ignored -> true;
+			//这里是防止对比到以前创建的单例游客类
 			case Users users -> getUserId().equals(users.getUserId());
 			case null, default -> false;
 		};

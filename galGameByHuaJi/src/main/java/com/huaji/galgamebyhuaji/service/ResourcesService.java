@@ -14,20 +14,28 @@ import java.util.List;
  */
 public interface ResourcesService {
 	/**
-	 *添加资源信息,会进行重复检查
+	 * 添加资源信息,会进行重复检查
+	 *
 	 * @param resources 添加的资源,需要会更新资源和其中包括的tag
+	 * @param tags
+	 *
 	 * @return 添加的资源
+	 *
 	 * @throws WriteError 数据读写错误(低概率)
 	 */
-	ReturnResult<Resources> addResources(Resources resources) throws WriteError;
+	ReturnResult<Resources> addResources(Resources resources,List<Integer> tags) throws WriteError;
 
 	/**
-	 *更新资源信息(仅更新不为空的位置),会进行重复检查
+	 * 更新资源信息(仅更新不为空的位置),会进行重复检查
+	 *
 	 * @param resources 更新后的资源,请确保ID存在且为需要修改的值
+	 * @param tags
+	 *
 	 * @return 更新后的资源
+	 *
 	 * @throws WriteError 数据读写错误(低概率)
 	 */
-	ReturnResult<Resources> updateResources(Resources resources) throws WriteError;
+	ReturnResult<Resources> updateResources(Resources resources, List<Integer> tags) throws WriteError;
 
 	/**
 	 *

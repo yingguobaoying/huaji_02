@@ -1,0 +1,70 @@
+package com.huaji.galgamebyhuaji.controller;
+
+import com.huaji.galgamebyhuaji.constant.Constant;
+import com.huaji.galgamebyhuaji.constant.LongTextConstant;
+import com.huaji.galgamebyhuaji.dto.LostPasswordUserMsg;
+import com.huaji.galgamebyhuaji.exceptions.BestException;
+import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
+import com.huaji.galgamebyhuaji.exceptions.UserException;
+import com.huaji.galgamebyhuaji.model.ReturnResult;
+import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.service.EmailService;
+import com.huaji.galgamebyhuaji.service.SecureServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
+
+@Controller
+@RequestMapping("/api")
+@RequiredArgsConstructor
+@ResponseBody
+public class SecureController {
+	final EmailService emailService;
+	final SecureServlet secureServlet;
+	
+	//就参数我就懒得新建一个接收类了
+	@PostMapping("/login/lostPassword")
+	@Transactional
+	public ReturnResult<String> lostPassword(@RequestBody Map<String, String> emailJson, HttpServletRequest request) throws UserException, SessionExceptions {
+		String content =
+				"您好，您正在使用重置您在 '因果报应的破小站' 账户的密码。请点击下方按钮复制您的验证令牌到剪贴板,然后贴到令牌确认输入框中.此令牌的有效期时间为 %d 小时。".formatted(
+						Constant.VERIFY_EMAIL_VALID_TIME / 1000 / 60 / 60);
+		String token;
+		String email = emailJson.get("email");
+		if (MyStringUtil.isNull(email))
+			return ReturnResult.isFalse("邮箱不可为空");
+		token = secureServlet.forgetPassword(email, ElseUtil.getClientIp(request));
+		String emailText = LongTextConstant.getEmailCopyText("重置您的密码", content, email, token);
+		emailService.sendEmail(email, emailText, "重置您的密码", true);
+		return ReturnResult.isTrue(
+				"验证邮件已发送",
+				"我们已向您的邮箱 %s 发送了一封验证邮件，有效期为 %d 小时。\n如果未收到邮件，请检查垃圾邮件或稍后重试。".formatted(
+						email, Constant.VERIFY_EMAIL_VALID_TIME / 1000 / 60 / 60
+				)
+		);
+	}
+	
+	@PostMapping("/login/lostPassword/verify")
+	public ReturnResult<String> changPassword(@Valid @RequestBody LostPasswordUserMsg userMsg, BindingResult testResult, HttpServletRequest request) throws BestException {
+		if (testResult.hasErrors()) {
+			if (testResult.getFieldError() != null)
+				return ReturnResult.isFalse(testResult.getFieldError().getField());
+			else
+				return ReturnResult.isFalse("未知错误，请稍后重试。");
+		}
+		String string = secureServlet.changePassword(userMsg.getToken(), ElseUtil.getClientIp(request), userMsg.getNewPassword());
+		userMsg.setNewPassword(null);
+		System.gc();
+		return ReturnResult.isTrue("密码修改成功!", string);
+	}
+}

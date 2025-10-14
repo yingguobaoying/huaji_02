@@ -452,6 +452,11 @@
         select user_id, user_head_portrait_url, user_name
         from users
     </select>
+    <select id="getUserListMxg" resultMap="BaseResultMap">
+        select user_id, user_head_portrait_url, user_name
+        from users
+        where user_id=#{userId}
+    </select>
     <select id="getUserJurisdiction" resultMap="BaseResultMap">
         select user_id, jurisdiction, Coin, status
         from users
@@ -496,5 +501,4 @@
             </otherwise>
         </choose>
     </update>
-
 </mapper>

@@ -46,15 +46,11 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 	                                FilterChain chain) throws ServletException, IOException {
-		
 		// 检查Session中是否有已认证用户
 		HttpSession session = request.getSession(false);
 		Users user = null;
-		
-		if (session != null) {
+		if (session != null)
 			user = (Users) session.getAttribute(SystemConstant.JWT_SESSION_USER_NAME);
-		}
-		
 		// 如果Session中没有用户信息，尝试使用Token进行基础认证
 		if (user == null || user == Constant.TOURIST) {
 			String token = ElseUtil.getToken(request);
@@ -85,9 +81,11 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 					//由于是登录行为因此归类到登录日志里面去
 					MyLogUtil.error(LoginService.class,
 					                "用户在基础过滤器中登录失败, 降级为游客, 登录IP: {%s}".formatted(ElseUtil.getClientIp(request)), e);
+					//本类的访问记录信息
+					MyLogUtil.error(BasicAuthenticationFilter.class,
+					                "用户在基础过滤器中登录失败, 降级为游客, 登录IP: {%s}".formatted(ElseUtil.getClientIp(request)), e);
 				}
-			}
-			else {
+			} else {
 				// 没有Token，设置为游客
 				user = Constant.TOURIST;
 			}
@@ -96,8 +94,7 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 		// 设置认证信息到SecurityContext
 		if (user != null && user != Constant.TOURIST) {
 			userDetails = new LoginUserDetails(user);
-		}
-		else {
+		} else {
 			userDetails = new LoginUserDetails(Constant.TOURIST);
 		}
 		//添加到安全上下文

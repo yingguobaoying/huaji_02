@@ -23,11 +23,13 @@ import com.huaji.galgamebyhuaji.service.SecureServlet;
 import com.huaji.galgamebyhuaji.service.SessionService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class SecureServletImpl implements SecureServlet {
 	final
 	UsersMapper usersMapper;
@@ -44,22 +46,16 @@ public class SecureServletImpl implements SecureServlet {
 	final
 	LoginService loginService;
 	
-	public SecureServletImpl(UsersMapper usersMapper, UserMxgServlet userMxgServlet, TokenService tokenService, FeedbackMapper feedbackMapper, SessionService sessionService, PasswordEncryptionUtil passwordEncryptionUtil, LoginService loginService) {
-		this.usersMapper = usersMapper;
-		this.userMxgServlet = userMxgServlet;
-		this.tokenService = tokenService;
-		this.feedbackMapper = feedbackMapper;
-		this.sessionService = sessionService;
-		this.passwordEncryptionUtil = passwordEncryptionUtil;
-		this.loginService = loginService;
-	}
-	
 	@Override
 	public String frozenUser(Users user) {
 		UsersWithBLOBs itselfMxg = userMxgServlet.getItselfMxg(user.getUserId());
 		if (itselfMxg == null || itselfMxg.getUserId() == null) throw new OperationException("用户不存在!");
 		UserStatus userStatus = UserStatus.testEnumValue(itselfMxg.getStatus());
 		if (userStatus == UserStatus.OK || UserStatus.NOT_AUTHENTICATED == userStatus) {
+			//root 防护
+			if (user.getUserId() == 0 || user.getUserId() == 1) {
+				return "冻结成功";//假装成功
+			}
 			//进入冻结
 			UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
 			usersWithBLOBs.setUserId(itselfMxg.getUserId());
@@ -107,7 +103,7 @@ public class SecureServletImpl implements SecureServlet {
 		if (users.isEmpty() || users.getFirst().getUserId() == null) {
 			throw new OperationException("用户不存在!");
 		}
-		if (users.size() != 1) {
+		if (users.size() == 1) {
 			Users user1 = users.getFirst();
 			Session session = sessionService.getSession(user1.getUserId());
 			if (session != null && session.getSessionId() != null) {
@@ -116,6 +112,7 @@ public class SecureServletImpl implements SecureServlet {
 					MyLogUtil.info(SessionServiceIMPL.class, "用户%d:{%s}{邮箱:%s}当前在线,无法进行密码重置!\nip地址为:{%s}".formatted(
 							user1.getUserId(), user1.getUserName(), user1.getMailbox(), ip
 					));
+					throw new OperationException("您的用户当前在线,无法进行密码重置!如果这不是您,请直接冻结账号并联系管理员");
 				}
 			}
 			//生成验证令牌
@@ -133,6 +130,10 @@ public class SecureServletImpl implements SecureServlet {
 	@Override
 	public String changePassword(String token, String ip, String newPassword) throws BestException {
 		LostPasswordUser u = tokenService.VerifyAndParse(token, -1, TokenType.LOST_PASSWORD, ip);
+		//root 防护
+		if (u.getUserId() == 0 || u.getUserId() == 1) {
+			return "密码已更新!请重新登录";//假装修改成功
+		}
 		UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
 		usersWithBLOBs.setUserId(u.getUserId());
 		usersWithBLOBs.setStatus(UserStatus.OK.getValue());

@@ -192,5 +192,13 @@
         from resources_file_map
         where r_id = #{rId}
     </select>
-
+    <insert id="insertAll" >
+        insert into resources_file_map (r_id, file_name, up_user,
+        is_public, size, file_size)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.rId}, #{item.fileName}, #{item.upUser},
+            #{item.isPublic}, #{item.size}, #{item.fileSize})
+        </foreach>
+    </insert>
 </mapper>

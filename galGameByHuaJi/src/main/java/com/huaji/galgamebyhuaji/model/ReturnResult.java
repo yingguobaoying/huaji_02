@@ -2,6 +2,8 @@ package com.huaji.galgamebyhuaji.model;
 
 
 import com.huaji.galgamebyhuaji.exceptions.BestException;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +17,8 @@ import java.util.Map;
  *
  * @author 滑稽/因果报应
  */
+@Setter
+@Getter
 public class ReturnResult<T> {
 	/**
 	 * 单个的返回值
@@ -62,59 +66,6 @@ public class ReturnResult<T> {
 	 * -1 代表没有错误,其他数字:比如1002表示错误类别1,错误类别号为2
 	 */
 	private int errorNum;
-	
-	public void setErrorNum(int errorNum) {
-		this.errorNum = errorNum;
-	}
-	
-	public boolean isHasError() {
-		return hasError;
-	}
-	
-	public void setHasError(boolean hasError) {
-		this.hasError = hasError;
-	}
-	
-	public T getReturnResult() {
-		return returnResult;
-	}
-	
-	public void setReturnResult(T returnResult) {
-		this.returnResult = returnResult;
-	}
-	
-	public List<T> getResultList() {
-		return resultList;
-	}
-	
-	public void setResultList(List<T> resultList) {
-		this.resultList = resultList;
-	}
-	
-	
-	public int getAll() {
-		return all;
-	}
-	
-	public void setAll(int all) {
-		this.all = all;
-	}
-	
-	public boolean isOperationResult() {
-		return operationResult;
-	}
-	
-	public void setOperationResult(boolean operationResult) {
-		this.operationResult = operationResult;
-	}
-	
-	public String getMsg() {
-		return msg;
-	}
-	
-	public void setMsg(String msg) {
-		this.msg = msg;
-	}
 	
 	
 	public ReturnResult() {
@@ -279,23 +230,4 @@ public class ReturnResult<T> {
 		return new ReturnResult<T>().operationFalse(mxg);
 	}
 	
-	public Map<String, Object> getMap() {
-		return map;
-	}
-	
-	public void setMap(Map<String, Object> map) {
-		this.map = map;
-	}
-	
-	public Date getRetrunDate() {
-		return retrunDate;
-	}
-	
-	public void setRetrunDate(Date retrunDate) {
-		this.retrunDate = retrunDate;
-	}
-	
-	public int getErrorNum() {
-		return errorNum;
-	}
 }

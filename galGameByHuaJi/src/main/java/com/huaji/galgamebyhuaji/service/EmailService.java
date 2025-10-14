@@ -1,7 +1,6 @@
 package com.huaji.galgamebyhuaji.service;
 
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
-import com.huaji.galgamebyhuaji.model.jwtToken.VerifyEmail;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
@@ -24,7 +23,7 @@ public class EmailService {
 	/**
 	 * ip:userId
 	 */
-	private static final String template = "VerifyEmail:%s:%s";
+	private static final String template = "VerifyEmail:%s";
 	// 发件人的邮箱地址
 	@Value("${mail.smtp-email}")
 	private String FROM_EMAIL;
@@ -54,18 +53,18 @@ public class EmailService {
 	 * @param isHTML        是否为HTML格式
 	 */
 	
-	public void sendEmail(VerifyEmail targetMailbox, String txt, String topic, Boolean isHTML) {
-		if (MyStringUtil.isValidEmail(targetMailbox.getEmail())) {
+	public void sendEmail(String targetMailbox, String txt, String topic, Boolean isHTML) {
+		if (!MyStringUtil.isValidEmail(targetMailbox)) {
 			throw new OperationException("错误的邮箱格式!");
 		}
-		String key = template.formatted(targetMailbox.getIp(), targetMailbox.getUserId());
+		String key = template.formatted(targetMailbox);
 		Date lastSendTime = redisMemoryService.getData(key, Date.class);
 		if (
-				lastSendTime!=null&&
+				lastSendTime != null &&
 				1000 * 60 * 60 >= (System.currentTimeMillis() - lastSendTime.getTime())
 		) {//每小时仅允许发送一次
 			throw new OperationException("我们已经发送了邮件到您的邮箱%s中,如果未发现请检查垃圾邮件\n如果您还未收到邮件请于%s再次获取或者是再次检查您的邮箱             ".formatted(
-					targetMailbox.getEmail(), TimeUtil.getVisualDateFormatTime(new Date(
+					targetMailbox, TimeUtil.getVisualDateFormatTime(new Date(
 							lastSendTime.getTime() + 1000 * 60 * 60))
 			));
 		}
@@ -88,7 +87,7 @@ public class EmailService {
 			// 设置发件人
 			message.setFrom(new InternetAddress(FROM_EMAIL));
 			// 设置收件人
-			message.setRecipient(Message.RecipientType.TO, new InternetAddress(targetMailbox.getEmail()));
+			message.setRecipient(Message.RecipientType.TO, new InternetAddress(targetMailbox));
 			// 设置邮件主题
 			message.setSubject(topic);
 			// 设置邮件内容

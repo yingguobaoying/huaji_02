@@ -1,16 +1,18 @@
 package com.huaji.galgamebyhuaji.enumPackage;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Comparator;
 
+@Getter
 public enum JurisdictionLevel {
-	// 设置权限大小
-	ROOT_JURISDICTION(114514, "root用户"),
 	ADMIN_JURISDICTION(6, "用户管理员"),
-	RESOURCES_ADMIN_JURISDICTION(5, "资源管理员"),
-	USERS_JURISDICTION(3, "一般用户"),
 	NOT_VALIDATED(2, "未激活邮箱的用户"),
-	TOURIST_JURISDICTION(0, "游客");
+	RESOURCES_ADMIN_JURISDICTION(5, "资源管理员"),
+	ROOT_JURISDICTION(114514, "root用户"),
+	TOURIST_JURISDICTION(0, "游客"),
+	USERS_JURISDICTION(3, "一般用户");
 	
 	private static final JurisdictionLevel[] VALUES;
 	private static final int MIN_JURISDICTION;
@@ -19,8 +21,8 @@ public enum JurisdictionLevel {
 		JurisdictionLevel[] values = JurisdictionLevel.values();
 		// 获取所有权限的最小等级
 		int min = Integer.MAX_VALUE;
-		for ( JurisdictionLevel value : values ) {
-			if ( value.getLevel() < min ) {
+		for (JurisdictionLevel value : values) {
+			if (value.getLevel() < min) {
 				min = value.getLevel();
 			}
 		}
@@ -42,28 +44,20 @@ public enum JurisdictionLevel {
 		this.name = name;
 	}
 	
-	public int getLevel () {
-		return level;
-	}
-	
-	public String getName () {
-		return name;
-	}
-	
 	// 使用二分查找来获取权限
-	public static JurisdictionLevel getJurisdiction (int level) {
-		if ( level < MIN_JURISDICTION ) throw new RuntimeException("错误!不存在的权限等级信息!!");
+	public static JurisdictionLevel getJurisdiction(int level) {
+		if (level < MIN_JURISDICTION) throw new RuntimeException("错误!不存在的权限等级信息!!");
 		int left = 0;
 		int right = VALUES.length - 1;
 		
-		while ( left <= right ) {
+		while (left <= right) {
 			int mid = left + (right - left) / 2;
-			JurisdictionLevel midEnum = VALUES[ mid ];
+			JurisdictionLevel midEnum = VALUES[mid];
 			
 			// 完全匹配的权限
-			if ( midEnum.getLevel() == level ) {
+			if (midEnum.getLevel() == level) {
 				return midEnum;
-			} else if ( midEnum.getLevel() < level ) {
+			} else if (midEnum.getLevel() < level) {
 				right = mid - 1;
 			} else {
 				left = mid + 1;
@@ -71,8 +65,8 @@ public enum JurisdictionLevel {
 		}
 		
 		// 如果没有完全匹配的权限，返回第一个小于等于权限级别的权限
-		if ( left < VALUES.length ) {
-			return VALUES[ left - 1 ];
+		if (left < VALUES.length) {
+			return VALUES[left - 1];
 		} else {
 			// 如果超出了最高权限（ROOT），则抛出异常
 			throw new RuntimeException("错误!不存在的权限等级信息!!");
@@ -80,11 +74,8 @@ public enum JurisdictionLevel {
 		
 	}
 	
-	public String getRoleName () {
-		return "ROLE_" + this.name(); // 如 ROLE_ADMIN_JURISDICTION
-	}
 	
-	public static String[] getNeedJurisdiction (int level) {
+	public static String[] getNeedJurisdiction(int level) {
 		return Arrays.stream(VALUES)
 				.filter(v -> v.getLevel() >= level)
 				.map(Enum::name) // 注意这里用 name(), 与 hasAnyRole 对应

@@ -126,7 +126,6 @@ public class LoginServiceAspect {
 			errorMsg = e.getMessage();
 			MyLogUtil.error(LoginService.class, "【操作异常】方法: {%s} - 异常: {%s} - 时间: {%s}".formatted(
 					methodName, errorMsg, TimeUtil.getVisualDateFormatTime()));
-			MyLogUtil.error(LoginService.class, "【异常详情】", e);
 			throw e;
 			
 		} finally {

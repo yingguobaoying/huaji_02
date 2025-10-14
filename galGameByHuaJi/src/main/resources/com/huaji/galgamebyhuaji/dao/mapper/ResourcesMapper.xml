@@ -138,7 +138,9 @@
                 #{rType,jdbcType=CHAR}, #{rJpeg,jdbcType=VARCHAR}, #{rEnterTime,jdbcType=TIMESTAMP},
                 #{upUser,jdbcType=BIGINT}, #{rIntroduction,jdbcType=LONGVARCHAR})
     </insert>
-    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Resources">
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.Resources" useGeneratedKeys="true"
+            keyProperty="rId"
+    >
         insert into resources
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="rId != null">

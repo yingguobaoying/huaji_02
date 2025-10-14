@@ -3,11 +3,84 @@ package com.huaji.galgamebyhuaji.constant;
 public class LongTextConstant {
 	public static void main(String[] args) {
 		System.out.println(getReturnPage("title", "content"));
-		System.out.println(getEmailText("title", "content","url","123456789@xx.xxx"));
-		
+		System.out.println(getEmailText("title", "content", "url", "123456789@xx.xxx"));
+		System.out.println(getEmailCopyText("title", "content", "url", "123456789@xx.xxx"));
 	}
 	
+	//==========================按钮验证跳转模板====================================
 	public static String getEmailText(String title, String content, String url, String email) {
+		return """
+               <!DOCTYPE html>
+               <html lang="zh-CN">
+               <head>
+                 <meta charset="UTF-8">
+                 <title>邮箱验证</title>
+                 <style>
+                   body {
+                     font-family: Arial, sans-serif;
+                     text-align: center;
+                     padding: 50px;
+                     background: #f5f5f5;
+                   }
+                   .container {
+                     background: #fff;
+                     padding: 40px;
+                     max-width: 400px;
+                     margin: auto;
+                     border-radius: 8px;
+                     box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                   }
+                   h1 {
+                     margin-bottom: 20px;
+                     color: #333;
+                   }
+                   p {
+                     color: #555;
+                     font-size: 14px;
+                     line-height: 1.6;
+                   }
+                   a.button {
+                     display: inline-block;
+                     margin-top: 20px;
+                     padding: 12px 24px;
+                     background-color: #0077cc;
+                     color: #fff;
+                     text-decoration: none;
+                     border-radius: 6px;
+                     font-size: 16px;
+                   }
+                   a.button:hover {
+                     background-color: #005fa3;
+                   }
+                   .contact {
+                     margin-top: 30px;
+                     font-size: 13px;
+                     color: #777;
+                   }
+                 </style>
+               </head>
+               <body>
+                 <div class="container">
+                   <h1>%s</h1>
+                   <p>%s<br>
+                      如果按钮无法点击，请将链接复制到浏览器打开。</p>
+                   <a href="%s" class="button">立即验证邮箱</a>
+                   <p>请勿向他人泄露此链接，本站不会收取任何费用，也没有投放广告。</p>
+                   <p>如果您未申请过此操作，您可以忽略此邮件。不过为保证您的账户安全，请及时检查您的账号情况。</p>
+                   <div class="contact">
+                     <p>如有问题，请联系官方邮箱：%s</p>
+                   </div>
+                 </div>
+               </body>
+               </html>
+               """.formatted(
+				title, content, url, email
+		);
+	}
+	
+	//==========================复制内容跳转模板====================================
+	
+	public static String getEmailCopyText(String title, String content, String email, String copyText) {
 		return """
          <!DOCTYPE html>
          <html lang="zh-CN">
@@ -38,17 +111,25 @@ public class LongTextConstant {
                font-size: 14px;
                line-height: 1.6;
              }
-             a.button {
+             .copyText {
+               margin: 10px 0;
+               padding: 8px;
+               background-color: #f0f0f0;
+               border-radius: 4px;
+               word-break: break-all;
+             }
+             button.copyButton {
                display: inline-block;
-               margin-top: 20px;
-               padding: 12px 24px;
+               margin-top: 10px;
+               padding: 10px 20px;
                background-color: #0077cc;
                color: #fff;
-               text-decoration: none;
+               border: none;
                border-radius: 6px;
-               font-size: 16px;
+               font-size: 14px;
+               cursor: pointer;
              }
-             a.button:hover {
+             button.copyButton:hover {
                background-color: #005fa3;
              }
              .contact {
@@ -61,26 +142,39 @@ public class LongTextConstant {
          <body>
            <div class="container">
              <h1>%s</h1>
-             <p>%s<br>
-                如果按钮无法点击，请将链接复制到浏览器打开。</p>
-             <a href="%s" class="button">立即验证邮箱</a>
-             <p>请勿向他人泄露此链接，本站不会收取任何费用，也没有投放广告。</p>
+             <p>%s</p>
+             <p class="copyText" id="copyText">%s</p>
+             <button class="copyButton" onclick="copyToClipboard()">点击复制</button>
+             <p>请勿向他人泄露此邮件，本站不会收取任何费用，也没有投放任何广告。</p>
+             <p>如果您未申请过此操作，您可以忽略此邮件。不过为保证您的账户安全，请及时检查您的账号情况。</p>
              <div class="contact">
                <p>如有问题，请联系官方邮箱：%s</p>
              </div>
            </div>
+           <script>
+             function copyToClipboard() {
+               const text = document.getElementById('copyText').innerText;
+               navigator.clipboard.writeText(text).then(() => {
+                 alert('已复制到剪贴板');
+               }).catch(err => {
+                 alert('复制失败，请手动复制');
+                 console.error(err);
+               });
+             }
+           </script>
          </body>
          </html>
-         """.formatted(
-				title, content, url, email
-		);
+         """.formatted(title, content, copyText, email);
 	}
+	
+	//==========================简单确认窗口跳转模板====================================
 	
 	/**
 	 * 用于获取简单操作结果返回值
 	 *
 	 * @param title   标题
 	 * @param content 内容
+	 *
 	 * @return 一个简单的html页面
 	 */
 	public static String getReturnPage(String title, String content) {
@@ -165,4 +259,5 @@ public class LongTextConstant {
          </html>
          """.formatted(title, content);
 	}
+	
 }

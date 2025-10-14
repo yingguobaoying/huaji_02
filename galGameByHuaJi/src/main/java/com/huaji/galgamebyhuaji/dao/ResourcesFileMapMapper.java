@@ -2,10 +2,10 @@ package com.huaji.galgamebyhuaji.dao;
 
 import com.huaji.galgamebyhuaji.entity.ResourcesFileMap;
 import com.huaji.galgamebyhuaji.entity.ResourcesFileMapExample;
-import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 @Mapper
 public interface ResourcesFileMapMapper {
     long countByExample(ResourcesFileMapExample example);
@@ -24,4 +24,5 @@ public interface ResourcesFileMapMapper {
 	
 	int hasFile(@Param("rId") int rId);
 	
+    int insertAll(@Param("list") List<ResourcesFileMap> list);
 }

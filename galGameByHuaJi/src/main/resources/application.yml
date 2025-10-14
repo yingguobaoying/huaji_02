@@ -49,8 +49,9 @@ spring:
 
       stat-view-servlet:
         enabled: true
-        login-username: admin
-        login-password: admin123
+        # todo:上线时千万别用这玩意
+        login-username: "HongDouChu"
+        login-password: "Vigna_very_loveliness"
         reset-enable: false
         allow: 127.0.0.1
 
@@ -59,11 +60,11 @@ spring:
         url-pattern: /*
         exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
   cache:
-    type: caffeine
     cache-names: "commentCache,tokenValid"
     caffeine:
       spec: |
         commentCache.maximumSize=200,expireAfterWrite=20m
+        tokenValid.maximumSize=100,expireAfterWrite=5m
         default.maximumSize=100,expireAfterWrite=60m
   data:
     redis:
@@ -100,4 +101,4 @@ mail:
   smtp-email: "1925871606@qq.com"
   smtp-host: "smtp.qq.com"
   smtp-port: "587"
-resource-save-path: D:\temp\tomcat-work\work\Tomcat\localhost\static
+resource-save-path: 'D:\temp\tomcat-work\work\Tomcat\localhost\static'

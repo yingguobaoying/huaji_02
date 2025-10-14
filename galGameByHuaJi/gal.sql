@@ -11,7 +11,7 @@
  Target Server Version : 80037
  File Encoding         : 65001
 
- Date: 12/09/2025 19:02:49
+ Date: 14/10/2025 20:54:38
 */
 
 SET NAMES utf8mb4;
@@ -136,7 +136,7 @@ CREATE TABLE `resources`  (
   `r_manufacturer` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '这里是资源的发行商或者作者信息',
   `r_introduction` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '资源的简介',
   `r_type` enum('游戏资源','软件资源','GalGame','图包资源','视频资源','RPG','SLG','其他资源') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '资源的分类',
-  `r_jpeg` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '首页略缩',
+  `r_jpeg` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '首页略缩',
   `r_enter_time` datetime(0) NULL DEFAULT NULL COMMENT '资源的录入时间',
   `up_user` bigint(0) NULL DEFAULT NULL COMMENT '录入人员信息(这里不设置外键,由后端完成)',
   PRIMARY KEY (`r_id`) USING BTREE,
@@ -145,19 +145,21 @@ CREATE TABLE `resources`  (
   INDEX `name`(`r_name`) USING BTREE,
   INDEX `changShang`(`r_manufacturer`) USING BTREE,
   INDEX `upUser`(`up_user`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for resources_file_map
 -- ----------------------------
 DROP TABLE IF EXISTS `resources_file_map`;
 CREATE TABLE `resources_file_map`  (
-  `r_id` int(0) NOT NULL COMMENT '属于的资源',
+  `r_id` int(0) NULL DEFAULT NULL COMMENT '属于的资源',
   `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文件路径/文件名称',
   `up_user` int(0) NULL DEFAULT NULL COMMENT '提供者',
   `is_public` bit(1) NULL DEFAULT NULL COMMENT '是否为官方渠道',
   `size` int(0) NULL DEFAULT NULL COMMENT '文件数量',
-  `file_size` bigint(0) NULL DEFAULT NULL COMMENT '本文件大小'
+  `file_size` bigint(0) NULL DEFAULT NULL COMMENT '本文件大小',
+  INDEX `resources_file_map_ibfk_1`(`r_id`) USING BTREE,
+  CONSTRAINT `resources_file_map_ibfk_1` FOREIGN KEY (`r_id`) REFERENCES `resources` (`r_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -166,7 +168,7 @@ CREATE TABLE `resources_file_map`  (
 DROP TABLE IF EXISTS `resources_jpeg_map`;
 CREATE TABLE `resources_jpeg_map`  (
   `resources_id` int(0) NOT NULL COMMENT '资源编号',
-  `jpeg_name` varchar(63) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '对应的图片名称',
+  `jpeg_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '对应的图片名称/url',
   INDEX `resources_id`(`resources_id`) USING BTREE,
   CONSTRAINT `resources_jpeg_map_ibfk_1` FOREIGN KEY (`resources_id`) REFERENCES `resources` (`r_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
@@ -194,11 +196,10 @@ CREATE TABLE `session`  (
   `user_id` int(0) NOT NULL COMMENT '对应用户',
   `last_login_time` datetime(0) NULL DEFAULT NULL COMMENT '上次登录时间',
   `last_login_IP` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '上次登录的IP地址',
-  `token_id` bigint(0) NULL DEFAULT NULL COMMENT '存放的令牌',
   PRIMARY KEY (`session_id`) USING BTREE,
   INDEX `user`(`user_id`) USING BTREE,
   CONSTRAINT `session_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for tag
@@ -255,7 +256,7 @@ CREATE TABLE `user_token`  (
   `token_id` bigint(0) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`token_id`, `user_id`) USING BTREE,
   UNIQUE INDEX `token`(`token`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for users

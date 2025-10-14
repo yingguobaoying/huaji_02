@@ -15,6 +15,7 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.SessionService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import io.micrometer.common.lang.Nullable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,21 +25,18 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class SessionServiceIMPL implements SessionService {
 	final
 	SessionMapper sessionMapper;
 	final
 	TokenService tokenService;
 	
-	public SessionServiceIMPL(SessionMapper sessionMapper, TokenService tokenService) {
-		this.sessionMapper = sessionMapper;
-		this.tokenService = tokenService;
-	}
 	
 	//由于此服务类是仅由用户服务类调用,因此不需要考虑线程安全
 	@Override
 	public UserToken UpdateUserLoginTime(Integer user, long time, String loginIP) throws SessionExceptions {
-		Session session = getSession(user, loginIP);
+		Session session = getSession(user);
 		boolean isFirstLogin = false;
 		if (session == null) {
 			//不存在会话时新建
@@ -79,22 +77,15 @@ public class SessionServiceIMPL implements SessionService {
 	}
 	
 	@Override
-	public Session getSession(Integer userId) throws SessionExceptions {
-		return getSession(userId, null);
-	}
-	
 	@Nullable
-	private Session getSession(Integer user, String loginIP) throws SessionExceptions {
-		if (MyStringUtil.isNull(loginIP))
-			loginIP = null;
+	public Session getSession(Integer user) throws SessionExceptions {
 		if (user == null)
 			throw new SessionExceptions("用户不存在", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
-		List<Session> sessionList = sessionMapper.getSessionByUser(user, loginIP);
+		List<Session> sessionList = sessionMapper.getSessionByUser(user);
 		if (sessionList == null || sessionList.isEmpty()) {
 			//不存在会话时返回空
 			return null;
-		}
-		else if (sessionList.size() == 1) {
+		} else if (sessionList.size() == 1) {
 			//存在一个会话时
 			return sessionList.getFirst();
 		}

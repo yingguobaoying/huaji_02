@@ -8,7 +8,18 @@ public class ResourceExtensionInformation {
     private Integer downloadLocallyPrice;
 
     private String hasDownloadLocally;
-
+    
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("ResourceExtensionInformation{");
+        sb.append("rId=").append(rId);
+        sb.append(", linkPrice=").append(linkPrice);
+        sb.append(", downloadLocallyPrice=").append(downloadLocallyPrice);
+        sb.append(", hasDownloadLocally='").append(hasDownloadLocally).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
+    
     public Integer getrId() {
         return rId;
     }

@@ -222,9 +222,6 @@
         select *
         from session
         where user_id=#{userId}
-        <if test="ip != null">
-            and last_login_IP = #{ip}
-        </if>
     </select>
     <update id="exitLogin">
         update session

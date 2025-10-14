@@ -8,25 +8,25 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.PageUtil;
 import com.huaji.galgamebyhuaji.service.SelectServlet;
 import com.huaji.galgamebyhuaji.service.TagService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
 @Controller
 @ResponseBody
 @RequestMapping("/api/select")
+@RequiredArgsConstructor
 public class SelectController {
 	final
 	TagService tagService;
 	final
 	SelectServlet selectServlet;
-	
-	public SelectController(TagService tagService, SelectServlet selectServlet) {
-		this.tagService = tagService;
-		this.selectServlet = selectServlet;
-	}
 	
 	@GetMapping("/getTag")
 	public ReturnResult<Tag> getTag() {

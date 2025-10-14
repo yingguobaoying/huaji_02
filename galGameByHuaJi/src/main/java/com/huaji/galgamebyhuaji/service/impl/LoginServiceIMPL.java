@@ -25,6 +25,7 @@ import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.*;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,7 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CHECK_IN_SCORE;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class LoginServiceIMPL implements LoginService {
 	final UsersMapper usersMapper;
 	final
@@ -56,16 +58,6 @@ public class LoginServiceIMPL implements LoginService {
 			"^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+)*" +
 			"@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
 	private static final Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
-	
-	public LoginServiceIMPL(UsersMapper usersMapper, PasswordEncryptionUtil passwordEncryptionUtil, SessionService sessionService, RedisMemoryService redisMemoryService, TagService tagService, TokenService tokenService, RootServlet rootServlet) {
-		this.usersMapper = usersMapper;
-		this.passwordEncryptionUtil = passwordEncryptionUtil;
-		this.sessionService = sessionService;
-		this.redisMemoryService = redisMemoryService;
-		this.tagService = tagService;
-		this.tokenService = tokenService;
-		this.rootServlet = rootServlet;
-	}
 	
 	
 	@Override
@@ -97,7 +89,7 @@ public class LoginServiceIMPL implements LoginService {
 		//检查用户状态
 		UserStatus userStatus = UserStatus.testEnumValue(loginUser.getStatus());
 		if (!(userStatus == UserStatus.NOT_AUTHENTICATED || userStatus == UserStatus.OK)) {
-			throw new OperationException("您的用户状态错误!当前用户状态:%s".formatted(
+			throw new OperationException("您的用户状态错误!当前用户状态:%s,请联系站长进行处理".formatted(
 					userStatus.getName()
 			));
 		}

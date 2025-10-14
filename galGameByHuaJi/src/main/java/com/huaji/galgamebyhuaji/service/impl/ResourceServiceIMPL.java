@@ -4,23 +4,29 @@ package com.huaji.galgamebyhuaji.service.impl;
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.dao.*;
 import com.huaji.galgamebyhuaji.entity.*;
+import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ResourceStatics;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
-import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.myUtil.FileUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
+import com.huaji.galgamebyhuaji.service.FileAccessService;
 import com.huaji.galgamebyhuaji.service.RedisMemoryService;
 import com.huaji.galgamebyhuaji.service.ResourcesService;
 import com.huaji.galgamebyhuaji.service.TagService;
 import com.huaji.galgamebyhuaji.vo.SelectViewMag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ResourceServiceIMPL implements ResourcesService {
 	final
 	ResourcesMapper resourcesMapper;
@@ -40,26 +46,33 @@ public class ResourceServiceIMPL implements ResourcesService {
 	TagMapper tagMapper;
 	final
 	ResourcesFileMapMapper resourcesFileMap;
-	
-	public ResourceServiceIMPL(ResourcesMapper resourcesMapper, ResourcesTagMapMapper resourcesTagMapMapper, ResourcesJpegMapMapper resourcesJpegMapMapper, ResourceExtensionInformationMapper resourceExtensionInformationMapper, RedisMemoryService redisMemoryService, TagService tagService, ResourceStatisticsMapper resourceStatisticsMapper, TagMapper tagMapper, ResourcesFileMapMapper resourcesFileMap) {
-		this.resourcesMapper = resourcesMapper;
-		this.resourcesTagMapMapper = resourcesTagMapMapper;
-		this.resourcesJpegMapMapper = resourcesJpegMapMapper;
-		this.resourceExtensionInformationMapper = resourceExtensionInformationMapper;
-		this.redisMemoryService = redisMemoryService;
-		this.tagService = tagService;
-		this.resourceStatisticsMapper = resourceStatisticsMapper;
-		this.tagMapper = tagMapper;
-		this.resourcesFileMap = resourcesFileMap;
-	}
+	final
+	FileAccessService fileAccessService;
 	
 	@Override
-	public ReturnResult<Resources> addResources(Resources resources) {
+	@Transactional
+	public ReturnResult<Resources> addResources(Resources resources, List<Integer> tags) {
 		testNewResourcesMxg(resources);
-		//主键由数据库管理,这里保证只要不重复就可以进行添加,防止错误传递
 		resources.setrId(null);
 		WriteError.tryWrite(resourcesMapper.insertSelective(resources));
 		if (resources.getrId() == null) throw new WriteError(1, 0);
+		ResourceExtensionInformation resourceExtensionInformation = getResourceExtensionInformation(resources, true);
+		//添加tag
+		if (tags != null && !tags.isEmpty()) {
+			Map<Integer, Tag> tagMap = tagService.getTagMap();
+			tagMapper.addResourcesTag(tags, resources.getrId());
+			for (Integer tagId : tags) {
+				Tag tag = tagMap.get(tagId);
+				resources.addTag(tag);
+			}
+		}
+		
+		WriteError.tryWrite(resourceExtensionInformationMapper.insert(resourceExtensionInformation));
+		redisMemoryService.saveData(resources);
+		return ReturnResult.isTrue("资源信息插入成功", resources);
+	}
+	
+	private ResourceExtensionInformation getResourceExtensionInformation(Resources resources, boolean isAdd) {
 		ResourceExtensionInformation resourceExtensionInformation = resources.getResourceExtensionInformation();
 		//无价格信息
 		if (resourceExtensionInformation == null) {
@@ -74,28 +87,12 @@ public class ResourceServiceIMPL implements ResourcesService {
 				resourceExtensionInformation.setDownloadLocallyPrice(Constant.DOWNLOAD_LOCALLY);
 			if (resourceExtensionInformation.getLinkPrice() == null)
 				resourceExtensionInformation.setLinkPrice(Constant.EXTERNAL_CLOUD_DISK);
-			//均不匹配或者为空时使用默认值
-			if (
-					!(
-							"yes".equals(resourceExtensionInformation.getHasDownloadLocally())
-									|| "no".equals(resourceExtensionInformation.getHasDownloadLocally())
-					) || MyStringUtil.isNull(resourceExtensionInformation.getHasDownloadLocally())
-			)
+			//添加时使用默认值
+			if (isAdd)
 				resourceExtensionInformation.setHasDownloadLocally("no");
 			
 		}
-		//添加tag
-		if (resources.getTags() != null && !resources.getTags().isEmpty()) {
-			List<Integer> rTags = new ArrayList<>();
-			for (Tag tag : resources.getTags()) {
-				rTags.add(tag.getTagId());
-			}
-			tagMapper.addResourcesTag(rTags, resources.getrId());
-		}
-		
-		WriteError.tryWrite(resourceExtensionInformationMapper.insert(resourceExtensionInformation));
-		redisMemoryService.saveData(resources);
-		return ReturnResult.isTrue("资源信息插入成功", resources);
+		return resourceExtensionInformation;
 	}
 	
 	private ReturnResult<Resources> testNewResourcesMxg(Resources resources) {
@@ -111,24 +108,29 @@ public class ResourceServiceIMPL implements ResourcesService {
 	}
 	
 	@Override
-	public ReturnResult<Resources> updateResources(Resources resources) {
+	@Transactional
+	public ReturnResult<Resources> updateResources(Resources resources, List<Integer> tags) {
 		ReturnResult<Resources> resourcesReturnResult = testNewResourcesMxg(resources);
+		Resources oldMxg = resourcesMapper.selectByPrimaryKey(resources.getrId());
+		MyLogUtil.info(ResourcesService.class, "资源信息发生变动,原先信息如下:" + oldMxg);
 		if (!resourcesReturnResult.isOperationResult()) return resourcesReturnResult;
 		WriteError.tryWrite(resourcesMapper.updateByPrimaryKeyWithBLOBs(resources));
 		//更新tag信息
 		ResourcesTagMapExample resourcesTagMapExample = new ResourcesTagMapExample();
 		resourcesTagMapExample.createCriteria().andRIdEqualTo(resources.getrId());
 		resourcesTagMapMapper.deleteByExample(resourcesTagMapExample);
-		if (resources.getTags() != null && !resources.getTags().isEmpty()) {//更新数据库中的映射关系
-			List<Integer> rTags = new ArrayList<>();
-			for (Tag tag : resources.getTags()) rTags.add(tag.getTagId());
-			WriteError.tryWrite(tagMapper.addResourcesTag(rTags, resources.getrId()), resources.getTags().size());
+		//更新资源拓展信息
+		ResourceExtensionInformation resourceExtensionInformation = getResourceExtensionInformation(resources, false);
+		WriteError.tryWrite(resourceExtensionInformationMapper.updateByPrimaryKey(resourceExtensionInformation));
+		if (tags != null && !tags.isEmpty()) {//更新数据库中的映射关系
+			WriteError.tryWrite(tagMapper.addResourcesTag(tags, resources.getrId()), resources.getTags().size());
 		}
 		redisMemoryService.saveData(resources);
 		return new ReturnResult<Resources>().operationTrue("资源更新成功", resources);
 	}
 	
 	@Override
+	@Transactional
 	public ReturnResult<Resources> deleteResources(Integer rId) {
 		//更新数据库
 		Resources resources = resourcesMapper.selectByPrimaryKey(rId);
@@ -136,6 +138,8 @@ public class ResourceServiceIMPL implements ResourcesService {
 		example.createCriteria().andRIdEqualTo(rId);
 		WriteError.tryWrite(resourcesTagMapMapper.deleteByExample(example), resources.getTags().size());
 		WriteError.tryWrite(resourcesMapper.deleteByPrimaryKey(rId));
+		//删除图片,这里不删除上传的文件信息,而是保留,因为文件可能被多个资源使用(比如某些多合一版本)
+		fileAccessService.deleteFiles(resources.getrPicture(), (new File(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL())).getPath());
 		redisMemoryService.deleteKey(rId, Resources.class);
 		return new ReturnResult<Resources>().operationTrue("资源成功删除", resources);
 	}
@@ -163,7 +167,6 @@ public class ResourceServiceIMPL implements ResourcesService {
 		
 		//  并行处理资源对象
 		resourcesMap.values().parallelStream().forEach(res -> {
-			
 			//局部构建 Tag 列表
 			List<Tag> tagList = Optional.ofNullable(tagGroup.get(res.getrId()))
 					.orElse(Collections.emptyList())
@@ -177,7 +180,8 @@ public class ResourceServiceIMPL implements ResourcesService {
 			List<String> jpegList = Optional.ofNullable(jpegGroup.get(res.getrId()))
 					.orElse(Collections.emptyList())
 					.stream()
-					.map(ResourcesJpegMap::getJpegName)
+					.map(ResourcesJpegMap::getJpegName
+					)
 					.collect(Collectors.toList());
 			res.setrPicture(jpegList); // 一次性设置
 			
@@ -186,12 +190,12 @@ public class ResourceServiceIMPL implements ResourcesService {
 			if (ext != null) {
 				res.setResourceExtensionInformation(ext);
 			}
+			res.setrJpeg(FileUtil.toRelativeUrl(res.getrJpeg(), FileCategory.IMG));
 		});
 		
-		//  转换为 ArrayList 并写入 Redis,虽然不转化也行,但是方法返回时仍然需要转换,这里就直接转化了避免重复
+		//  转换为 ArrayList 并写入 Redis
 		List<Resources> resources = new ArrayList<>(resourcesMap.values());
 		redisMemoryService.setKey(resources);
-		
 		return resources;
 	}
 	
@@ -200,7 +204,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 		List<ResourceStatics> resourceStatics = resourceStatisticsMapper.getResourceStatics();
 		Map<String, Long> result = new HashMap<>();
 		for (ResourceStatics r : resourceStatics) {
-			result.put(r.getrType(), r.getSize());
+			result.put(r.getRType(), r.getSize());
 		}
 		SelectViewMag selectViewMag = new SelectViewMag();
 		if (resourceStatics.isEmpty()) return ReturnResult.isFalse("全局统计信息获取失败!");
@@ -213,6 +217,15 @@ public class ResourceServiceIMPL implements ResourcesService {
 		Resources resources = redisMemoryService.getData(rId, Resources.class);
 		if (resources == null || resources.getrId() == null) {
 			resources = resourcesMapper.selectByPrimaryKey(rId);
+			//获取图片
+			ResourcesJpegMapExample resourcesJpegMapExample = new ResourcesJpegMapExample();
+			resourcesJpegMapExample.createCriteria()
+					.andResourcesIdEqualTo(rId);
+			List<ResourcesJpegMap> resourcesJpegMaps = resourcesJpegMapMapper.selectByExample(resourcesJpegMapExample);
+			List<String> rImg = new ArrayList<>();
+			resourcesJpegMaps.forEach(rj -> rImg.add(rj.getJpegName()));
+			resources.setrPicture(rImg);
+			resources.setResourceExtensionInformation(resourceExtensionInformationMapper.selectByPrimaryKey(rId));
 			redisMemoryService.saveData(resources);
 		}
 		if (resources == null || resources.getrId() == null) throw new OperationException("您请求的资源不存在!");

@@ -1,7 +1,11 @@
 package com.huaji.galgamebyhuaji.dto;
 
 import com.huaji.galgamebyhuaji.model.jwtToken.BuyResourcesUser;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class BuyResourcesUserDTO {
 	private int resourceId;
 	private boolean isLinks;
@@ -16,27 +20,5 @@ public class BuyResourcesUserDTO {
 		this.isDownload = user.isDownload();
 	}
 	
-	public int getResourceId() {
-		return resourceId;
-	}
 	
-	public void setResourceId(int resourceId) {
-		this.resourceId = resourceId;
-	}
-	
-	public boolean isLinks() {
-		return isLinks;
-	}
-	
-	public void setLinks(boolean links) {
-		isLinks = links;
-	}
-	
-	public boolean isDownload() {
-		return isDownload;
-	}
-	
-	public void setDownload(boolean download) {
-		isDownload = download;
-	}
 }

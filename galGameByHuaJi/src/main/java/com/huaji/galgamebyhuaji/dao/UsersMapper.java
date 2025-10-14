@@ -60,4 +60,6 @@ public interface UsersMapper {
 	int setUserHeadPortraitUrl (@Param("userId") int userId, @Param("userHeadPortraitUrl") String userHeadPortraitUrl);
 	
 	int buyResources (@Param("userId") int userId, @Param("rId") int rId,@Param("isDown") boolean isDown);
+	
+	Users getUserListMxg(@Param("userId") int userId);
 }

@@ -16,9 +16,7 @@ import java.util.regex.Pattern;
  */
 public class MyStringUtil {
 	public static final Pattern RFC_5322_EMAIL_PATTERN = Pattern.compile(
-			"^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*" +  // local part
-					"@" +  // @ symbol
-					"(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$",  // domain part
+			"^(?:(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*)|(?:\".+\"))@(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,63}|(?:\\[(?:\\d{1,3}\\.){3}\\d{1,3}\\]))$",  // domain part
 			Pattern.CASE_INSENSITIVE
 	);
 	
@@ -27,6 +25,7 @@ public class MyStringUtil {
 	 *
 	 * @param obj 要检查的对象
 	 * @param <T> 对象的类型
+	 *
 	 * @return 返回设置后的对象, 如果没有有效值则返回null
 	 */
 	@Nullable
@@ -52,8 +51,8 @@ public class MyStringUtil {
 				// 检查是否存在 setXXX 方法
 				for (Method method : methods) {
 					if (method.getName().equals(setterName)
-							&& method.getParameterCount() == 1
-							&& method.getParameterTypes()[0].isAssignableFrom(fieldType)) {
+					    && method.getParameterCount() == 1
+					    && method.getParameterTypes()[0].isAssignableFrom(fieldType)) {
 						if (fieldType == String.class && MyStringUtil.isNull((String) value)) {
 							method.invoke(obj, (Object) null);
 							usedSetter = true;
@@ -95,7 +94,8 @@ public class MyStringUtil {
 	 * 检查字符是否非空,为空返回true
 	 */
 	public static boolean isNull(String str) {
-		return str == null || "null".equals(str) || "NULL".equals(str) || str.isEmpty() || "NaN".equals(str) || str.trim().isEmpty();
+		return str == null || "null".equals(str) || "NULL".equals(str) || str.isEmpty() || "NaN".equals(str) ||
+		       str.trim().isEmpty();
 	}
 	
 	/**
@@ -126,6 +126,7 @@ public class MyStringUtil {
 	 *
 	 * @param input 完整的字符串
 	 * @param size  提取的前数位(非空字符)
+	 *
 	 * @return 提取结果
 	 */
 	public static String extractPrefix(String input, int size) {
@@ -150,6 +151,7 @@ public class MyStringUtil {
 	 * 验证手机号格式是否正确
 	 *
 	 * @param phoneNumber 要验证的手机号
+	 *
 	 * @return 如果手机号格式正确返回true，否则返回false
 	 */
 	public static boolean isValidChinesePhoneNumber(String phoneNumber) {

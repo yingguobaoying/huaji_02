@@ -22,4 +22,5 @@ public interface ResourcesJpegMapMapper {
     int updateByExampleSelective(@Param("row") ResourcesJpegMap row, @Param("example") ResourcesJpegMapExample example);
 
     int updateByExample(@Param("row") ResourcesJpegMap row, @Param("example") ResourcesJpegMapExample example);
+    int insertAll(@Param("list") List<ResourcesJpegMap> list);
 }

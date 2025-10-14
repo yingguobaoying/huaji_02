@@ -8,7 +8,7 @@ import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.service.RedisMemoryService;
 import com.huaji.galgamebyhuaji.service.TagService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +16,10 @@ import java.util.Map;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TagServiceIMPL implements TagService {
-	@Autowired
-	TagMapper tagMapper;
-	@Autowired
-	RedisMemoryService redisMemoryService;
+	final TagMapper tagMapper;
+	final RedisMemoryService redisMemoryService;
 	
 	@Override
 	public ReturnResult<Tag> addTag (Tag tag) {

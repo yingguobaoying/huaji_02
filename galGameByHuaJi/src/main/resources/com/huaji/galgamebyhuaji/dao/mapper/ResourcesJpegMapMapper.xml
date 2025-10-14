@@ -137,4 +137,11 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
+  <insert id="insertAll">
+    insert into resources_jpeg_map (resources_id, jpeg_name)
+    values
+    <foreach collection="list" item="item" separator=",">
+        (#{item.resourcesId,jdbcType=INTEGER}, #{item.jpegName,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
 </mapper>

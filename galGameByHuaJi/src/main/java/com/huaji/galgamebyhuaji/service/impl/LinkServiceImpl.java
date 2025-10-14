@@ -10,7 +10,7 @@ import com.huaji.galgamebyhuaji.enumPackage.LinksEnum;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.service.LinkService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -18,11 +18,10 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class LinkServiceImpl implements LinkService {
-	@Autowired
-	LinksMapper linksMapper;
-	@Autowired
-	UserDownloadMapper userDownloadMapper;
+	final LinksMapper linksMapper;
+	final UserDownloadMapper userDownloadMapper;
 	
 	public List<LinksWithBLOBs> getLink(Integer rId, boolean isAll, int userId, boolean isAbout) {
 		if (isAbout) isAll = false;

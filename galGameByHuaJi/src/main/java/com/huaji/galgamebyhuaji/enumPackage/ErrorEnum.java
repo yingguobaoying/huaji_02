@@ -1,6 +1,8 @@
 package com.huaji.galgamebyhuaji.enumPackage;
 
 
+import lombok.Getter;
+
 /**
  * 这个类禁止格式化!!!!!!千万补药啊!!!!!!! 这个类禁止格式化!!!!!!千万补药啊!!!!!!! 这个类禁止格式化!!!!!!千万补药啊!!!!!!! 错误码枚举类
  * <p>
@@ -39,6 +41,7 @@ package com.huaji.galgamebyhuaji.enumPackage;
  * </table>
  * <p>
  */
+@Getter
 public enum ErrorEnum {
 	// @formatter:off
 	//枚举名称***********************错误类型********错误编号*******描述信息*************************
@@ -57,7 +60,7 @@ public enum ErrorEnum {
 	WRITE_DIU_ERROR             (3, 1, "数据库写入错误"),
 		;
 	// @formatter:on
-	ErrorEnum (int error_type, int error_num, String error_msg) {
+	ErrorEnum(int error_type, int error_num, String error_msg) {
 		this.error_type = error_type;
 		this.error_num = error_num;
 		this.error_msg = error_msg;
@@ -67,39 +70,25 @@ public enum ErrorEnum {
 	private final int error_num;
 	private final String error_msg;
 	
-	public int getError_type () {
-		return error_type;
-	}
-	
-	public int getError_num () {
-		return error_num;
-	}
-	
-	public String getError_msg () {
-		return error_msg;
-	}
-	
 	/**
 	 * 智能匹配错误枚举
 	 *
-	 * @param errorType
-	 * 		错误类型
-	 * @param errorNum
-	 * 		错误编号
+	 * @param errorType 错误类型
+	 * @param errorNum  错误编号
 	 *
 	 * @return 匹配的枚举项，匹配优先级： 1. 完全匹配(error_type和error_num) 2. 匹配类型+默认编号0 3. 全局UNKNOWN_ERROR
 	 */
-	public static ErrorEnum getError (int errorType, int errorNum) {
+	public static ErrorEnum getError(int errorType, int errorNum) {
 		// 优先尝试完全匹配
-		for ( ErrorEnum error : values() ) {
-			if ( error.error_type == errorType && error.error_num == errorNum ) {
+		for (ErrorEnum error : values()) {
+			if (error.error_type == errorType && error.error_num == errorNum) {
 				return error;
 			}
 		}
 		
 		// 次优匹配：同类型的默认错误（编号为0）
-		for ( ErrorEnum error : values() ) {
-			if ( error.error_type == errorType && error.error_num == 0 ) {
+		for (ErrorEnum error : values()) {
+			if (error.error_type == errorType && error.error_num == 0) {
 				return error;
 			}
 		}

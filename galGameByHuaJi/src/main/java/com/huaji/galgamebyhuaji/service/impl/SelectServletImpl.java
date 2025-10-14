@@ -3,22 +3,18 @@ package com.huaji.galgamebyhuaji.service.impl;
 import com.huaji.galgamebyhuaji.dao.ResourcesMapper;
 import com.huaji.galgamebyhuaji.entity.Resources;
 import com.huaji.galgamebyhuaji.entity.Users;
-import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.PageUtil;
-import com.huaji.galgamebyhuaji.service.ResourcesService;
 import com.huaji.galgamebyhuaji.service.SelectServlet;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class SelectServletImpl implements SelectServlet {
-	@Autowired
 	ResourcesMapper resourcesMapper;
-	@Autowired
-	ResourcesService resourcesService;
 	
 	
 	@Override
