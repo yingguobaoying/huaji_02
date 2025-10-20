@@ -10,11 +10,12 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor  // 添加这个
-@AllArgsConstructor // 可选
-public class FileUp {
-	List< MultipartFile> fileList;
-	int atResource;
-	int fileSize;
-	boolean hasFirst;
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileUpRar {
+	private List<MultipartFile> fileList;
+	private List<String> fileName;
+	private int atResource;
+	private int fileSize;
+	private String notes;
 }

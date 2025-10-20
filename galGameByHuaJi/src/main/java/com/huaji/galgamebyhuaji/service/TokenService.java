@@ -15,6 +15,11 @@ import io.micrometer.common.lang.Nullable;
  */
 public interface TokenService {
     /**
+     * 令牌缓存key
+     */
+    String TOKEN_CACHE_KEY = "Vigna_TOKEN_KEY";
+    
+    /**
      * 验证令牌并可选地延长其有效时间
      * <p>
      * 此方法会验证令牌的有效性，包括：

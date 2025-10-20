@@ -1,5 +1,6 @@
 package com.huaji.galgamebyhuaji.myUtil;
 
+import com.huaji.galgamebyhuaji.entity.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -85,5 +86,8 @@ public final class MyLogUtil {
 		return clazz != null && clazz != Object.class
 				? LoggerFactory.getLogger(clazz)
 				: DEFAULT_LOGGER;
+	}
+	public static void UserBehaviorLog(Class<?> clazz, String s, Users u){
+		info(clazz, "用户%d:{%s}进行了%s".formatted(u.getUserId(),u.getUserName(),s));
 	}
 }

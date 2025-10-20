@@ -37,7 +37,7 @@ public class FileAccessServiceImpl implements FileAccessService {
 	};
 	
 	@Override
-	public ReturnResult<ResponseEntity<InputStreamResource>> downloadFile(String fileName, FileCategory type, String downloadName, Integer users) throws IOException, OperationException {
+	public ReturnResult<ResponseEntity<InputStreamResource>> downloadFile(String fileName, FileCategory type, String downloadName, Integer users, int rId) throws IOException, OperationException {
 		if (MyStringUtil.isNull(basePath))
 			basePath = Constant.getRESOURCE_SAVE_PATH();
 		File file;
@@ -94,14 +94,13 @@ public class FileAccessServiceImpl implements FileAccessService {
 		File target = Paths.get(fileUrl, fileName).normalize().toFile();
 		if (!target.getAbsolutePath().startsWith(basePath))
 			throw new OperationException("非法路径");
-		
 		if (!target.exists())
 			throw new OperationException("文件不存在");
 		if (!target.isFile())
 			throw new OperationException("目标不是文件");
 		// 保护文件,这里以成功删除作为返回,方便其他地方调用时保证逻辑的连贯
 		if (isProtected(fileName))
-			return ReturnResult.isTrue("文件为保护资源!无法删除!将状态设置为软删除", null);
+			return ReturnResult.isTrue("文件为保护资源!无法删除!", null);
 		if (!target.delete())
 			throw new OperationException("文件删除失败");
 		return ReturnResult.isTrue("文件删除成功", null);

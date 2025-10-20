@@ -37,9 +37,6 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class FileUploadServiceImpl implements FileUploadService {
-	//获取的为:servletContext.getRealPath("/static/");
-//	protected String Constant.getRESOURCE_SAVE_PATH() = Constant.getRESOURCE_SAVE_PATH();
-	
 	/**
 	 * 这里保存的均为文件类型头,仅可用于初步文件类型识别,无法识别是否存在分包
 	 */
@@ -143,10 +140,10 @@ public class FileUploadServiceImpl implements FileUploadService {
 				if (!ALLOWED_IMAGE_TYPES.contains(file.getContentType())) {
 					throw new OperationException("不支持的图片格式，仅支持: " + String.join(", ", ALLOWED_IMAGE_TYPES));
 				}
-				fileName += ".jpeg";
+				if (!fileName.endsWith(".jpeg"))
+					fileName += ".jpeg";
 				return saveImage(file, fileName, sumPath);
 			case ARCHIVE:
-				
 				return saveArchive(file, fileName, sumPath);
 			case SCRIPT, OTHER:
 			default:
@@ -271,11 +268,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 		try (InputStream is = file.getInputStream()) {
 			byte[] header = new byte[10];
 			int bytesRead = is.readNBytes(header, 0, header.length); // 使用 readNBytes 确保读取完整
-			
 			if (bytesRead < 4) { // 至少需要4个字节进行基本识别
 				return null;
 			}
-			
 			if (!isRar) {
 				for (Map.Entry<byte[], String> entry : SUPPORTED_ARCHIVES.entrySet()) {
 					if (startsWith(header, entry.getKey(), bytesRead)) {

@@ -241,8 +241,7 @@ public class LoginServiceIMPL implements LoginService {
 			lockForUser.lock();
 			if (session == null) {//不存在会话时说明是第一次登陆签到成功
 				clockInResult = true;
-			}
-			else {
+			} else {
 				Date lastLoginTime = session.getLastLoginTime();
 				clockInResult = TimeUtil.isYesterdayOrEarlier(lastLoginTime);
 			}

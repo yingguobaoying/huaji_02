@@ -13,6 +13,8 @@ public class ResourcesFileMap {
 
     private Long fileSize;
 
+    private String notes;
+
     public Integer getrId() {
         return rId;
     }
@@ -59,5 +61,13 @@ public class ResourcesFileMap {
 
     public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes == null ? null : notes.trim();
     }
 }

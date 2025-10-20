@@ -34,7 +34,7 @@ import static com.huaji.galgamebyhuaji.myUtil.ElseUtil.getToken;
 @RequiredArgsConstructor
 public class DownloadFileController extends BaseController {
 	final
-	FileAccessService fileServlet;
+	FileAccessService fileAccessService;
 	final
 	TokenService tokenService;
 	final
@@ -44,8 +44,7 @@ public class DownloadFileController extends BaseController {
 	public ResponseEntity<InputStreamResource> downloadRar(
 			HttpServletRequest request,
 			@RequestParam("fileName") String fileName,
-			@RequestParam(value = "userNaming", required = false) String userNaming,
-			@RequestParam(value = "documentLocation", required = false) String documentLocation
+			@RequestParam(value = "userNaming", required = false) String userNaming
 	) throws BestException, IOException {
 		if (MyStringUtil.isNull(userNaming))
 			userNaming = fileName;
@@ -65,7 +64,7 @@ public class DownloadFileController extends BaseController {
 				}
 				if (!hasFile)
 					throw new OperationException("文件不存在");
-				ReturnResult<ResponseEntity<InputStreamResource>> r = fileServlet.downloadFile(fileName, FileCategory.ARCHIVE, fileName, loginUser.getUserId());
+				ReturnResult<ResponseEntity<InputStreamResource>> r = fileAccessService.downloadFile(fileName, FileCategory.ARCHIVE, fileName, loginUser.getUserId(), rId);
 				if (r.isOperationResult()) {
 					return r.getReturnResult();
 				} else {

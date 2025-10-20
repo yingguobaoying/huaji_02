@@ -7,9 +7,13 @@ import com.huaji.galgamebyhuaji.Interceptor.StrongAuthenticationFilter;
 import com.huaji.galgamebyhuaji.service.LoginService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,13 +26,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity(debug = true)
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-	
+	//	SecurityExceptionForwardFilter securityExceptionForwardFilter;
 	private final LoginService loginService;
 	
 	private final UserMxgServlet userMxgServlet;
@@ -39,13 +48,6 @@ public class SecurityConfig {
 	final
 	TokenService tokenService;
 	
-	public SecurityConfig(LoginService loginService, UserMxgServlet userMxgServlet, StrongAuthenticationEntryPoint strongAuthenticationEntryPoint, CustomAccessDeniedHandler accessDeniedHandler, TokenService tokenService) {
-		this.loginService = loginService;
-		this.userMxgServlet = userMxgServlet;
-		this.strongAuthenticationEntryPoint = strongAuthenticationEntryPoint;
-		this.accessDeniedHandler = accessDeniedHandler;
-		this.tokenService = tokenService;
-	}
 	
 	@Bean
 	public BasicAuthenticationFilter basicAuthenticationFilter() {
@@ -81,16 +83,27 @@ public class SecurityConfig {
 						.requestMatchers("/druid/**").hasRole("ROOT_JURISDICTION")
 						// 强认证路径需要认证
 						.requestMatchers("/api/user/**").authenticated()
+						.requestMatchers("/error").permitAll()
 						// 其他路径允许匿名访问
 						.anyRequest().permitAll()
 				)
 				// 异常处理
 				.exceptionHandling(exceptions -> exceptions
-						.authenticationEntryPoint(strongAuthenticationEntryPoint)
+						// 为所有API请求使用自定义入口点
+						.authenticationEntryPoint((request, response, authException) -> {
+							if (request.getServletPath().startsWith("/api/")) {
+								strongAuthenticationEntryPoint.commence(request, response, authException);
+							} else {
+								// 非API请求使用默认行为直接404
+								new HttpStatusEntryPoint(HttpStatus.NOT_FOUND)
+										.commence(request, response, authException);
+							}
+						})
 						.accessDeniedHandler(accessDeniedHandler)
 				)
+				.addFilterBefore(strongAuthenticationFilter(), ExceptionTranslationFilter.class)
 				.addFilterBefore(basicAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.addFilterAfter(strongAuthenticationFilter(), BasicAuthenticationFilter.class)
+//				.addFilterBefore(securityExceptionForwardFilter, ExceptionTranslationFilter.class)
 		;
 		return http.build();
 	}
@@ -128,5 +141,10 @@ public class SecurityConfig {
 	public PasswordEncoder passwordEncoder() {
 		// 不使用密码认证，使用无操作编码器
 		return NoOpPasswordEncoder.getInstance();
+	}
+	
+	@Bean
+	public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> webServerFactoryCustomizer() {
+		return factory -> factory.setErrorPages(Collections.emptySet());
 	}
 }

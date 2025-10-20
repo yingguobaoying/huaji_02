@@ -90,6 +90,7 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 		} catch (Exception ex) {
 			// 其他异常，返回认证错误
 			SecurityContextHolder.clearContext();
+			System.out.println(ex);
 			MyLogUtil.error(StrongAuthenticationFilter.class, ex);
 			throw new AuthenticationServiceException("认证过程中发生错误请稍后再试");
 		}

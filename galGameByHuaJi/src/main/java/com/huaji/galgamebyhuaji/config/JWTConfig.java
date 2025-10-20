@@ -3,6 +3,7 @@ package com.huaji.galgamebyhuaji.config;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
@@ -49,9 +50,11 @@ public class JWTConfig {
 	@Value("${jwt.secret-key4}")
 	private String secretKey4; // 版本4
 
+	@Getter
 	@Value("${jwt.current-version}")
 	private int currentVersion;
 
+	@Getter
 	@Value("${jwt.expiration-time}")
 	private long expirationTime;
 
@@ -176,15 +179,7 @@ public class JWTConfig {
 		}
 		return versionedKeys.get(version).clone();
 	}
-
-	public int getCurrentVersion() {
-		return currentVersion;
-	}
-
-	public long getExpirationTime() {
-		return expirationTime;
-	}
-
+	
 	/**
 	 * 密钥轮换通知（外部调用）
 	 */

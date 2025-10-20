@@ -23,8 +23,7 @@ public interface ResourcesFileService {
 	/**
 	 * 添加资源文件夹
 	 *
-	 * @param addFile 是否以资源名称新建一个文件夹,命名格式:yyyy_MM_dd_hh_mm_rName
 	 */
-	String addResourceFile(List<MultipartFile> file, int rId, boolean addFile);
+	String addResourceFile(List<MultipartFile> file, int rId,List<String> fileName,String notes) throws IOException;
 	
 }

@@ -14,14 +14,15 @@ import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
 import com.huaji.galgamebyhuaji.myUtil.JWTUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.service.RedisMemoryService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,11 +41,42 @@ public class TokenServiceImpl implements TokenService {
 	JWTUtil jwtUtil;
 	final
 	JWTConfig jwtConfig;
+	final
+	RedisMemoryService redisMemoryService;
+	static final int TOKEN_CACHE_USER_TOKEN = 1;
+	static final int TOKEN_CACHE_DATA = 2;
+	
+	/**
+	 * 生成缓存键
+	 */
+	private String buildCacheKey(String token, int cacheType) {
+		return String.format("%s:%d:%s",
+		                     TOKEN_CACHE_KEY,
+		                     cacheType,
+		                     // 对token进行安全编码，防止特殊字符问题
+		                     URLEncoder.encode(token, StandardCharsets.UTF_8)
+		);
+	}
+	
+	private <T> void setTokenCache(String token, T tokenCache, int type) {
+		redisMemoryService.saveData(
+				buildCacheKey(token, type), tokenCache, jwtUtil.getTokenExpireTime(token));
+	}
+	
+	private <T> void delTokenCache(String token) {
+		redisMemoryService.delData(buildCacheKey(token, TOKEN_CACHE_USER_TOKEN));
+		redisMemoryService.delData(buildCacheKey(token, TOKEN_CACHE_DATA));
+	}
 	
 	public <T extends OnlineUser> UserToken verifyToken(String token, int userId, TokenType type,
 	                                                    @Nullable String ip, boolean needUpdate)
 			throws SessionExceptions {
-		
+		//检查缓存,缓存有就直接过
+		UserToken returnMsg = redisMemoryService.getDataTheValidityTimeGreater(
+				buildCacheKey(token, TOKEN_CACHE_USER_TOKEN), 5);
+		if (returnMsg != null) {//命中缓存,如果自动续期的时间需要的时间>5分钟
+			return returnMsg;
+		}
 		// 1. 基础令牌验证
 		if (!jwtUtil.isTokenUsable(token)) {
 			throw new OperationException("令牌已过期");
@@ -66,18 +98,16 @@ public class TokenServiceImpl implements TokenService {
 			lock.lock();
 			// 4. 数据库令牌验证
 			List<UserToken> validTokens = userTokenMapper.verifyToken(token, userId, type.getStatusNum());
-			if (validTokens.size() != 1) {
-				if (validTokens.size() > 1)
-					throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
-				else
-					throw new SessionExceptions("错误!您的会话信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
-			}
+			validateTokenCount(validTokens);
 			UserToken userToken = validTokens.getFirst();
 			// 5. 安全延期令牌
 			if (needUpdate)
 				return maybeRefreshToken(token, userToken);
-			else
+			else {
+				//扔到缓存里
+				setTokenCache(token, userToken, TOKEN_CACHE_USER_TOKEN);
 				return userToken;
+			}
 		} finally {
 			unlockForUser(lock, onlineUser.getUserId());
 		}
@@ -87,7 +117,10 @@ public class TokenServiceImpl implements TokenService {
 	public <T extends OnlineUser> T VerifyAndParse(String token, int userId, TokenType type,
 	                                               @Nullable String ip)
 			throws SessionExceptions {
-		
+		T user = redisMemoryService.getDataTheValidityTimeGreater(
+				buildCacheKey(token, TOKEN_CACHE_DATA), 5);
+		if (user != null)
+			return user;
 		// 1. 基础令牌验证
 		if (!jwtUtil.isTokenUsable(token)) {
 			throw new OperationException("令牌已过期");
@@ -115,15 +148,20 @@ public class TokenServiceImpl implements TokenService {
 			lock.lock();
 			// 4. 数据库令牌验证
 			List<UserToken> validTokens = userTokenMapper.verifyToken(token, userId, type.getStatusNum());
-			if (validTokens.size() != 1) {
-				if (validTokens.size() > 1)
-					throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
-				else
-					throw new SessionExceptions("您的会话已过期,请重新登录后在试一次", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
-			}
+			validateTokenCount(validTokens);
+			setTokenCache(token, onlineUser, TOKEN_CACHE_DATA);
 			return onlineUser;
 		} finally {
 			unlockForUser(lock, onlineUser.getUserId());
+		}
+	}
+	
+	private void validateTokenCount(List<UserToken> validTokens) throws SessionExceptions {
+		if (validTokens.size() != 1) {
+			if (validTokens.size() > 1)
+				throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
+			else
+				throw new SessionExceptions("您的会话已过期,请重新登录后在试一次", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
 		}
 	}
 	
@@ -150,23 +188,20 @@ public class TokenServiceImpl implements TokenService {
 		if (!jwtUtil.isAboutToExpire(oldToken)) {
 			return userToken;
 		}
-		
 		// 加锁防止并发刷新
 		ReentrantLock lock = getLockForUser(userToken.getUserId());
 		try {
 			lock.lock();
 			// 双重检查锁模式
-			if (!jwtUtil.isAboutToExpire(oldToken)) {
-				return userToken;
-			}
 			Class<T> c = (Class<T>) TokenType.getTokenType(userToken.getType()).getTokenClazz();
 			String newToken = jwtUtil.getTokenUsableTime(oldToken, SystemConstant.JWT_TOKEN_NAME, c);
-			
 			userToken.setToken(newToken);
 			userToken.setDieTime(jwtUtil.getTokenExpireTime(newToken));
 			if (userToken.getTokenId() == null)
 				throw new OperationException("错误!您的会话令牌更新失败!请联系管理员或者重新进行登录");
 			WriteError.tryWrite(userTokenMapper.updateByPrimaryKeySelective(userToken));
+			delTokenCache(oldToken);//清空旧的,缓存另外一个,因为想拿到另一个对象还需要重新解析密文所以等用到了再解析
+			setTokenCache(userToken.getToken(), userToken, TOKEN_CACHE_USER_TOKEN);
 			return userToken;
 		} finally {
 			unlockForUser(lock, userToken.getUserId());
@@ -174,13 +209,11 @@ public class TokenServiceImpl implements TokenService {
 	}
 	
 	@Override
-	@Cacheable(value = "tokenValid", key = "#token")
 	public UserToken verifyToken(String token, int userId, @Nullable String ip, boolean needUpdate) throws SessionExceptions {
 		return verifyToken(token, userId, TokenType.DEFAULT_STATUS, ip, needUpdate);
 	}
 	
 	@Override
-	@CacheEvict(value = "tokenValid", key = "#token")
 	public UserToken invalidateToken(String token, int userId, TokenType type) throws SessionExceptions {
 		if (MyStringUtil.isNull(token))
 			throw new OperationException("错误!!令牌为空!");
@@ -195,11 +228,11 @@ public class TokenServiceImpl implements TokenService {
 				throw new SessionExceptions("错误!您当前存在多个会话信息!请联系管理员进行解除", ErrorEnum.SESSION_REPEAT_ERROR);
 		}
 		userToken.setDieTime(new Date(0));
+		delTokenCache(token);
 		return userToken;
 	}
 	
 	@Override
-	@CacheEvict(value = "tokenValid", key = "#token")
 	public UserToken invalidateToken(String token, int userId) throws SessionExceptions {
 		return invalidateToken(token, userId, TokenType.DEFAULT_STATUS);
 	}
@@ -210,7 +243,7 @@ public class TokenServiceImpl implements TokenService {
 		//可能需要覆盖原有失效令牌
 		if (type == null) type = TokenType.DEFAULT_STATUS;
 		if (onlineUser == null) throw new OperationException("令牌生成失败!");
-		if (time <= 0 )
+		if (time <= 0)
 			time = jwtConfig.getExpirationTime();
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
 		try {
@@ -223,6 +256,7 @@ public class TokenServiceImpl implements TokenService {
 				userToken.setToken(jwtUtil.generateToken(SystemConstant.JWT_TOKEN_NAME, onlineUser, time));
 				userToken.setDieTime(jwtUtil.getTokenExpireTime(userToken.getToken()));
 				WriteError.tryWrite(userTokenMapper.updateByPrimaryKeySelective(userToken));
+				setTokenCache(userToken.getToken(), userToken, TOKEN_CACHE_USER_TOKEN);
 				return userToken;
 			} else {
 				String s = jwtUtil.generateToken(SystemConstant.JWT_TOKEN_NAME, onlineUser, time);

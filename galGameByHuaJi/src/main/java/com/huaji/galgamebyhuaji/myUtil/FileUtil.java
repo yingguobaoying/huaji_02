@@ -13,7 +13,7 @@ public class FileUtil {
 	public static String toRelativeUrl(String absolutePath, FileCategory fileCategory) {
 		if (MyStringUtil.isNull(absolutePath))
 			return "default.jpeg"; // 默认图片
-		
+		if (!isAbsolutePath(absolutePath)) return absolutePath;
 		// 如果是网络URL，直接返回
 		if (absolutePath.startsWith("http://") || absolutePath.startsWith("https://"))
 			return absolutePath;
@@ -134,5 +134,34 @@ public class FileUtil {
 		else if (size < 1024 * 1024) return String.format("%.2fKB", size / 1024.0);
 		else if (size < 1024L * 1024 * 1024) return String.format("%.2fMB", size / (1024.0 * 1024));
 		else return String.format("%.2fGB", size / (1024.0 * 1024 * 1024));
+	}
+	
+	/**
+	 * 获取对应ID资源的存储路径信息
+	 *
+	 * @param rId 资源ID
+	 *
+	 * @return 资源文件夹(完整路径 xxx resources / 0 - 10000 / 0 - 100 / 1 / rId - time - rName.xxx 从 resources开始)
+	 */
+	public static String getBuildResourcePath(int rId) {
+		//除去首页图,路径举例
+		// static/img/resources/0-10000/0-100/1/rId-time-rName.xxx
+		// static/img/resources/0-10000/101-200/101/rId-time-rName.xxx
+		//获取基本存储路径
+		StringBuffer path = new StringBuffer(
+				FileUtil.formatUrl("resources")
+		);
+		// 万级分组 (0-10000, 10001-20000, ...)
+		int tenThousandGroup = (rId - 1) / 10_000;  // 从0开始计数
+		int tenThousandStart = tenThousandGroup * 10_000;
+		int tenThousandEnd = tenThousandStart + 10_000;
+		path.append("/").append(tenThousandStart).append("-").append(tenThousandEnd);
+		// 百级分组 (0-100, 101-200, ...)
+		int hundredGroup = (rId - 1) / 100;  // 从0开始计数
+		int hundredStart = hundredGroup * 100;
+		int hundredEnd = hundredStart + 100;
+		path.append("/").append(hundredStart).append("-").append(hundredEnd);
+		path.append("/").append(rId);
+		return path.toString();
 	}
 }

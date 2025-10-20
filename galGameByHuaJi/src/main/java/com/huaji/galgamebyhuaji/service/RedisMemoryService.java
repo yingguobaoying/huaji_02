@@ -9,12 +9,13 @@ import org.redisson.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -228,18 +229,53 @@ public class RedisMemoryService {
 		keys.deleteByPattern(PREFIX_TAG + "*");
 		keys.delete(PREFIX_RESOURCES_LIST);
 		keys.delete(TAG_MAP);
+		keys.deleteByPattern(TokenService.TOKEN_CACHE_KEY + ":*");
 	}
 	
 	private final ConcurrentHashMap<Integer, ReadWriteLock> keyLocks = new ConcurrentHashMap<>();
 	
-	public <T> void saveData(String name, T t, int timeHours) {
+	public <T> void saveData(String name, T t, Date time) {
 		ReadWriteLock keyLock = keyLocks.computeIfAbsent(name.hashCode(), k -> new ReentrantReadWriteLock());
 		try {
 			keyLock.writeLock().lock();
 			RBucket<T> bucket = redissonClient.getBucket(name);
-			bucket.set(t, timeHours, TimeUnit.HOURS); // 设置过期时间
+			// 设置过期时间(绝对时间)
+			if (time != null) {
+				// 计算剩余时间（毫秒）
+				long expireTime = time.getTime() - System.currentTimeMillis();
+				if (expireTime > 0) {
+					Duration duration = Duration.ofMillis(expireTime);
+					bucket.set(t, duration);
+				}else
+					bucket.delete();
+				
+			} else {
+				// 如果没有指定过期时间，存储为永不过期
+				bucket.set(t);
+			}
 		} finally {
 			keyLock.writeLock().unlock();
+		}
+	}
+	
+	public <T> T getDataTheValidityTimeGreater(String key, int min) {
+		ReadWriteLock keyLock = keyLocks.computeIfAbsent(key.hashCode(), k -> new ReentrantReadWriteLock());
+		try {
+			keyLock.readLock().lock();
+			RBucket<T> bucket = redissonClient.getBucket(key);
+			long ttl = bucket.remainTimeToLive();
+			if (ttl == -2) {
+				return null;
+			}
+			long minTtlRequired = 1000L * 60 * min;
+			if (ttl == -1 || ttl >= minTtlRequired) {
+				return bucket.get();
+			}
+			//删除并返回空
+			delData(key);
+			return null;
+		} finally {
+			keyLock.readLock().unlock();
 		}
 	}
 	
@@ -254,7 +290,7 @@ public class RedisMemoryService {
 		}
 	}
 	
-	public void dleData(String name) {
+	public void delData(String name) {
 		ReadWriteLock keyLock = keyLocks.computeIfAbsent(name.hashCode(), k -> new ReentrantReadWriteLock());
 		try {
 			keyLock.writeLock().lock();

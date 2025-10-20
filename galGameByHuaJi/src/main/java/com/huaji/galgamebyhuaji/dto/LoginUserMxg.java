@@ -4,6 +4,7 @@ package com.huaji.galgamebyhuaji.dto;
 import com.huaji.galgamebyhuaji.annotation.CustomNotNull;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
 public class LoginUserMxg {
 	
 	

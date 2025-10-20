@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -103,10 +102,16 @@ public class UserMxgServletImpl implements UserMxgServlet {
 			if (banHeadPortrait) {
 				WriteError.tryWrite(usersMapper.setUserHeadPortraitUrl(userId, null));
 				if (!MyStringUtil.isNull(users.getUserHeadPortraitUrl()))
-					fileAccessService.deleteFiles(users.getUserHeadPortraitUrl(),
-					                              FileUtil.formatUrl(Constant.getRESOURCE_SAVE_PATH(),
-					                                                 FileCategory.IMG.getFILE_SAVE_URL(),
-					                                                 "user"));
+					try {
+						if (!MyStringUtil.isNull(users.getUserHeadPortraitUrl()))
+							fileAccessService.deleteFiles(users.getUserHeadPortraitUrl(),
+							                              FileUtil.formatUrl(Constant.getRESOURCE_SAVE_PATH(),
+							                                                 FileCategory.IMG.getFILE_SAVE_URL()
+							                              ));
+					} catch (Exception e) {
+						MyLogUtil.UserBehaviorLog(UserMxgServlet.class,
+						                          "旧头像文件删除失败,因为:" + e.getMessage(), users);
+					}
 				Users u = new Users();
 				u.setUserId(userId);
 				u.setUserName(users.getUserName());
@@ -116,26 +121,25 @@ public class UserMxgServletImpl implements UserMxgServlet {
 			}
 			//非禁用时如果没发现文件就认为错误
 			if (croppedImage == null) throw new OperationException("错误!未发现需要设置为头像的文件!");
-			String name = userId + TimeUtil.getNowTime();
 			ReturnResult<String> jpeg;
 			try {
 				jpeg = fileUploadService.uploadFile(croppedImage, FileCategory.IMG,
 				                                    userId + TimeUtil.getNowTime(), "user");
-			} catch (IOException e) {
-				throw new RuntimeException("上传头像失败", e);
-			}
-			if (jpeg.isOperationResult()) {
-				try {
-					WriteError.tryWrite(usersMapper.setUserHeadPortraitUrl(userId, FileUtil.toRelativeUrl(jpeg.getReturnResult(), FileCategory.IMG)));
-				} catch (WriteError e) {
-					MyLogUtil.error(UserMxgServletImpl.class, e);
-					fileAccessService.deleteFiles(name, String.valueOf(new File(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL())));
-					return "头像设置失败!这可能是我们服务器抽风了,请稍后再试一次,如果您多次遇到这个错误请联系管理员!";
-				}
+				WriteError.tryWrite(usersMapper.setUserHeadPortraitUrl(userId, FileUtil.toRelativeUrl(jpeg.getReturnResult(), FileCategory.IMG)));
+			} catch (Exception e) {
+				throw new RuntimeException("上传头像失败" + e.getMessage());
 			}
 			//删除原头像
 			if (!MyStringUtil.isNull(users.getUserHeadPortraitUrl()))
-				fileAccessService.deleteFiles(users.getUserHeadPortraitUrl(), String.valueOf(new File(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL())));
+				try {
+					if (!MyStringUtil.isNull(users.getUserHeadPortraitUrl()))
+						fileAccessService.deleteFiles(users.getUserHeadPortraitUrl(),
+						                              FileUtil.formatUrl(Constant.getRESOURCE_SAVE_PATH(),
+						                                                 FileCategory.IMG.getFILE_SAVE_URL()
+						                              ));
+				} catch (Exception e) {
+					MyLogUtil.UserBehaviorLog(UserMxgServlet.class, "旧头像文件删除失败,因为:" + e.getMessage(), users);
+				}
 			return FileUtil.toRelativeUrl(jpeg.getReturnResult(), FileCategory.IMG);
 		});
 	}

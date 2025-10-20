@@ -9,6 +9,9 @@
         <result column="size" jdbcType="INTEGER" property="size"/>
         <result column="file_size" jdbcType="BIGINT" property="fileSize"/>
     </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.huaji.galgamebyhuaji.entity.ResourcesFileMap">
+        <result column="notes" jdbcType="LONGVARCHAR" property="notes"/>
+    </resultMap>
     <sql id="Example_Where_Clause">
         <where>
             <foreach collection="oredCriteria" item="criteria" separator="or">
@@ -72,6 +75,26 @@
     <sql id="Base_Column_List">
         r_id, file_name, up_user, is_public, size, file_size
     </sql>
+    <sql id="Blob_Column_List">
+        notes
+    </sql>
+    <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesFileMapExample"
+            resultMap="ResultMapWithBLOBs">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from resources_file_map
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
     <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesFileMapExample"
             resultMap="BaseResultMap">
         select
@@ -95,9 +118,11 @@
     </delete>
     <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesFileMap">
         insert into resources_file_map (r_id, file_name, up_user,
-                                        is_public, size, file_size)
+                                        is_public, size, file_size,
+                                        notes)
         values (#{rId,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR}, #{upUser,jdbcType=INTEGER},
-                #{isPublic,jdbcType=BIT}, #{size,jdbcType=INTEGER}, #{fileSize,jdbcType=BIGINT})
+                #{isPublic,jdbcType=BIT}, #{size,jdbcType=INTEGER}, #{fileSize,jdbcType=BIGINT},
+                #{notes,jdbcType=LONGVARCHAR})
     </insert>
     <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.ResourcesFileMap">
         insert into resources_file_map
@@ -120,6 +145,9 @@
             <if test="fileSize != null">
                 file_size,
             </if>
+            <if test="notes != null">
+                notes,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="rId != null">
@@ -139,6 +167,9 @@
             </if>
             <if test="fileSize != null">
                 #{fileSize,jdbcType=BIGINT},
+            </if>
+            <if test="notes != null">
+                #{notes,jdbcType=LONGVARCHAR},
             </if>
         </trim>
     </insert>
@@ -170,7 +201,23 @@
             <if test="row.fileSize != null">
                 file_size = #{row.fileSize,jdbcType=BIGINT},
             </if>
+            <if test="row.notes != null">
+                notes = #{row.notes,jdbcType=LONGVARCHAR},
+            </if>
         </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExampleWithBLOBs" parameterType="map">
+        update resources_file_map
+        set r_id = #{row.rId,jdbcType=INTEGER},
+        file_name = #{row.fileName,jdbcType=VARCHAR},
+        up_user = #{row.upUser,jdbcType=INTEGER},
+        is_public = #{row.isPublic,jdbcType=BIT},
+        size = #{row.size,jdbcType=INTEGER},
+        file_size = #{row.fileSize,jdbcType=BIGINT},
+        notes = #{row.notes,jdbcType=LONGVARCHAR}
         <if test="example != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
@@ -187,18 +234,18 @@
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
     </update>
-    <select id="hasFile" resultType="integer">
-        select count(*)
-        from resources_file_map
-        where r_id = #{rId}
-    </select>
-    <insert id="insertAll" >
+    <insert id="insertAll" parameterType="java.util.List">
         insert into resources_file_map (r_id, file_name, up_user,
-        is_public, size, file_size)
+        is_public, size, file_size,
+        notes)
         values
         <foreach collection="list" item="item" separator=",">
-            (#{item.rId}, #{item.fileName}, #{item.upUser},
-            #{item.isPublic}, #{item.size}, #{item.fileSize})
+            (#{item.rId,jdbcType=INTEGER}, #{item.fileName,jdbcType=VARCHAR}, #{item.upUser,jdbcType=INTEGER},
+            #{item.isPublic,jdbcType=BIT}, #{item.size,jdbcType=INTEGER}, #{item.fileSize,jdbcType=BIGINT},
+            #{item.notes,jdbcType=LONGVARCHAR})
         </foreach>
     </insert>
+    <select id="hasFile" resultType="int">
+        select count(*) from resources_file_map where r_id = #{rId}
+    </select>
 </mapper>

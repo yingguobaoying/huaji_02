@@ -16,13 +16,16 @@ public interface ResourcesFileMapMapper {
 
     int insertSelective(ResourcesFileMap row);
 
+    List<ResourcesFileMap> selectByExampleWithBLOBs(ResourcesFileMapExample example);
+
     List<ResourcesFileMap> selectByExample(ResourcesFileMapExample example);
 
     int updateByExampleSelective(@Param("row") ResourcesFileMap row, @Param("example") ResourcesFileMapExample example);
 
+    int updateByExampleWithBLOBs(@Param("row") ResourcesFileMap row, @Param("example") ResourcesFileMapExample example);
+
     int updateByExample(@Param("row") ResourcesFileMap row, @Param("example") ResourcesFileMapExample example);
 	
-	int hasFile(@Param("rId") int rId);
-	
-    int insertAll(@Param("list") List<ResourcesFileMap> list);
+	int insertAll(List<ResourcesFileMap> rf);
+    int hasFile(Integer rId);
 }

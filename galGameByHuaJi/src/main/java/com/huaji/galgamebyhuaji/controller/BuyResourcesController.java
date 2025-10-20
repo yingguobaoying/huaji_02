@@ -1,6 +1,5 @@
 package com.huaji.galgamebyhuaji.controller;
 
-import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.constant.SystemConstant;
 import com.huaji.galgamebyhuaji.dto.BuyLinkRequest;
 import com.huaji.galgamebyhuaji.dto.BuyResourcesUserDTO;
@@ -11,11 +10,18 @@ import com.huaji.galgamebyhuaji.enumPackage.TokenType;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
+import com.huaji.galgamebyhuaji.model.TokenMsg;
 import com.huaji.galgamebyhuaji.model.jwtToken.BuyResourcesUser;
 import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
-import com.huaji.galgamebyhuaji.model.TokenMsg;
-import com.huaji.galgamebyhuaji.myUtil.*;
-import com.huaji.galgamebyhuaji.service.*;
+import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
+import com.huaji.galgamebyhuaji.myUtil.JWTUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.service.LinkService;
+import com.huaji.galgamebyhuaji.service.ResourcesService;
+import com.huaji.galgamebyhuaji.service.TokenService;
+import com.huaji.galgamebyhuaji.service.UserBehaviorService;
+import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import com.huaji.galgamebyhuaji.vo.DataWithUserMsg;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,8 +62,7 @@ public class BuyResourcesController extends BaseController {
 		if (onlineUser == null) return ReturnResult.isFalse("无效的令牌");
 		if (onlineUser instanceof BuyResourcesUser user) {
 			return ReturnResult.isTrue("令牌有效", new BuyResourcesUserDTO(user));
-		}
-		else {
+		} else {
 			return ReturnResult.isFalse("无效的令牌");
 		}
 	}
@@ -78,13 +84,13 @@ public class BuyResourcesController extends BaseController {
 		String token = ElseUtil.getToken(request, SystemConstant.USER_BUY_TOKEN);
 		boolean hasToken = false;
 		String ip = ElseUtil.getClientIp(request);
-		String message = "";
+		String message;
 		Date expireDate;
 		if (!MyStringUtil.isNull(token)) {
 			try {
 				//验证和解析
 				OnlineUser cache = tokenService.VerifyAndParse(token, loginUser.getUserId(), TokenType.GET_DOWNLOAD, ip);
-				if (cache instanceof BuyResourcesUser ) {
+				if (cache instanceof BuyResourcesUser) {
 					hasToken = true;
 				}
 			} catch (OperationException e) {
@@ -105,9 +111,7 @@ public class BuyResourcesController extends BaseController {
 			else stringReturnResult = userBehaviorService.buyOutsideDown(loginUser.getUserId(), resourceId, ip);
 			message = stringReturnResult.getMsg();
 			token = stringReturnResult.getReturnResult();
-			expireDate = TimeUtil.getFutureTimeByHour(Constant.RESOURCE_EXPIRATION_TIME);
-		}
-		else {
+		} else {
 			String s1 = "【本地下载】";
 			String s2 = "【外链下载】";
 			String sb;
@@ -146,12 +150,10 @@ public class BuyResourcesController extends BaseController {
 				for (LinksWithBLOBs links : linkList)
 					l.add(new DataWithUserMsg<>(links, links.getLinkUpUser(), userMxgServlet));
 				return ReturnResult.isTrue("获取成功!如果页面未显示获取按钮请刷新", l, -1);
-			}
-			else {
+			} else {
 				return ReturnResult.isFalse("您还没有购买外部链接下载权限");
 			}
-		}
-		else return ReturnResult.isFalse("出错了,请检查您提供的令牌,令牌类型不符");
+		} else return ReturnResult.isFalse("出错了,请检查您提供的令牌,令牌类型不符");
 	}
 	
 	@GetMapping("/getDown")
@@ -165,16 +167,15 @@ public class BuyResourcesController extends BaseController {
 				List<DataWithUserMsg<ResourcesFileMap>> list = new ArrayList<>();
 				for (ResourcesFileMap r : li) {
 					list.add(new DataWithUserMsg<>(r, r.getUpUser(), userMxgServlet));
+					r.setFileName((new File(r.getFileName())).getName());
 				}
 				if (!list.isEmpty())
 					return ReturnResult.isTrue("获取成功!如果页面未显示获取按钮请刷新", list, -1);
 				else
 					return ReturnResult.isFalse("获取失败!因为当前没有任何资源,如果您发现您购买时扣除了积分,请联系管理员!");
-			}
-			else {
+			} else {
 				return ReturnResult.isFalse("您还没有购买本地资源下载权限");
 			}
-		}
-		else return ReturnResult.isFalse("出错了,请检查您提供的令牌,令牌类型不符");
+		} else return ReturnResult.isFalse("出错了,请检查您提供的令牌,令牌类型不符");
 	}
 }
