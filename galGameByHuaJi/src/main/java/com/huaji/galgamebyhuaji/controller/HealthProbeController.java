@@ -18,16 +18,35 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Iterator;
+
 @Controller
 @RequiredArgsConstructor
 public class HealthProbeController {
 	final StrongAuthenticationFilter StrongAuthenticationEntryPoint;
 	
+	//当出现错误无法被spring security 捕抓时作为备用手段
 	@GetMapping(path = {"/api/error/dispose", "/error"})
 	@ResponseBody
 	public ReturnResult<String> error(HttpServletRequest request, HttpServletResponse response) {
 		response.setStatus(HttpStatus.OK.value());
 		Exception ex = (Exception) request.getAttribute("securityException");
+		Iterator<String> iterator = request.getAttributeNames().asIterator();
+		while (iterator.hasNext()) {
+			String next = iterator.next();
+			if (request.getAttribute(next) instanceof Exception e) {
+				ex = e;
+				break;
+			}
+		}
+		if (ex == null) {
+			ReturnResult<String> error = ReturnResult.isError("未知错误");
+			String attribute = (String) request.getAttribute(SystemConstant.SYSTEM_MSG);
+			if (MyStringUtil.isNull(attribute)) {
+				error.addMap(SystemConstant.SYSTEM_MSG, attribute);
+			}
+			return error;
+		}
 		ReturnResult<String> error;
 		if (ex instanceof OperationException) {
 			error = ReturnResult.isFalse(((OperationException) ex).getMsg());

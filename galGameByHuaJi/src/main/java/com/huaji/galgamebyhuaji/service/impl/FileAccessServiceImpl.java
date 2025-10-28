@@ -87,11 +87,13 @@ public class FileAccessServiceImpl implements FileAccessService {
 			basePath = Constant.getRESOURCE_SAVE_PATH();
 		if (MyStringUtil.isNull(fileUrl)) {
 			if (FileUtil.isAbsolutePath(fileName))
-				fileUrl = fileName;
+				fileUrl = null;
 			else
 				fileUrl = basePath;
 		}
-		File target = Paths.get(fileUrl, fileName).normalize().toFile();
+		File target = fileUrl == null ?
+				Paths.get(fileName).normalize().toFile()
+				: Paths.get(fileUrl, fileName).normalize().toFile();
 		if (!target.getAbsolutePath().startsWith(basePath))
 			throw new OperationException("非法路径");
 		if (!target.exists())
@@ -128,7 +130,7 @@ public class FileAccessServiceImpl implements FileAccessService {
 		if (failList.isEmpty()) {
 			return ReturnResult.isTrue("以下文件已全部删除", successList, null);
 		} else if (successList.isEmpty()) {
-			return ReturnResult.isFalse("所有文件删除失败：");
+			throw new OperationException("所有文件删除失败：");
 		} else {
 			return ReturnResult.isTrue("部分文件删除成功,以下为成功删除的名单,预期删除{%d}个,实际删除{%d}个".formatted(fileNames.size(), successList.size()), successList, null);
 		}

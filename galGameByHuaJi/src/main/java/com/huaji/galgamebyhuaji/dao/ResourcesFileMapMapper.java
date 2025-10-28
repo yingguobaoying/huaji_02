@@ -28,4 +28,5 @@ public interface ResourcesFileMapMapper {
 	
 	int insertAll(List<ResourcesFileMap> rf);
     int hasFile(Integer rId);
+    
 }

@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.listen;
 
 
 import com.huaji.galgamebyhuaji.constant.Constant;
+import com.huaji.galgamebyhuaji.controller.BackgroundImgController;
 import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
@@ -17,6 +18,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Random;
 
@@ -93,6 +95,9 @@ public class IntoListen {
 		if (i == 430 || i == 43 || i == 4 || i == 3) {
 			MyLogUtil.info(IntoListen.class, "红豆可爱滴捏~~~~");
 		}
+		BackgroundImgController.updateFileNameList(
+				Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile()
+		);
 	}
 	
 	

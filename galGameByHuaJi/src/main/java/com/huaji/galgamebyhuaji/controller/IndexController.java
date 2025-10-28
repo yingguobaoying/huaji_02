@@ -33,7 +33,6 @@ public class IndexController {
 		int c = star + end;
 		end = Integer.max(star, end);
 		star = Integer.max(c - end, 0);
-		System.err.println("****************************test**************************************************");
 		List<Resources> resourceList = resourcesService.getResourceList(star, end);
 		if (resourceList.isEmpty()) {
 			throw new OperationException("资源获取失败,可能是数据库或者服务器出现了问题!如果服务器状态正常的话，请联系管理员!");

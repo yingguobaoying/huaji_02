@@ -74,4 +74,6 @@ public interface ResourcesService {
 	Integer getResourceListSize();
 
 	List<ResourcesFileMap> getResourceFileList(int rId);
+	
+	List<String> getRType();
 }

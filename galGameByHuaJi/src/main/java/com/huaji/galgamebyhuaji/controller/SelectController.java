@@ -6,6 +6,7 @@ import com.huaji.galgamebyhuaji.entity.Tag;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.PageUtil;
+import com.huaji.galgamebyhuaji.service.ResourcesService;
 import com.huaji.galgamebyhuaji.service.SelectServlet;
 import com.huaji.galgamebyhuaji.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,8 @@ public class SelectController {
 	TagService tagService;
 	final
 	SelectServlet selectServlet;
-	
+	final
+	ResourcesService resourcesService;
 	@GetMapping("/getTag")
 	public ReturnResult<Tag> getTag() {
 		return ReturnResult.isTrue("获取成功!", tagService.getTagMap().values().stream().toList(), -1);
@@ -79,5 +81,9 @@ public class SelectController {
 		if (searchResourceSize == 0)
 			return ReturnResult.isFalse("搜索完成,未找到资源!缩短搜索结果或是更换搜索词试试");
 		return ReturnResult.isTrue("搜索完成!,一共%d条结果".formatted(searchResourceSize), searchResourceSize);
+	}
+	@GetMapping("/getTypeMsg")
+	public ReturnResult<String> getTypeMsg() {
+		return ReturnResult.isTrue("获取成功!", resourcesService.getRType(), -1);
 	}
 }
