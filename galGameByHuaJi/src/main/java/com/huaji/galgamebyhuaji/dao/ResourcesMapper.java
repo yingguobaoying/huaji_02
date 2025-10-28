@@ -52,4 +52,5 @@ public interface ResourcesMapper {
 	List<Resources> selectResources(@Param("resources") Resources resources, @Param("tagList") List<Integer> tagList, @Param("tagSize") int tagSize, @Param("page")PageUtil page);
 	int getSelectResourcesSize(@Param("resources") Resources resources, @Param("tagList") List<Integer> tagList, @Param("tagSize") int tagSize);
 	
+	String getrType();
 }

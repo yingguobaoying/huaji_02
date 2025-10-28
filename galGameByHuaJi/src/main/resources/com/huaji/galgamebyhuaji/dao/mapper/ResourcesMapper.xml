@@ -405,5 +405,12 @@
         </if>
         ) AS tmp
     </select>
+    <select id="getrType" resultType="java.lang.String">
+        SELECT COLUMN_TYPE
+        FROM information_schema.COLUMNS
+        WHERE TABLE_NAME = 'resources'
+          AND COLUMN_NAME = 'r_type'
+          AND TABLE_SCHEMA = 'gal';
+    </select>
 
 </mapper>

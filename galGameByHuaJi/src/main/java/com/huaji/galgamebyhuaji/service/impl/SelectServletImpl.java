@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SelectServletImpl implements SelectServlet {
-	ResourcesMapper resourcesMapper;
+	final ResourcesMapper resourcesMapper;
 	
 	
 	@Override
@@ -34,4 +34,5 @@ public class SelectServletImpl implements SelectServlet {
 	public List<Users> searchUser(Integer uId, String uName, PageUtil pageMsg) {
 		return List.of();
 	}
+	
 }

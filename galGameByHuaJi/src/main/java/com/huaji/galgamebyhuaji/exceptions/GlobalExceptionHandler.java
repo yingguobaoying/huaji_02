@@ -6,12 +6,15 @@ import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 错误描述信息,横坐标:等级errorLevel,纵坐标:错误代码errorNun
@@ -40,13 +43,20 @@ public class GlobalExceptionHandler {
 			AuthenticationException.class,
 			InsufficientAuthenticationException.class
 	})
-	public void handleSecurityException(Exception ex) {
+	public void handleSecurityException(Exception ex) throws Exception {
 		// 不处理，重新抛出，让Spring Security的ExceptionTranslationFilter处理
-		throw new RuntimeException(ex);
+		throw ex;
+	}
+	
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ReturnResult<?> handleResourceNotFound(NoResourceFoundException ex, HttpServletRequest request, HttpServletResponse response) {
+		// 只返回路径信息，避免序列化复杂对象
+		response.setStatus(HttpStatus.NOT_FOUND.value());
+		return ReturnResult.isFalse("您请求的资源: {" + ex.getResourcePath()+"}不存在捏~");
 	}
 	
 	@ExceptionHandler(Exception.class)
-	public ReturnResult<Exception> handleException(Exception ex, HttpServletRequest request) {
+	public ReturnResult<Exception> handleException(Exception ex, HttpServletRequest request) throws Exception {
 		//操作错误时,获取错误信息返回给前端
 		if (ex instanceof OperationException)
 			return handleOperationException((OperationException) ex, request);

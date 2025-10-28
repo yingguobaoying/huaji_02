@@ -28,7 +28,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 			} else {
 				// 已登录，重定向防止重复访问登录页
 				request.setAttribute(SystemConstant.SYSTEM_MSG, "您已登录,请勿重复登录");
-				request.setAttribute(SystemConstant.SYSTEM_MSG_URL, "index");
 				return false;
 			}
 		}

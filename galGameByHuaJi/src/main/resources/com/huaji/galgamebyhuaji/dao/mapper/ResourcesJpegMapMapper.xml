@@ -144,4 +144,22 @@
         (#{item.resourcesId,jdbcType=INTEGER}, #{item.jpegName,jdbcType=VARCHAR})
     </foreach>
   </insert>
+  <select id="selectByRId" resultMap="BaseResultMap">
+    select *
+    from resources_jpeg_map
+    where resources_id = #{rId}
+  </select>
+  <delete id="delList" parameterType="list">
+      delete
+      from resources_jpeg_map
+      <where>
+           resources_id = #{rId} and
+          jpeg_name in(
+          <foreach collection="delList" item="item" separator=",">
+              #{item}
+          </foreach>
+          )
+      </where>
+  </delete>
+
 </mapper>

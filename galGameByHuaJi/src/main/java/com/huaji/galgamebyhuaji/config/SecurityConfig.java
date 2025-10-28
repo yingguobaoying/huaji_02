@@ -1,9 +1,11 @@
 package com.huaji.galgamebyhuaji.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaji.galgamebyhuaji.Interceptor.BasicAuthenticationFilter;
 import com.huaji.galgamebyhuaji.Interceptor.CustomAccessDeniedHandler;
 import com.huaji.galgamebyhuaji.Interceptor.StrongAuthenticationEntryPoint;
 import com.huaji.galgamebyhuaji.Interceptor.StrongAuthenticationFilter;
+import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.service.LoginService;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -26,8 +29,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.Collections;
@@ -56,7 +57,7 @@ public class SecurityConfig {
 	
 	@Bean
 	public StrongAuthenticationFilter strongAuthenticationFilter() {
-		return new StrongAuthenticationFilter(tokenService, userMxgServlet);
+		return new StrongAuthenticationFilter(tokenService, userMxgServlet, strongAuthenticationEntryPoint);
 	}
 	
 	
@@ -78,6 +79,8 @@ public class SecurityConfig {
 				// 授权配置
 				.authorizeHttpRequests(authz -> authz
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						//拦截下载
+						.requestMatchers("/static/rar/**").denyAll()
 						// 静态资源和公开接口放行
 						.requestMatchers("/static/**", "/public/**", "/api/login", "/api/register").permitAll()
 						.requestMatchers("/druid/**").hasRole("ROOT_JURISDICTION")
@@ -94,15 +97,18 @@ public class SecurityConfig {
 							if (request.getServletPath().startsWith("/api/")) {
 								strongAuthenticationEntryPoint.commence(request, response, authException);
 							} else {
-								// 非API请求使用默认行为直接404
-								new HttpStatusEntryPoint(HttpStatus.NOT_FOUND)
-										.commence(request, response, authException);
+								response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+								response.setStatus(HttpStatus.OK.value());
+								ReturnResult<String> byd = ReturnResult.isFalse("不存在这个资源捏~~~~");
+								// 使用Jackson序列化
+								ObjectMapper objectMapper = new ObjectMapper();
+								objectMapper.writeValue(response.getOutputStream(), byd);
 							}
 						})
 						.accessDeniedHandler(accessDeniedHandler)
 				)
-				.addFilterBefore(strongAuthenticationFilter(), ExceptionTranslationFilter.class)
-				.addFilterBefore(basicAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(strongAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(basicAuthenticationFilter(), StrongAuthenticationFilter.class)
 //				.addFilterBefore(securityExceptionForwardFilter, ExceptionTranslationFilter.class)
 		;
 		return http.build();
@@ -115,7 +121,6 @@ public class SecurityConfig {
 	public WebSecurityCustomizer webSecurityCustomizer() {
 		return (web) -> web.ignoring().requestMatchers(
 				"/favicon.ico",
-				"/static/**",  // 统一使用这个模式
 				"/public/**",
 				"/static/css/**",
 				"/static/js/**",

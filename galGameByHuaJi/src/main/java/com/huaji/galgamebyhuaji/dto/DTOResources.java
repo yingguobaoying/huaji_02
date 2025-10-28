@@ -3,6 +3,7 @@ package com.huaji.galgamebyhuaji.dto;
 import com.huaji.galgamebyhuaji.annotation.CustomNotNull;
 import com.huaji.galgamebyhuaji.entity.ResourceExtensionInformation;
 import com.huaji.galgamebyhuaji.entity.Resources;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,8 +25,10 @@ public class DTOResources {
 	
 	private List<Integer> tags = new ArrayList<>(8);
 	
-	private Integer linkPrice;
+	@Size(message = "外部资源价格范围:1-100", min = 1, max = 100)
 	
+	private Integer linkPrice;
+	@Size(message = "本地资源下载价格范围:5-100", min = 5, max = 100)
 	private Integer downloadLocallyPrice;
 	
 	public Resources getResourcesMsg() {

@@ -11,6 +11,7 @@ import com.huaji.galgamebyhuaji.model.ResourceStatics;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.FileAccessService;
 import com.huaji.galgamebyhuaji.service.RedisMemoryService;
 import com.huaji.galgamebyhuaji.service.ResourcesService;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,8 +69,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 				resources.addTag(tag);
 			}
 		}
-		
-		WriteError.tryWrite(resourceExtensionInformationMapper.insert(resourceExtensionInformation));
+		WriteError.tryWrite(resourceExtensionInformationMapper.insertSelective(resourceExtensionInformation));
 		redisMemoryService.saveData(resources);
 		return ReturnResult.isTrue("资源信息插入成功", resources);
 	}
@@ -259,5 +261,17 @@ public class ResourceServiceIMPL implements ResourcesService {
 			return List.of();
 		else
 			return list;
+	}
+	@Override
+	public List<String> getRType() {
+		String typeString = resourcesMapper.getrType();
+		if (MyStringUtil.isNull(typeString))
+			return List.of();
+		Pattern pattern = Pattern.compile("'([^']*)'");
+		Matcher matcher = pattern.matcher(typeString);
+		List<String> values = new ArrayList<>();
+		while (matcher.find())
+			values.add(matcher.group(1));
+		return values;
 	}
 }

@@ -180,9 +180,7 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 				if (file1.isFile()) {
 					//构建文件映射
 					ResourcesFileMap resourcesFileMap = new ResourcesFileMap();
-					if (i) {
-					
-					}
+					if (i) resourcesFileMap.setNotes(notes);
 					Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 					if (authentication != null &&
 					    authentication.getPrincipal() instanceof LoginUserDetails userDetails) {
@@ -203,7 +201,7 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 				} else {
 					MyLogUtil.info(ResourcesFileService.class, "警告文件上传完成之后发现有文件不是文件:" + file1);
 				}
-			}else
+			} else
 				MyLogUtil.info(ResourcesFileService.class, "警告文件上传完成之后发现有文件不存在:" + file1);
 		}
 		//进行添加操作
@@ -213,4 +211,45 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 		return url.getMsg();
 	}
 	
+	@Transactional
+	public String delResourceImg(List<String> imgName, int rId, boolean delFirstImg) {
+		Resources resources = resourcesMapper.selectByPrimaryKey(rId);
+		if (resources == null || resources.getrId() == null)
+			throw new OperationException("错误不存在的资源");
+		if (delFirstImg) {
+			try {
+				String fileName = resources.getrJpeg();
+				Resources r1 = new Resources();
+				r1.setrId(rId);
+				r1.setrJpeg("null");
+				//清空数据库
+				WriteError.tryWrite(resourcesMapper.insertSelective(r1));
+				//清除文件
+				fileAccessService.deleteFiles(fileName, null);
+			} catch (OperationException e) {
+				MyLogUtil.info(getClass(), e.getMsg());
+			} catch (Exception e) {
+				MyLogUtil.error(getClass(), resources.getrJpeg() + "文件删除失败!" + e.getMessage());
+			}
+			MyLogUtil.info(getClass(), "资源%d{%s}的首页图已删除!".formatted(rId, resources.getrName()));
+		}
+		//清空存在的资源信息
+		List<ResourcesJpegMap> resourcesJpegMaps = resourcesJpegMapMapper.selectByRId(rId);
+		if (resourcesJpegMaps.isEmpty())
+			return "未发现需要删除的文件!";
+		List<String> delList = resourcesJpegMaps.stream().filter(r -> {
+			for (String string : imgName) {
+				if (r.getJpegName().endsWith(string)) {
+					return false;
+				}
+			}
+			return true;
+		}).map(ResourcesJpegMap::getJpegName).toList();
+		MyLogUtil.info(getClass(), "准备开始删除%d张图片".formatted(delList.size()));
+		ReturnResult<String> stringReturnResult = fileAccessService.deleteFiles(delList, null);
+		List<String> sussList = stringReturnResult.getResultList();
+		MyLogUtil.info(getClass(), "预期删除%d张图片,实际删除数量为:%d".formatted(delList.size(), sussList.size()));
+		WriteError.tryWrite(resourcesJpegMapMapper.delList(sussList, rId), sussList.size());
+		return stringReturnResult.getMsg();
+	}
 }

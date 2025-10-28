@@ -9,18 +9,23 @@ import java.util.List;
 
 @Mapper
 public interface ResourcesJpegMapMapper {
-    long countByExample(ResourcesJpegMapExample example);
-
-    int deleteByExample(ResourcesJpegMapExample example);
-
-    int insert(ResourcesJpegMap row);
-
-    int insertSelective(ResourcesJpegMap row);
-
-    List<ResourcesJpegMap> selectByExample(ResourcesJpegMapExample example);
-
-    int updateByExampleSelective(@Param("row") ResourcesJpegMap row, @Param("example") ResourcesJpegMapExample example);
-
-    int updateByExample(@Param("row") ResourcesJpegMap row, @Param("example") ResourcesJpegMapExample example);
-    int insertAll(@Param("list") List<ResourcesJpegMap> list);
+	long countByExample(ResourcesJpegMapExample example);
+	
+	int deleteByExample(ResourcesJpegMapExample example);
+	
+	int insert(ResourcesJpegMap row);
+	
+	int insertSelective(ResourcesJpegMap row);
+	
+	List<ResourcesJpegMap> selectByExample(ResourcesJpegMapExample example);
+	
+	int updateByExampleSelective(@Param("row") ResourcesJpegMap row, @Param("example") ResourcesJpegMapExample example);
+	
+	int updateByExample(@Param("row") ResourcesJpegMap row, @Param("example") ResourcesJpegMapExample example);
+	
+	int insertAll(@Param("list") List<ResourcesJpegMap> list);
+	
+	List<ResourcesJpegMap> selectByRId(@Param("rId") int rId);
+	
+	int delList(@Param("delList") List<String> delList,@Param("rId") int rID);
 }
