@@ -77,7 +77,7 @@ public class CollectServletImpl implements CollectServlet {
 	 */
 	@Override
 	public Resources collectResources(Integer starter, Integer resourcesId) {
-		if (starter == null || resourcesId == null) throw new OperationException("参数错误!");
+		if (starter == null || resourcesId == null) throw new OperationException("错误的资源信息!");
 		GlobalLock.safeOperation(() -> {
 			Fen f = new Fen();
 			f.setUserId(starter);

@@ -26,15 +26,13 @@ public class FriendServletImpl implements FriendServlet {
 	/**
 	 * 拒绝好友申请
 	 *
-	 * @param starter
-	 * 		操作者
-	 * @param receiver
-	 * 		被拒绝的的
+	 * @param starter  操作者
+	 * @param receiver 被拒绝的的
 	 *
 	 * @return 被拒绝的人的部分公开信息
 	 */
 	@Override
-	public Users rejectFriendRequests (@NotNull Integer starter, @NotNull Integer receiver) {
+	public Users rejectFriendRequests(@NotNull Integer starter, @NotNull Integer receiver) {
 		//保证用户有序以实现用户锁
 		final int userid = Math.max(starter, receiver);
 		final int addFriend = Math.min(starter, receiver);
@@ -45,10 +43,10 @@ public class FriendServletImpl implements FriendServlet {
 					.andUserIdEqualTo(userid)
 					.andFriendIdEqualTo(addFriend);
 			List<FriendMap> friendMaps = friendMapMapper.selectByExample(friendMapExample);
-			if ( friendMaps.isEmpty() )
+			if (friendMaps.isEmpty())
 				throw new OperationException("好友拒绝失败,因为该好友请求不存在或者是对方取消了好友申请!", true);
 			FriendMap friendMap = friendMaps.getFirst();
-			if ( friendMap.getFriendConfirmation() )
+			if (friendMap.getFriendConfirmation())
 				throw new OperationException("好友拒绝失败,因为该用户已经是您的好友了!");
 			WriteError.tryWrite(friendMapMapper.deleteByPrimaryKey(friendMap));
 		}, lockKey);
@@ -58,15 +56,13 @@ public class FriendServletImpl implements FriendServlet {
 	/**
 	 * 同意好友申请
 	 *
-	 * @param starter
-	 * 		操作者
-	 * @param receiver
-	 * 		同意的
+	 * @param starter  操作者
+	 * @param receiver 同意的
 	 *
 	 * @return 关注的人的部分公开信息
 	 */
 	@Override
-	public Users agreeFriendRequests (Integer starter, Integer receiver) {
+	public Users agreeFriendRequests(Integer starter, Integer receiver) {
 		
 		//保证用户有序以实现用户锁
 		final int userid = Math.max(starter, receiver);
@@ -79,12 +75,15 @@ public class FriendServletImpl implements FriendServlet {
 					.andFriendIdEqualTo(addFriend);
 			//由于两个是复合主键,所以应该是唯一的
 			List<FriendMap> friendMaps = friendMapMapper.selectByExample(friendMapExample);
-			if ( friendMaps.isEmpty() )
+			if (friendMaps.isEmpty())
 				throw new OperationException("好友添加失败,因为好友请求不存在或者是对方取消了好友申请!");
 			FriendMap friendMap = friendMaps.getFirst();
-			if ( friendMap.getFriendConfirmation() )
-				throw new OperationException("好友添加失败,因为该用户已经是您的好友了!");
-			if ( starter.equals(friendMap.getInitiateUser()) ) {
+			if (friendMap.getFriendConfirmation()) {
+				OperationException operationException = new OperationException("好友添加失败,因为该用户已经是您的好友了!");
+				operationException.setCanIntercept(true);
+				throw operationException;
+			}
+			if (starter.equals(friendMap.getInitiateUser())) {
 				throw new OperationException("好友添加失败!因为对方还没有做出回应!");
 			}
 			friendMap.setFriendConfirmation(true);
@@ -96,15 +95,13 @@ public class FriendServletImpl implements FriendServlet {
 	/**
 	 * 添加其他用户好友
 	 *
-	 * @param starter
-	 * 		操作者
-	 * @param receiver
-	 * 		被添加的
+	 * @param starter  操作者
+	 * @param receiver 被添加的
 	 *
 	 * @return 关注的人的部分公开信息
 	 */
 	@Override
-	public ReturnResult<Users> addFriend (Integer starter, Integer receiver) {
+	public ReturnResult<Users> addFriend(Integer starter, Integer receiver) {
 		
 		//保证用户有序以实现用户锁
 		final int userid = Math.max(starter, receiver);
@@ -115,8 +112,10 @@ public class FriendServletImpl implements FriendServlet {
 			Users users = null;
 			try {
 				users = agreeFriendRequests(userid, addFriend);
-			} catch ( OperationException e ) {
-				if ( !e.isCanIntercept() ) throw e;
+				//如果没有操作失败,那么就是好友申请成功了
+				returnResult.operationTrue("好友添加成功,ta同意了你的请求!", users);
+			} catch (OperationException e) {
+				if (!e.isCanIntercept()) throw e;
 				//如果没有操作失败,那么就是好友申请成功了
 				returnResult.operationTrue("好友添加成功,ta同意了你的请求!", users);
 				return;
@@ -136,14 +135,13 @@ public class FriendServletImpl implements FriendServlet {
 	/**
 	 * 获取好友列表
 	 *
-	 * @param starter
-	 * 		获取的用户
+	 * @param starter   获取的用户
 	 * @param isRequest
 	 *
 	 * @return 关注列表/申请列表
 	 */
 	@Override
-	public List<Users> getUserFrendList (Integer starter, boolean isRequest) {
+	public List<Users> getUserFrendList(Integer starter, boolean isRequest) {
 		return List.of();
 	}
 }

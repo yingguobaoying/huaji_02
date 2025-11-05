@@ -88,4 +88,5 @@ public interface UserMxgServlet {
 	UsersWithBLOBs getItselfMxg (Integer usersId);
 	
 	Users getUserListMsg (Integer usersId);
+	Users getUSerMsgByEmail(String email);
 }

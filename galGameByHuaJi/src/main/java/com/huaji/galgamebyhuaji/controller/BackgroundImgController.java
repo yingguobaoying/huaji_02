@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-//因为这个应该不支持背景图添加功能所以这里就直接写了
 @RestController
 public class BackgroundImgController {
+	//由于这玩意是非常固定的东西,这里直接在控制器里面写了
 	@GetMapping("/api/getImgList")
 	public ReturnResult<String> getBackgroundImg() {
 		try {

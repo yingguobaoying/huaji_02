@@ -69,7 +69,7 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 		List<String> fileName = new ArrayList<>(file.size());
 		//自动生成文件名
 		for (int i = 0; i < file.size(); i++)
-			fileName.add(rId + TimeUtil.getNowTime() + "_" + resources.getrName() + "_" + i);
+			fileName.add(rId + TimeUtil.getNowTime() + "_" + resources.getrName().replaceAll(" ", "_") + "_" + i);
 		ReturnResult<String> url = fileUploadService.uploadFiles(file, FileCategory.IMG, fileName, upAtPath);
 		List<ResourcesJpegMap> list = new ArrayList<>(file.size());
 		for (int i = 0; i < file.size(); i++) {
@@ -84,13 +84,14 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 			fileAccessService.deleteFiles(url.getResultList(), FileUtil.formatUrl(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), upAtPath));
 			throw e;
 		}
-		//调用方法添加进缓存里面
+		redisMemoryService.deleteKey(rId, ResourcesService.class);
 		resourcesService.getResource(rId);
 		return url.getMsg();
 	}
 	
 	private Resources getResources(int rId) {
-		Resources resource = resourcesService.getResource(rId);
+		//直接从数据库拿原始数据保证数据正确
+		Resources resource = resourcesMapper.selectByPrimaryKey(rId);
 		if (resource == null || resource.getrId() == null)
 			throw new OperationException("资源不存在!");
 		return resource;
@@ -117,8 +118,8 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 			ReturnResult<String> url = fileUploadService.uploadFile(
 					file.getLast(),
 					FileCategory.IMG,
-					rId + "-first-" +
-					new SimpleDateFormat("-yyyy-MM-dd-").format(new Date()) + resource.getrName(),
+					rId + "-first" +
+					new SimpleDateFormat("-yyyy-MM-dd-hh-mm-ss-").format(new Date()) + resource.getrName().replaceAll(" ", "_"),
 					upAtPath);
 			Resources r = new Resources();
 			r.setrId(rId);
@@ -135,6 +136,7 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 		}
 		if (file.isEmpty()) {
 			///更新缓存
+			redisMemoryService.deleteKey(rId, ResourcesService.class);
 			resourcesService.getResource(rId);
 			return "更新完成";
 		}
@@ -207,6 +209,7 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 		//进行添加操作
 		WriteError.tryWrite(resourcesFileMapMapper.insertAll(rf), rf.size());
 		WriteError.tryWrite(resourceExtensionInformationMapper.updateByPrimaryKey(re));
+		redisMemoryService.deleteKey(rId, ResourcesService.class);
 		resourcesService.getResourceFileList(rId);//更新缓存
 		return url.getMsg();
 	}

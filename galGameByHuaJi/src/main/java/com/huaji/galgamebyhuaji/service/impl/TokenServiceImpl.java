@@ -74,7 +74,7 @@ public class TokenServiceImpl implements TokenService {
 		//检查缓存,缓存有就直接过
 		UserToken returnMsg = redisMemoryService.getDataTheValidityTimeGreater(
 				buildCacheKey(token, TOKEN_CACHE_USER_TOKEN), 5);
-		if (returnMsg != null) {//命中缓存,如果自动续期的时间需要的时间>5分钟
+		if (returnMsg != null) {//命中缓存,动续期的时间需要的时间>5分钟,这里应该不会出现命中过期令牌的错误
 			return returnMsg;
 		}
 		// 1. 基础令牌验证
@@ -161,7 +161,7 @@ public class TokenServiceImpl implements TokenService {
 			if (validTokens.size() > 1)
 				throw new SessionExceptions("错误!您存在多个会话信息,请联系管理员确认!", ErrorEnum.SESSION_DIFFERENT_ERROR);
 			else
-				throw new SessionExceptions("您的会话已过期,请重新登录后在试一次", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
+				throw new SessionExceptions("您的会话已过期,请重新登录后再试一次", ErrorEnum.SESSION_OVERDUE);
 		}
 	}
 	

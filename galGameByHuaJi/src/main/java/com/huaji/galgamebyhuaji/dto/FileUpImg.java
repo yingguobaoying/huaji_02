@@ -16,5 +16,5 @@ public class FileUpImg {
 	List<MultipartFile> fileList;
 	int atResource;
 	int fileSize;
-	boolean hasFirst;
+	boolean updateFirstImg;
 }

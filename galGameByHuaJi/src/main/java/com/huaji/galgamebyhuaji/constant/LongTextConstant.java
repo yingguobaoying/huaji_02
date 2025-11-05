@@ -82,88 +82,103 @@ public class LongTextConstant {
 	
 	public static String getEmailCopyText(String title, String content, String email, String copyText) {
 		return """
-         <!DOCTYPE html>
-         <html lang="zh-CN">
-         <head>
-           <meta charset="UTF-8">
-           <title>邮箱验证</title>
-           <style>
-             body {
-               font-family: Arial, sans-serif;
-               text-align: center;
-               padding: 50px;
-               background: #f5f5f5;
-             }
-             .container {
-               background: #fff;
-               padding: 40px;
-               max-width: 400px;
-               margin: auto;
-               border-radius: 8px;
-               box-shadow: 0 0 10px rgba(0,0,0,0.1);
-             }
-             h1 {
-               margin-bottom: 20px;
-               color: #333;
-             }
-             p {
-               color: #555;
-               font-size: 14px;
-               line-height: 1.6;
-             }
-             .copyText {
-               margin: 10px 0;
-               padding: 8px;
-               background-color: #f0f0f0;
-               border-radius: 4px;
-               word-break: break-all;
-             }
-             button.copyButton {
-               display: inline-block;
-               margin-top: 10px;
-               padding: 10px 20px;
-               background-color: #0077cc;
-               color: #fff;
-               border: none;
-               border-radius: 6px;
-               font-size: 14px;
-               cursor: pointer;
-             }
-             button.copyButton:hover {
-               background-color: #005fa3;
-             }
-             .contact {
-               margin-top: 30px;
-               font-size: 13px;
-               color: #777;
-             }
-           </style>
-         </head>
-         <body>
-           <div class="container">
-             <h1>%s</h1>
-             <p>%s</p>
-             <p class="copyText" id="copyText">%s</p>
-             <button class="copyButton" onclick="copyToClipboard()">点击复制</button>
-             <p>请勿向他人泄露此邮件，本站不会收取任何费用，也没有投放任何广告。</p>
-             <p>如果您未申请过此操作，您可以忽略此邮件。不过为保证您的账户安全，请及时检查您的账号情况。</p>
-             <div class="contact">
-               <p>如有问题，请联系官方邮箱：%s</p>
-             </div>
-           </div>
-           <script>
-             function copyToClipboard() {
-               const text = document.getElementById('copyText').innerText;
-               navigator.clipboard.writeText(text).then(() => {
-                 alert('已复制到剪贴板');
-               }).catch(err => {
-                 alert('复制失败，请手动复制');
-                 console.error(err);
-               });
-             }
-           </script>
-         </body>
-         </html>
+		                <!DOCTYPE html>
+		                <html lang="zh-CN">
+		                <head>
+		                  <meta charset="UTF-8">
+		                  <title>邮箱验证</title>
+		                  <style>
+		                    body {
+		                      font-family: Arial, sans-serif;
+		                      text-align: center;
+		                      padding: 50px;
+		                      background: #f5f5f5;
+		                    }
+		                    .container {
+		                      background: #fff;
+		                      padding: 40px;
+		                      max-width: 400px;
+		                      margin: auto;
+		                      border-radius: 8px;
+		                      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+		                    }
+		                    h1 {
+		                      margin-bottom: 20px;
+		                      color: #333;
+		                    }
+		                    p {
+		                      color: #555;
+		                      font-size: 14px;
+		                      line-height: 1.6;
+		                    }
+		                    .copy-wrapper {
+		                      position: relative;
+		                      margin: 20px 0;
+		                    }
+		                    .copyText {
+		                      margin: 10px 0;
+		                      padding: 12px;
+		                      background-color: #f8f9fa;
+		                      border: 1px solid #e9ecef;
+		                      border-radius: 4px;
+		                      word-break: break-all;
+		                      font-family: monospace;
+		                      font-size: 14px;
+		                      cursor: text;
+		                      user-select: all;
+		                      -webkit-user-select: all;
+		                      -moz-user-select: all;
+		                      -ms-user-select: all;
+		                    }
+		                    .copyText:focus {
+		                      outline: 2px solid #0077cc;
+		                      background-color: #fff;
+		                    }
+		                    .copy-hint {
+		                      display: none;
+		                      position: absolute;
+		                      top: -30px;
+		                      left: 50%%;
+		                      transform: translateX(-50%%);
+		                      background: #333;
+		                      color: white;
+		                      padding: 5px 10px;
+		                      border-radius: 4px;
+		                      font-size: 12px;
+		                      white-space: nowrap;
+		                    }
+		                    .copyText:focus + .copy-hint {
+		                      display: block;
+		                    }
+		                    .manual-copy-instruction {
+		                      font-size: 12px;
+		                      color: #666;
+		                      margin-top: 5px;
+		                    }
+		                    .contact {
+		                      margin-top: 30px;
+		                      font-size: 13px;
+		                      color: #777;
+		                    }
+		                  </style>
+		                </head>
+		                <body>
+		                  <div class="container">
+		                    <h1>%s</h1>
+		                    <p>%s</p>
+		                    <div class="copy-wrapper">
+		                      <div class="copyText" id="copyText" tabindex="0">%s</div>
+		                      <div class="copy-hint">内容已选中，按 Ctrl+C 复制</div>
+		                    </div>
+		                    <p class="manual-copy-instruction">请选中上方内容，然后按 Ctrl+C (Windows) 或 Cmd+C (Mac) 复制</p>
+		                    <p>请勿向他人泄露此邮件，本站不会收取任何费用，也没有投放任何广告。</p>
+		                    <p>如果您未申请过此操作，您可以忽略此邮件。不过为保证您的账户安全，请及时检查您的账号情况。</p>
+		                    <div class="contact">
+		                      <p>如有问题，请联系官方邮箱：%s</p>
+		                    </div>
+		                  </div>
+		                </body>
+		                </html>
          """.formatted(title, content, copyText, email);
 	}
 	

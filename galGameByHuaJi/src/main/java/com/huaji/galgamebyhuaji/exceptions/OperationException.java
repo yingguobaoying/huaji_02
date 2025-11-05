@@ -4,7 +4,7 @@ package com.huaji.galgamebyhuaji.exceptions;
  * 操作失败时抛出此异常作为返回内容
  */
 public class OperationException extends RuntimeException {
-	public void setMsg (String msg) {
+	public void setMsg(String msg) {
 		this.msg = msg;
 	}
 	
@@ -14,12 +14,13 @@ public class OperationException extends RuntimeException {
 	 */
 	private String msg;
 	
-	public OperationException (String message) {
+	public OperationException(String message) {
 		super(message);
 		msg = message;
 		canIntercept = false;
 	}
-	public OperationException (String message,boolean canIntercept) {
+	
+	public OperationException(String message, boolean canIntercept) {
 		super(message);
 		msg = message;
 		this.canIntercept = canIntercept;
@@ -27,15 +28,19 @@ public class OperationException extends RuntimeException {
 	
 	private boolean canIntercept = false;
 	
-	public boolean isCanIntercept () {
+	public boolean isCanIntercept() {
 		return canIntercept;
 	}
 	
-	public void setCanIntercept (boolean canIntercept) {
+	public void setCanIntercept(boolean canIntercept) {
 		this.canIntercept = canIntercept;
 	}
 	
-	public String getMsg () {
+	public String getMsg() {
 		return msg;
+	}
+	
+	public static void falseOperation(String msg) {
+		throw new OperationException(msg);
 	}
 }

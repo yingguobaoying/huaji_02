@@ -93,7 +93,9 @@ public class IntoListen {
 		Random random = new Random();
 		int i = random.nextInt(0, 500);
 		if (i == 430 || i == 43 || i == 4 || i == 3) {
+			MyLogUtil.info(IntoListen.class, "=========================================");
 			MyLogUtil.info(IntoListen.class, "红豆可爱滴捏~~~~");
+			MyLogUtil.info(IntoListen.class, "=========================================");
 		}
 		BackgroundImgController.updateFileNameList(
 				Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile()

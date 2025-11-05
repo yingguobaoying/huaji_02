@@ -69,6 +69,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 				resources.addTag(tag);
 			}
 		}
+		resources.setResourceExtensionInformation(resourceExtensionInformation);
 		WriteError.tryWrite(resourceExtensionInformationMapper.insertSelective(resourceExtensionInformation));
 		redisMemoryService.saveData(resources);
 		return ReturnResult.isTrue("资源信息插入成功", resources);
@@ -123,9 +124,14 @@ public class ResourceServiceIMPL implements ResourcesService {
 		resourcesTagMapMapper.deleteByExample(resourcesTagMapExample);
 		//更新资源拓展信息
 		ResourceExtensionInformation resourceExtensionInformation = getResourceExtensionInformation(resources, false);
+		resources.setResourceExtensionInformation(resourceExtensionInformation);
 		WriteError.tryWrite(resourceExtensionInformationMapper.updateByPrimaryKey(resourceExtensionInformation));
 		if (tags != null && !tags.isEmpty()) {//更新数据库中的映射关系
-			WriteError.tryWrite(tagMapper.addResourcesTag(tags, resources.getrId()), resources.getTags().size());
+			WriteError.tryWrite(tagMapper.addResourcesTag(tags, resources.getrId()), tags.size());
+			TagExample tagExample = new TagExample();
+			tagExample.createCriteria().andTagIdIn(tags);
+			List<Tag> tags1 = tagMapper.selectByExample(tagExample);
+			resources.setTags(tags1);
 		}
 		redisMemoryService.saveData(resources);
 		return new ReturnResult<Resources>().operationTrue("资源更新成功", resources);
@@ -225,9 +231,18 @@ public class ResourceServiceIMPL implements ResourcesService {
 					.andResourcesIdEqualTo(rId);
 			List<ResourcesJpegMap> resourcesJpegMaps = resourcesJpegMapMapper.selectByExample(resourcesJpegMapExample);
 			List<String> rImg = new ArrayList<>();
-			resourcesJpegMaps.forEach(rj -> rImg.add(rj.getJpegName()));
-			resources.setrPicture(rImg);
+			resourcesJpegMaps.forEach(rj -> rImg.add(FileUtil.toRelativeUrl(rj.getJpegName(), FileCategory.IMG)));
+			resources.setrPicture((rImg));
 			resources.setResourceExtensionInformation(resourceExtensionInformationMapper.selectByPrimaryKey(rId));
+			resources.setrJpeg(FileUtil.toRelativeUrl(resources.getrJpeg(), FileCategory.IMG));
+			//获取tag
+			ResourcesTagMapExample resourcesTagMapExample = new ResourcesTagMapExample();
+			resourcesTagMapExample.createCriteria().andRIdEqualTo(rId);
+			List<ResourcesTagMapKey> resourcesTagIdList = resourcesTagMapMapper.selectByExample(resourcesTagMapExample);
+			Map<Integer, Tag> tagMap = tagService.getTagMap();
+			resources.setTags(
+					resourcesTagIdList.stream().map(tagId -> tagMap.get(tagId.getTagId())).toList()
+			);
 			redisMemoryService.saveData(resources);
 		}
 		if (resources == null || resources.getrId() == null) throw new OperationException("您请求的资源不存在!");
@@ -262,6 +277,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 		else
 			return list;
 	}
+	
 	@Override
 	public List<String> getRType() {
 		String typeString = resourcesMapper.getrType();
@@ -273,5 +289,14 @@ public class ResourceServiceIMPL implements ResourcesService {
 		while (matcher.find())
 			values.add(matcher.group(1));
 		return values;
+	}
+	
+	private void updateResourceImgUrl(Resources r) {
+		r.setrJpeg(FileUtil.toRelativeUrl(r.getrJpeg(), FileCategory.IMG));
+		List<String> urls = r.getrPicture();
+		for (String url : urls) {
+			url = FileUtil.toRelativeUrl(url, FileCategory.IMG);
+		}
+		r.setrPicture(urls);
 	}
 }

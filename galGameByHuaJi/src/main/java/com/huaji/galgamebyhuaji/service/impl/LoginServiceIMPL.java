@@ -49,8 +49,6 @@ public class LoginServiceIMPL implements LoginService {
 	final
 	RedisMemoryService redisMemoryService;
 	final
-	TagService tagService;
-	final
 	TokenService tokenService;
 	final
 	RootServlet rootServlet;

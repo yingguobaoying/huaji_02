@@ -230,6 +230,8 @@ public class RedisMemoryService {
 		keys.delete(PREFIX_RESOURCES_LIST);
 		keys.delete(TAG_MAP);
 		keys.deleteByPattern(TokenService.TOKEN_CACHE_KEY + ":*");
+		keys.deleteByPattern("tokenValid:*");
+		
 	}
 	
 	private final ConcurrentHashMap<Integer, ReadWriteLock> keyLocks = new ConcurrentHashMap<>();

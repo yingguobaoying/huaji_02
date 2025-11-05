@@ -61,11 +61,11 @@ public class EmailService {
 		Date lastSendTime = redisMemoryService.getData(key, Date.class);
 		if (
 				lastSendTime != null &&
-				1000 * 60 * 60 >= (System.currentTimeMillis() - lastSendTime.getTime())
-		) {//每小时仅允许发送一次
+				1000 * 60 * 30 >= (System.currentTimeMillis() - lastSendTime.getTime())
+		) {//半小时仅允许发送一次
 			throw new OperationException("我们已经发送了邮件到您的邮箱%s中,如果未发现请检查垃圾邮件\n如果您还未收到邮件请于%s再次获取或者是再次检查您的邮箱             ".formatted(
 					targetMailbox, TimeUtil.getVisualDateFormatTime(new Date(
-							lastSendTime.getTime() + 1000 * 60 * 60))
+							lastSendTime.getTime() + 1000 * 30 * 60))
 			));
 		}
 		// 配置SMTP服务器的属性

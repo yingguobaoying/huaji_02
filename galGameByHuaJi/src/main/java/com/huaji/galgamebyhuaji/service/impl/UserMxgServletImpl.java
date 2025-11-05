@@ -8,10 +8,12 @@ import com.huaji.galgamebyhuaji.dto.UserNewMsg;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersExample;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
+import com.huaji.galgamebyhuaji.enumPackage.ErrorEnum;
 import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
 import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
 import com.huaji.galgamebyhuaji.exceptions.BestException;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
+import com.huaji.galgamebyhuaji.exceptions.UserException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
@@ -209,4 +211,21 @@ public class UserMxgServletImpl implements UserMxgServlet {
 		if (users.getUserId() == null) throw new OperationException("用户不存在!");
 		return users;
 	}
+	
+	@Override
+	public Users getUSerMsgByEmail(String email) {
+		if (MyStringUtil.isNull(email) || !MyStringUtil.isValidEmail(email)) {
+			throw new OperationException("错误的邮箱格式!");
+		}
+		UsersExample usersExample = new UsersExample();
+		usersExample.createCriteria().andMailboxEqualTo(email);
+		List<Users> users = usersMapper.selectByExample(usersExample);
+		if (users == null || users.isEmpty()) throw new OperationException("邮箱格式错误!");
+		if (users.size() > 1) {
+			MyLogUtil.error(getClass(), new UserException("用户信息重复!", users, ErrorEnum.USER_REPEAT_ERROR));
+			throw new OperationException("您的信息与其他用户的信息冲突了,请联系管理员解决!");
+		}
+		return users.getFirst();
+	}
+	
 }

@@ -11,6 +11,7 @@ import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.EmailService;
 import com.huaji.galgamebyhuaji.service.SecureServlet;
+import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +26,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/api")
+@RequestMapping("/api/login")
 @RequiredArgsConstructor
 @ResponseBody
 public class SecureController {
 	final EmailService emailService;
 	final SecureServlet secureServlet;
+	final UserMxgServlet userMxgServlet;
 	
 	//就参数我就懒得新建一个接收类了
-	@PostMapping("/login/lostPassword")
+	@PostMapping("/lostPassword")
 	@Transactional
 	public ReturnResult<String> lostPassword(@RequestBody Map<String, String> emailJson, HttpServletRequest request) throws UserException, SessionExceptions {
 		String content =
@@ -54,17 +56,63 @@ public class SecureController {
 		);
 	}
 	
-	@PostMapping("/login/lostPassword/verify")
+	@PostMapping("/lostPassword/verify")
 	public ReturnResult<String> changPassword(@Valid @RequestBody LostPasswordUserMsg userMsg, BindingResult testResult, HttpServletRequest request) throws BestException {
 		if (testResult.hasErrors()) {
 			if (testResult.getFieldError() != null)
-				return ReturnResult.isFalse(testResult.getFieldError().getField());
+				return ReturnResult.isFalse(testResult.getFieldError().getDefaultMessage());
 			else
 				return ReturnResult.isFalse("未知错误，请稍后重试。");
 		}
 		String string = secureServlet.changePassword(userMsg.getToken(), ElseUtil.getClientIp(request), userMsg.getNewPassword());
-		userMsg.setNewPassword(null);
-		System.gc();
 		return ReturnResult.isTrue("密码修改成功!", string);
 	}
+	
+	@PostMapping("/frozenUser/sendEmail")
+	public ReturnResult<String> sendEmailFrozenUser(@RequestBody Map<String, String> emailJson, HttpServletRequest request) throws SessionExceptions {
+		String email = emailJson.get("email");
+		return ReturnResult.isTrue(
+				"验证邮件已发送",
+				secureServlet.getFrozenUser(email)
+		
+		);
+	}
+	
+	@PostMapping("/frozenUser/verify")
+	public ReturnResult<String> verifyFrozenUser(@RequestBody Map<String, String> emailJson, HttpServletRequest request) throws SessionExceptions {
+		String token = emailJson.get("token");
+		if (MyStringUtil.isNull(token))
+			return ReturnResult.isFalse("错误!未发现令牌");
+		return ReturnResult.isTrue(
+				"操作成功",
+				secureServlet.frozenUser(-1, token)
+		);
+	}
+	
+	@PostMapping("/unfrozenUser/sendEmail")
+	public ReturnResult<String> sendEmailUnfrozenUser(@RequestBody Map<String, String> emailJson, HttpServletRequest request) throws SessionExceptions {
+		String email = emailJson.get("email");
+		String newPassword = emailJson.get("newPassword");
+		if (MyStringUtil.isNull(newPassword))
+			return ReturnResult.isFalse("请输入新的密码");
+		if (newPassword.length() < 6)
+			return ReturnResult.isFalse("请输入密码至少为6位数");
+		return ReturnResult.isTrue(
+				"验证邮件已发送",
+				secureServlet.getUnfrozenUser(email, newPassword)
+		
+		);
+	}
+	
+	@PostMapping("/unfrozenUser/verify")
+	public ReturnResult<String> verifyUnfrozenUser(@RequestBody Map<String, String> emailJson, HttpServletRequest request) throws SessionExceptions {
+		String token = emailJson.get("token");
+		if (MyStringUtil.isNull(token))
+			return ReturnResult.isFalse("错误!未发现令牌");
+		return ReturnResult.isTrue(
+				"操作成功",
+				secureServlet.unfrozenUser(-1, token, ElseUtil.getClientIp(request))
+		);
+	}
+	
 }

@@ -63,6 +63,9 @@ public interface RootServlet {
 	 * @return 用户信息
 	 */
 	List<Users> RootSelectUserByName(String usersName, int root);
+	
+	boolean isIPWhiteList(String ip);
+	
 	UserToken rootLogin(String token, HttpServletRequest request) throws SessionExceptions;
 	
 	/**

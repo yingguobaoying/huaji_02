@@ -73,6 +73,7 @@ public class FileAccessServiceImpl implements FileAccessService {
 	}
 	
 	protected static boolean isProtected(String fileName) {
+		fileName = new File(fileName).getName();
 		for (String s : PROTECTED_NAME) {
 			if (fileName.equals(s)) {
 				return true;
@@ -94,6 +95,7 @@ public class FileAccessServiceImpl implements FileAccessService {
 		File target = fileUrl == null ?
 				Paths.get(fileName).normalize().toFile()
 				: Paths.get(fileUrl, fileName).normalize().toFile();
+		MyLogUtil.info(FileAccessService.class, "开始尝试删除文件:文件名/文件路径{%s},文件路径{%s}".formatted(fileUrl, fileName));
 		if (!target.getAbsolutePath().startsWith(basePath))
 			throw new OperationException("非法路径");
 		if (!target.exists())

@@ -58,7 +58,7 @@ public class ResourcesController extends BaseController {
 			else
 				return ReturnResult.isFalse("未知错误，请稍后重试。");
 		Users loginUser = getLoginUser();
-		if (resources.getRId()==null||resources.getRId()<0)
+		if (resources.getRId() == null || resources.getRId() < 0)
 			return ReturnResult.isFalse("错误,不存在的ID");
 		Resources resources1 = resources.getResourcesMsg();
 		MyLogUtil.info(ResourcesController.class, "管理员%d{%s}尝试修改添加资源信息".formatted(loginUser.getUserId(), loginUser.getUserName()));
@@ -93,15 +93,16 @@ public class ResourcesController extends BaseController {
 				return ReturnResult.isFalse("对不起服务器太烂了,不支持这么大的文件上传捏~~文件大小最大为2GB");
 			}
 		}
-		if (fileUpMsg.isHasFirst()) {
+		if (fileUpMsg.isUpdateFirstImg()) {
 			if (fileList.size() != 1) {//将首尾文件交换,方便接下来操作
 				Collections.swap(fileList, 0, fileList.size() - 1);
 			}
 		}
 		Users loginUser = getLoginUser(true);
 		MyLogUtil.info(ResourcesController.class, "管理员%d{%s}尝试更新上传文件,数量%d".formatted(loginUser.getUserId(), loginUser.getUserName(), fileUpMsg.getFileSize()));
-		return ReturnResult.isTrue(resourcesFileService.updateResourceImg(fileUpMsg.getFileList(), fileUpMsg.getAtResource(), fileUpMsg.isHasFirst()), "操作成功");
+		return ReturnResult.isTrue(resourcesFileService.updateResourceImg(fileUpMsg.getFileList(), fileUpMsg.getAtResource(), fileUpMsg.isUpdateFirstImg()), "操作成功");
 	}
+	
 	@PostMapping("/resources/addFile/img")
 	@PreAuthorize("hasRole('RESOURCES_SHARE_JURISDICTION')")
 	public ReturnResult<String> addFileResourcesImg(@ModelAttribute FileUpImg fileUpMsg) throws IOException {
@@ -115,14 +116,14 @@ public class ResourcesController extends BaseController {
 				return ReturnResult.isFalse("对不起服务器太烂了,不支持这么大的文件上传捏~~文件大小最大为2GB");
 			}
 		}
-		if (fileUpMsg.isHasFirst()) {
+		if (fileUpMsg.isUpdateFirstImg()) {
 			if (fileList.size() != 1) {//将首尾文件交换,方便接下来操作
 				Collections.swap(fileList, 0, fileList.size() - 1);
 			}
 		}
 		Users loginUser = getLoginUser(true);
 		MyLogUtil.info(ResourcesController.class, "用户%d{%s}尝试上传文件,数量%d".formatted(loginUser.getUserId(), loginUser.getUserName(), fileUpMsg.getFileSize()));
-		return ReturnResult.isTrue(resourcesFileService.addResourceImg(fileUpMsg.getFileList(), fileUpMsg.getAtResource(), fileUpMsg.isHasFirst()), "操作成功");
+		return ReturnResult.isTrue(resourcesFileService.addResourceImg(fileUpMsg.getFileList(), fileUpMsg.getAtResource(), fileUpMsg.isUpdateFirstImg()), "操作成功");
 	}
 	
 	@PostMapping("/resources/addFile/rar")
@@ -135,7 +136,7 @@ public class ResourcesController extends BaseController {
 			return ReturnResult.isFalse("错误!文件数量校验错误,期望接收%d个,实际为:%d个".formatted(fileUpMsg.getFileSize(), fileUpMsg.getFileList().size()));
 		Users loginUser = getLoginUser();
 		MyLogUtil.UserBehaviorLog(ResourcesFileService.class, "开始上传文件", loginUser);
-		String string = resourcesFileService.addResourceFile(fileList, fileUpMsg.getAtResource(), fileUpMsg.getFileName(),fileUpMsg.getNotes());
+		String string = resourcesFileService.addResourceFile(fileList, fileUpMsg.getAtResource(), fileUpMsg.getFileName(), fileUpMsg.getNotes());
 		MyLogUtil.UserBehaviorLog(ResourcesFileService.class, "上传文件完成", loginUser);
 		return ReturnResult.isTrue(string, string);
 	}

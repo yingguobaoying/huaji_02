@@ -56,6 +56,7 @@ public enum ErrorEnum {
 	SESSION_TOKEN_ERROR         (2, 4, "会话Token不匹配或者错误"),
 	SESSION_IP_CHANGED          (2, 5, "会话ID校验失败!"),
 	SESSION_DEVICE_CHANGED      (2, 6, "设备校验失败!"),
+	SESSION_OVERDUE             (2, 7, "会话过期"),
 	WRITE_ERROR                 (3, 0, "未知数据库写入错误"),
 	WRITE_DIU_ERROR             (3, 1, "数据库写入错误"),
 		;

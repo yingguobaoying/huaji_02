@@ -45,6 +45,7 @@ public class RootServletImpl implements RootServlet {
 	final SessionMapper sessionMapper;
 	final SessionService sessionService;
 	
+	// todo 这里还有好多地方都还没写完,不然你猜猜为什么叫做准备上线
 	@Override
 	public Users RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError {
 		return null;
@@ -68,6 +69,15 @@ public class RootServletImpl implements RootServlet {
 	@Override
 	public List<Users> RootSelectUserByName(String usersName, int root) {
 		return List.of();
+	}
+	@Override
+	public boolean isIPWhiteList(String ip) {
+		for (String whiteIp : IP_WHITELIST) {
+			if (ElseUtil.equalsIp(ip, whiteIp)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private static final String[] IP_WHITELIST = new String[]{
@@ -97,13 +107,7 @@ public class RootServletImpl implements RootServlet {
 				//不自动校验ip
 				userToken = tokenService.verifyToken(token, -1, null, true);
 				//手动校验ip
-				boolean b = false;
-				for (String s : IP_WHITELIST) {
-					if (s.equals(ip)) {
-						b = true;
-						break;
-					}
-				}
+				boolean b = isIPWhiteList(ElseUtil.getClientIp(request));
 				if (!b) {
 					MyLogUtil.info(LoginService.class, "ip:{%s}正在登录特殊root用户时失败了,因为ip不在白名单之内".formatted(ip));
 					throw new OperationException("您使用的ip被防火墙隔离了,请换个ip试试");
