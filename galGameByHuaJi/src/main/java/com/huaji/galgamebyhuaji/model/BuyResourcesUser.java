@@ -1,17 +1,13 @@
-package com.huaji.galgamebyhuaji.dto;
+package com.huaji.galgamebyhuaji.model;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class BuyResourcesUserDTO {
+public class BuyResourcesUser {
 	private int resourceId;
 	private boolean isLinks;
 	private boolean isDownload;
-	
-	public BuyResourcesUserDTO() {
-	}
-	
-	
+	private int userId;
 }

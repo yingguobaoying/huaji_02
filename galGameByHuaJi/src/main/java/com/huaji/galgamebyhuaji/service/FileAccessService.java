@@ -13,7 +13,7 @@ public interface FileAccessService {
 	/**
 	 * 单文件下载
 	 */
-	ReturnResult<ResponseEntity<InputStreamResource>> downloadFile(String fileName, FileCategory type, String downloadName, Integer users,int rId)
+	ReturnResult<ResponseEntity<InputStreamResource>>  downloadFile(String fileName, FileCategory type, String downloadName, Integer users,int rId)
 			throws IOException, OperationException;
 	
 	

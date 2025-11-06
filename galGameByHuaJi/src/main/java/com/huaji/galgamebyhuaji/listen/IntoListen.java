@@ -24,6 +24,9 @@ import java.util.Random;
 
 import static com.huaji.galgamebyhuaji.constant.Constant.CONSTANT_PASSWORD;
 
+/**
+ * @author 滑稽/因果报应
+ */
 @Component
 @DependsOn({"vaultConfigValidator", "JWTConfig"})
 @RequiredArgsConstructor
@@ -42,11 +45,18 @@ public class IntoListen {
 	final
 	RedisMemoryService redisMemoryService;
 	final RootServlet rootServlet;
+	private static Date starTime;
 	
+	static {
+		starTime = new Date();
+	}
 	
 	@EventListener
 	public void onContextRefreshed(ContextRefreshedEvent event) throws Exception {
+		Date date = null;
 		if (event.getApplicationContext().getParent() == null) {
+			MyLogUtil.info(IntoListen.class, "服务器启动监听器开始启动,准备开始初始化各项数据");
+			date = new Date();
 			redisMemoryService.delAllData();//清空旧数据
 			rootServlet.rootUserInit();
 			tagService.getTagMap();
@@ -81,25 +91,42 @@ public class IntoListen {
 			}
 			// 使用反射修改静态常量字段
 			Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
+			System.out.println("=========================================");
+			System.out.println("=========  滑稽/因果报应的个人小站  =========");
+			System.out.println("=========================================");
+			System.out.println("=========================================");
+			System.out.println("============  此为后端部分  ===============");
+			System.out.println("=========================================");
+			Random random = new Random();
+			int i = random.nextInt(0, 500);
+			//留给后续的我的随机数选择说明:红豆于2019.4.30加入游戏,身高1.42,生日 12.12
+			if (i == 430 || i == 43 || i == 4 || i == 3 || i == 12 || i == 142 || i == 14 || i == 1) {
+				MyLogUtil.info(IntoListen.class, "=========================================");
+				MyLogUtil.info(IntoListen.class, "===========  红豆可爱滴捏~~~~  ============");
+				MyLogUtil.info(IntoListen.class, "=========================================");
+				System.err.println("=========================================");
+				System.err.println("==============  红豆可爱滴捏~~~~  =========");
+				System.err.println("=========================================");
+				System.err.println("*****************************************");
+				System.out.println("************  红豆可爱滴捏~~~~  ***********");
+				System.err.println("*****************************************");
+				System.err.println("=========================================");
+				System.err.println("============  红豆可爱滴捏~~~~  ===========");
+				System.err.println("=========================================");
+			}
+			BackgroundImgController.updateFileNameList(
+					Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile()
+			);
+			MyLogUtil.info(IntoListen.class,
+			               "服务器应用层启动完成用时:" + (date.getTime() - System.currentTimeMillis()) + "毫秒");
+			MyLogUtil.info(IntoListen.class,
+			               "类加载开始时间:{%s},全部初始化完成时间:{%s},用时{%d}毫秒".formatted(
+					               TimeUtil.getVisualDateFormatTime(starTime),
+					               TimeUtil.getVisualDateFormatTime(new Date()),
+					               System.currentTimeMillis() - starTime.getTime()
+			               )
+			);
 		}
-		System.out.println("=========================================");
-		System.out.println("===========滑稽/因果报应的个人小站===========");
-		System.out.println("=========================================");
-		
-		
-		System.out.println("=========================================");
-		System.out.println("==============此为后端部分=================");
-		System.out.println("=========================================");
-		Random random = new Random();
-		int i = random.nextInt(0, 500);
-		if (i == 430 || i == 43 || i == 4 || i == 3) {
-			MyLogUtil.info(IntoListen.class, "=========================================");
-			MyLogUtil.info(IntoListen.class, "红豆可爱滴捏~~~~");
-			MyLogUtil.info(IntoListen.class, "=========================================");
-		}
-		BackgroundImgController.updateFileNameList(
-				Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile()
-		);
 	}
 	
 	

@@ -8,6 +8,7 @@ import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import com.huaji.galgamebyhuaji.model.LoginUserDetails;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.LoginService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.FilterChain;
@@ -104,6 +105,8 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		//设置请求属性
 		request.setAttribute(SystemConstant.USER_LOGIN, user != null && user != Constant.TOURIST);
+		if (MyStringUtil.isNull(ElseUtil.getToken(request)))
+			response.setHeader(SystemConstant.JWT_TOKEN_NAME, ElseUtil.getToken(request));
 		chain.doFilter(request, response);
 	}
 }

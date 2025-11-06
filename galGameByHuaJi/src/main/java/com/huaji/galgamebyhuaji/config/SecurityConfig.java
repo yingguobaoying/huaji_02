@@ -34,7 +34,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.Collections;
 
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {

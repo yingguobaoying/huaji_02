@@ -71,9 +71,9 @@ public class Constant {
 	 */
 	public static final long RAR_MAX = 20L * 1024 * 1024 * 1024;//压缩包最大值
 	/**
-	 * 资源购买后的有效时间,单位为小时
+	 * 资源购买后的有效时间,单位为毫秒
 	 */
-	public static final int RESOURCE_EXPIRATION_TIME = 24;
+	public static final int RESOURCE_EXPIRATION_TIME = 24 * 60 *60 *1000;
 	/**
 	 * 验证邮件有效期,单位毫秒
 	 */

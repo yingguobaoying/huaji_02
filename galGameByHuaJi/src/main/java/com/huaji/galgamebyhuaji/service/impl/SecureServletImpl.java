@@ -117,7 +117,7 @@ public class SecureServletImpl implements SecureServlet {
 			users.setUserId(userId);
 			users.setStatus(UserStatus.FROZEN.getValue());
 			WriteError.tryWrite(usersMapper.updateByPrimaryKey(users));
-			MyLogUtil.info(getClass(), "ID为{%d}的管理员手动冻了ID:%d的用户,该用户现在状态为不可用!".formatted(onlineUser.getUserId(), userId));
+			MyLogUtil.info(SecureServletImpl.class, "ID为{%d}的管理员手动冻了ID:%d的用户,该用户现在状态为不可用!".formatted(onlineUser.getUserId(), userId));
 			return "操作成功!";
 		}
 		//验证令牌
@@ -132,7 +132,7 @@ public class SecureServletImpl implements SecureServlet {
 			//root 防护
 			if (users.getUserId() == 0 || users.getUserId() == 1) {
 				//假装成功
-				MyLogUtil.info(getClass(), "警告有人尝试冻结特殊账号!");
+				MyLogUtil.info(SecureServletImpl.class, "警告有人尝试冻结特殊账号!");
 				return "您已经成功冻结了您的账号,为了您的账号安全考虑,请尽快联系管理员进行处理!";
 			}
 			//进入冻结
@@ -169,7 +169,7 @@ public class SecureServletImpl implements SecureServlet {
 			users.setUserId(userId);
 			users.setStatus(UserStatus.OK.getValue());
 			WriteError.tryWrite(usersMapper.updateByPrimaryKey(users));
-			MyLogUtil.info(getClass(), "ID为{%d}的管理员手动解冻了ID:%d的用户,该用户现在状态为正常!".formatted(onlineUser.getUserId(), userId));
+			MyLogUtil.info(SecureServletImpl.class, "ID为{%d}的管理员手动解冻了ID:%d的用户,该用户现在状态为正常!".formatted(onlineUser.getUserId(), userId));
 			return "操作成功!";
 		}
 		//用户自助操作

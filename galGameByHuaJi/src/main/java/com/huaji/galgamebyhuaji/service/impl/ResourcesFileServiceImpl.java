@@ -230,11 +230,11 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 				//清除文件
 				fileAccessService.deleteFiles(fileName, null);
 			} catch (OperationException e) {
-				MyLogUtil.info(getClass(), e.getMsg());
+				MyLogUtil.info(ResourcesFileServiceImpl.class, e.getMsg());
 			} catch (Exception e) {
-				MyLogUtil.error(getClass(), resources.getrJpeg() + "文件删除失败!" + e.getMessage());
+				MyLogUtil.error(ResourcesFileServiceImpl.class, resources.getrJpeg() + "文件删除失败!" + e.getMessage());
 			}
-			MyLogUtil.info(getClass(), "资源%d{%s}的首页图已删除!".formatted(rId, resources.getrName()));
+			MyLogUtil.info(ResourcesFileServiceImpl.class, "资源%d{%s}的首页图已删除!".formatted(rId, resources.getrName()));
 		}
 		//清空存在的资源信息
 		List<ResourcesJpegMap> resourcesJpegMaps = resourcesJpegMapMapper.selectByRId(rId);
@@ -248,10 +248,10 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 			}
 			return true;
 		}).map(ResourcesJpegMap::getJpegName).toList();
-		MyLogUtil.info(getClass(), "准备开始删除%d张图片".formatted(delList.size()));
+		MyLogUtil.info(ResourcesFileServiceImpl.class, "准备开始删除%d张图片".formatted(delList.size()));
 		ReturnResult<String> stringReturnResult = fileAccessService.deleteFiles(delList, null);
 		List<String> sussList = stringReturnResult.getResultList();
-		MyLogUtil.info(getClass(), "预期删除%d张图片,实际删除数量为:%d".formatted(delList.size(), sussList.size()));
+		MyLogUtil.info(ResourcesFileServiceImpl.class, "预期删除%d张图片,实际删除数量为:%d".formatted(delList.size(), sussList.size()));
 		WriteError.tryWrite(resourcesJpegMapMapper.delList(sussList, rId), sussList.size());
 		return stringReturnResult.getMsg();
 	}

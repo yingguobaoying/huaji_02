@@ -1,175 +1,212 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.huaji.galgamebyhuaji.dao.UserResourceRepositoryMapper">
-  <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.UserResourceRepository">
-    <result column="user_id" jdbcType="INTEGER" property="userId" />
-    <result column="r_id" jdbcType="INTEGER" property="rId" />
-    <result column="get_type" jdbcType="CHAR" property="getType" />
-    <result column="expiration_time" jdbcType="TIMESTAMP" property="expirationTime" />
-    <result column="get_time" jdbcType="TIMESTAMP" property="getTime" />
-  </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue">
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue">
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue">
-                  and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+    <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.UserResourceRepository">
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="r_id" jdbcType="INTEGER" property="rId"/>
+        <result column="has_down" jdbcType="BIT" property="hasDown"/>
+        <result column="expiration_time" jdbcType="TIMESTAMP" property="expirationTime"/>
+        <result column="get_time" jdbcType="TIMESTAMP" property="getTime"/>
+        <result column="has_link" jdbcType="BIT" property="hasLink"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue">
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue">
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue">
-                  and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        user_id, r_id, has_down, expiration_time, get_time, has_link
+    </sql>
+    <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample"
+            resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
         </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Base_Column_List">
-    user_id, r_id, get_type, expiration_time, get_time
-  </sql>
-  <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample" resultMap="BaseResultMap">
-    select
-    <if test="distinct">
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    from user_resource_repository
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null">
-      order by ${orderByClause}
-    </if>
-  </select>
-  <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample">
-    delete from user_resource_repository
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-  </delete>
-  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepository">
-    insert into user_resource_repository (user_id, r_id, get_type, 
-      expiration_time, get_time)
-    values (#{userId,jdbcType=INTEGER}, #{rId,jdbcType=INTEGER}, #{getType,jdbcType=CHAR}, 
-      #{expirationTime,jdbcType=TIMESTAMP}, #{getTime,jdbcType=TIMESTAMP})
-  </insert>
-  <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepository">
-    insert into user_resource_repository
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="userId != null">
-        user_id,
-      </if>
-      <if test="rId != null">
-        r_id,
-      </if>
-      <if test="getType != null">
-        get_type,
-      </if>
-      <if test="expirationTime != null">
-        expiration_time,
-      </if>
-      <if test="getTime != null">
-        get_time,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="userId != null">
-        #{userId,jdbcType=INTEGER},
-      </if>
-      <if test="rId != null">
-        #{rId,jdbcType=INTEGER},
-      </if>
-      <if test="getType != null">
-        #{getType,jdbcType=CHAR},
-      </if>
-      <if test="expirationTime != null">
-        #{expirationTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="getTime != null">
-        #{getTime,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
-  <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample" resultType="java.lang.Long">
-    select count(*) from user_resource_repository
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-  </select>
-  <update id="updateByExampleSelective" parameterType="map">
-    update user_resource_repository
-    <set>
-      <if test="row.userId != null">
-        user_id = #{row.userId,jdbcType=INTEGER},
-      </if>
-      <if test="row.rId != null">
+        <include refid="Base_Column_List"/>
+        from user_resource_repository
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample">
+        delete from user_resource_repository
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepository">
+        insert into user_resource_repository (user_id, r_id, has_down,
+                                              expiration_time, get_time, has_link)
+        values (#{userId,jdbcType=INTEGER}, #{rId,jdbcType=INTEGER}, #{hasDown,jdbcType=BIT},
+                #{expirationTime,jdbcType=TIMESTAMP}, #{getTime,jdbcType=TIMESTAMP}, #{hasLink,jdbcType=BIT})
+    </insert>
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepository">
+        insert into user_resource_repository
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="rId != null">
+                r_id,
+            </if>
+            <if test="hasDown != null">
+                has_down,
+            </if>
+            <if test="expirationTime != null">
+                expiration_time,
+            </if>
+            <if test="getTime != null">
+                get_time,
+            </if>
+            <if test="hasLink != null">
+                has_link,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="rId != null">
+                #{rId,jdbcType=INTEGER},
+            </if>
+            <if test="hasDown != null">
+                #{hasDown,jdbcType=BIT},
+            </if>
+            <if test="expirationTime != null">
+                #{expirationTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="getTime != null">
+                #{getTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="hasLink != null">
+                #{hasLink,jdbcType=BIT},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample"
+            resultType="java.lang.Long">
+        select count(*) from user_resource_repository
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update user_resource_repository
+        <set>
+            <if test="row.userId != null">
+                user_id = #{row.userId,jdbcType=INTEGER},
+            </if>
+            <if test="row.rId != null">
+                r_id = #{row.rId,jdbcType=INTEGER},
+            </if>
+            <if test="row.hasDown != null">
+                has_down = #{row.hasDown,jdbcType=BIT},
+            </if>
+            <if test="row.expirationTime != null">
+                expiration_time = #{row.expirationTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.getTime != null">
+                get_time = #{row.getTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.hasLink != null">
+                has_link = #{row.hasLink,jdbcType=BIT},
+            </if>
+        </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update user_resource_repository
+        set user_id = #{row.userId,jdbcType=INTEGER},
         r_id = #{row.rId,jdbcType=INTEGER},
-      </if>
-      <if test="row.getType != null">
-        get_type = #{row.getType,jdbcType=CHAR},
-      </if>
-      <if test="row.expirationTime != null">
+        has_down = #{row.hasDown,jdbcType=BIT},
         expiration_time = #{row.expirationTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="row.getTime != null">
         get_time = #{row.getTime,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    <if test="example != null">
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExample" parameterType="map">
-    update user_resource_repository
-    set user_id = #{row.userId,jdbcType=INTEGER},
-      r_id = #{row.rId,jdbcType=INTEGER},
-      get_type = #{row.getType,jdbcType=CHAR},
-      expiration_time = #{row.expirationTime,jdbcType=TIMESTAMP},
-      get_time = #{row.getTime,jdbcType=TIMESTAMP}
-    <if test="example != null">
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
+        has_link = #{row.hasLink,jdbcType=BIT}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <select id="getUserResource" resultMap="BaseResultMap">
+        select *
+        from user_resource_repository
+        where user_id = #{userId}
+          and expiration_time >= sysdate()
+    </select>
+    <select id="userHasDownResource" resultType="java.lang.Integer">
+        select COUNT(*)
+        from user_resource_repository
+        where user_id = #{userId}
+          and r_id = #{rId}
+          and has_down = 1
+          and expiration_time > sysdate()
+    </select>
+    <select id="userHasLinkResource" resultType="java.lang.Integer">
+        select COUNT(*)
+        from user_resource_repository
+        where user_id = #{userId}
+          and r_id = #{rId}
+          and has_link = 1
+          and expiration_time > sysdate()
+    </select>
 </mapper>

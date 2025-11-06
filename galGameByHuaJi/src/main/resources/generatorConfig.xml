@@ -63,9 +63,9 @@
         <!--        <table tableName="resources_tag_map" domainObjectName="ResourcesTagMap"/>-->
         <!--        <table tableName="session" domainObjectName="Session"/>-->
         <!--        <table tableName="tag" domainObjectName="Tag"/>-->
-        <!--        <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
+<!--                <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
         <!--        <table tableName="user_token" domainObjectName="UserToken"/>-->
-        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>
+<!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
         <!--        <table tableName="users" domainObjectName="Users"/>-->
     </context>
 </generatorConfiguration>

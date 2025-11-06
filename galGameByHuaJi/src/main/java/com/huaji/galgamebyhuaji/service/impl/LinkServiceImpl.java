@@ -9,6 +9,7 @@ import com.huaji.galgamebyhuaji.entity.UserDownload;
 import com.huaji.galgamebyhuaji.enumPackage.LinksEnum;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
+import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.service.LinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,13 @@ public class LinkServiceImpl implements LinkService {
 		userDownload.setdType("外部资源");
 		userDownload.setTime(new Date());
 		WriteError.tryWrite(userDownloadMapper.insertSelective(userDownload));
-		return linksMapper.selectByExampleWithBLOBs(linksExample);
+		List<LinksWithBLOBs> linksWithBLOBs = linksMapper.selectByExampleWithBLOBs(linksExample);
+		MyLogUtil.info(LinkServiceImpl.class,
+		               "ID为{%d}的用户获取了ID为{%d}的资源下载链接,获取方式:{%s},数量:{%d}".formatted(
+				               userId, rId, isAll ? "所有链接" : "仅有效", linksWithBLOBs.size()
+		               )
+		);
+		return linksWithBLOBs;
 	}
 	
 	public LinksWithBLOBs addLink(LinksWithBLOBs link) {

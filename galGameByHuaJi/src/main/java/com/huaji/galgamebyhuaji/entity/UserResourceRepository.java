@@ -7,11 +7,13 @@ public class UserResourceRepository {
 
     private Integer rId;
 
-    private String getType;
+    private Boolean hasDown;
 
     private Date expirationTime;
 
     private Date getTime;
+
+    private Boolean hasLink;
 
     public Integer getUserId() {
         return userId;
@@ -29,12 +31,12 @@ public class UserResourceRepository {
         this.rId = rId;
     }
 
-    public String getGetType() {
-        return getType;
+    public Boolean getHasDown() {
+        return hasDown;
     }
 
-    public void setGetType(String getType) {
-        this.getType = getType == null ? null : getType.trim();
+    public void setHasDown(Boolean hasDown) {
+        this.hasDown = hasDown;
     }
 
     public Date getExpirationTime() {
@@ -51,5 +53,13 @@ public class UserResourceRepository {
 
     public void setGetTime(Date getTime) {
         this.getTime = getTime;
+    }
+
+    public Boolean getHasLink() {
+        return hasLink;
+    }
+
+    public void setHasLink(Boolean hasLink) {
+        this.hasLink = hasLink;
     }
 }

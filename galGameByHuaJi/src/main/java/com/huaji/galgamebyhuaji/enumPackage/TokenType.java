@@ -11,10 +11,9 @@ public enum TokenType {
 	 */
 	DEFAULT_STATUS(0, "保持登录", OnlineUser.class),
 	LOST_PASSWORD(1, "密码丢失", LostPasswordUser.class),
-	GET_DOWNLOAD(2, "下载", BuyResourcesUser.class),
-	VERIFY_EMAIL(3, "验证邮箱", VerifyEmail.class),
-	FROZEN_USER(4, "冻结账户", FrozenUser.class),
-	UNFROZEN_USER(5, "解冻账户", UnfrozenUser.class);
+	VERIFY_EMAIL(2, "验证邮箱", VerifyEmail.class),
+	FROZEN_USER(3, "冻结账户", FrozenUser.class),
+	UNFROZEN_USER(4, "解冻账户", UnfrozenUser.class);
 	
 	
 	private final String statusName;

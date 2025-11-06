@@ -70,6 +70,7 @@ public class RootServletImpl implements RootServlet {
 	public List<Users> RootSelectUserByName(String usersName, int root) {
 		return List.of();
 	}
+	
 	@Override
 	public boolean isIPWhiteList(String ip) {
 		for (String whiteIp : IP_WHITELIST) {
@@ -186,6 +187,7 @@ public class RootServletImpl implements RootServlet {
 		                                                1000L * 60 * 60 * 24 * 100);
 		UserToken userToken1 = tokenService.insertToken(onlineUser1, TokenType.DEFAULT_STATUS,
 		                                                1000L * 60 * 60 * 24 * 100);
+		//todo: 注意后续把这玩意扔到vault里面
 		MyLogUtil.info(LoginService.class, "***********************************************************");
 		MyLogUtil.info(LoginService.class, "***********************root登录令牌更新**********************");
 		MyLogUtil.info(LoginService.class, "***********************************************************");

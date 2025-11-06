@@ -36,4 +36,11 @@ public class CollectController extends BaseController {
 		collectServlet.collectResources(loginUser.getUserId(), id);
 		return ReturnResult.isTrue("收藏列表已更新", null);
 	}
+	
+	@GetMapping("/collect/del/{id}")
+	public ReturnResult<String> delCollect(@PathVariable("id") int id) {
+		Users loginUser = getLoginUser(true);
+		collectServlet.unCollectResources(loginUser.getUserId(), id);
+		return ReturnResult.isTrue("收藏列表已更新", null);
+	}
 }

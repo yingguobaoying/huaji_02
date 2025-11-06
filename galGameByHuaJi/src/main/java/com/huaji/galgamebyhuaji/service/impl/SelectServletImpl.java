@@ -3,6 +3,8 @@ package com.huaji.galgamebyhuaji.service.impl;
 import com.huaji.galgamebyhuaji.dao.ResourcesMapper;
 import com.huaji.galgamebyhuaji.entity.Resources;
 import com.huaji.galgamebyhuaji.entity.Users;
+import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
+import com.huaji.galgamebyhuaji.myUtil.FileUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.PageUtil;
 import com.huaji.galgamebyhuaji.service.SelectServlet;
@@ -27,7 +29,10 @@ public class SelectServletImpl implements SelectServlet {
 	public List<Resources> searchResource(Resources rMsg, List<Integer> tag, int tagSize, PageUtil pageMsg) {
 		tagSize = Math.min(tag.size(), tagSize);
 		rMsg = MyStringUtil.setNull(rMsg);
-		return resourcesMapper.selectResources(rMsg, tag, tagSize, pageMsg);
+		List<Resources> resources = resourcesMapper.selectResources(rMsg, tag, tagSize, pageMsg);
+		for (Resources r : resources)
+			r.setrJpeg(FileUtil.toRelativeUrl(r.getrJpeg(), FileCategory.IMG));
+		return resources;
 	}
 	
 	@Override

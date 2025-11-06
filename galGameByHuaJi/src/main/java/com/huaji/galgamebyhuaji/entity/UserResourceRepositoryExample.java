@@ -225,73 +225,63 @@ public class UserResourceRepositoryExample {
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeIsNull() {
-            addCriterion("get_type is null");
+        public Criteria andHasDownIsNull() {
+            addCriterion("has_down is null");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeIsNotNull() {
-            addCriterion("get_type is not null");
+        public Criteria andHasDownIsNotNull() {
+            addCriterion("has_down is not null");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeEqualTo(String value) {
-            addCriterion("get_type =", value, "getType");
+        public Criteria andHasDownEqualTo(Boolean value) {
+            addCriterion("has_down =", value, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeNotEqualTo(String value) {
-            addCriterion("get_type <>", value, "getType");
+        public Criteria andHasDownNotEqualTo(Boolean value) {
+            addCriterion("has_down <>", value, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeGreaterThan(String value) {
-            addCriterion("get_type >", value, "getType");
+        public Criteria andHasDownGreaterThan(Boolean value) {
+            addCriterion("has_down >", value, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("get_type >=", value, "getType");
+        public Criteria andHasDownGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("has_down >=", value, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeLessThan(String value) {
-            addCriterion("get_type <", value, "getType");
+        public Criteria andHasDownLessThan(Boolean value) {
+            addCriterion("has_down <", value, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeLessThanOrEqualTo(String value) {
-            addCriterion("get_type <=", value, "getType");
+        public Criteria andHasDownLessThanOrEqualTo(Boolean value) {
+            addCriterion("has_down <=", value, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeLike(String value) {
-            addCriterion("get_type like", value, "getType");
+        public Criteria andHasDownIn(List<Boolean> values) {
+            addCriterion("has_down in", values, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeNotLike(String value) {
-            addCriterion("get_type not like", value, "getType");
+        public Criteria andHasDownNotIn(List<Boolean> values) {
+            addCriterion("has_down not in", values, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeIn(List<String> values) {
-            addCriterion("get_type in", values, "getType");
+        public Criteria andHasDownBetween(Boolean value1, Boolean value2) {
+            addCriterion("has_down between", value1, value2, "hasDown");
             return (Criteria) this;
         }
 
-        public Criteria andGetTypeNotIn(List<String> values) {
-            addCriterion("get_type not in", values, "getType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGetTypeBetween(String value1, String value2) {
-            addCriterion("get_type between", value1, value2, "getType");
-            return (Criteria) this;
-        }
-
-        public Criteria andGetTypeNotBetween(String value1, String value2) {
-            addCriterion("get_type not between", value1, value2, "getType");
+        public Criteria andHasDownNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("has_down not between", value1, value2, "hasDown");
             return (Criteria) this;
         }
 
@@ -412,6 +402,66 @@ public class UserResourceRepositoryExample {
 
         public Criteria andGetTimeNotBetween(Date value1, Date value2) {
             addCriterion("get_time not between", value1, value2, "getTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkIsNull() {
+            addCriterion("has_link is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkIsNotNull() {
+            addCriterion("has_link is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkEqualTo(Boolean value) {
+            addCriterion("has_link =", value, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkNotEqualTo(Boolean value) {
+            addCriterion("has_link <>", value, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkGreaterThan(Boolean value) {
+            addCriterion("has_link >", value, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("has_link >=", value, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkLessThan(Boolean value) {
+            addCriterion("has_link <", value, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkLessThanOrEqualTo(Boolean value) {
+            addCriterion("has_link <=", value, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkIn(List<Boolean> values) {
+            addCriterion("has_link in", values, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkNotIn(List<Boolean> values) {
+            addCriterion("has_link not in", values, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkBetween(Boolean value1, Boolean value2) {
+            addCriterion("has_link between", value1, value2, "hasLink");
+            return (Criteria) this;
+        }
+
+        public Criteria andHasLinkNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("has_link not between", value1, value2, "hasLink");
             return (Criteria) this;
         }
     }

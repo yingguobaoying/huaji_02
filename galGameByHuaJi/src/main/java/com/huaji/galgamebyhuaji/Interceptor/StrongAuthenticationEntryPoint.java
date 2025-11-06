@@ -32,7 +32,7 @@ public class StrongAuthenticationEntryPoint implements AuthenticationEntryPoint 
 			byd.setMsg("您的权限不足,无法进行此操作");
 		} else if (authException instanceof AuthenticationServiceException ||
 		           authException instanceof BadCredentialsException) {
-			byd.setMsg("Token无效或验证失败,请重新登录后重试");
+			byd.operationError("Token无效或验证失败,请重新登录后重试", new Exception("Token无效或验证失败,请重新登录后重试"), 2007);
 		} else {
 			byd.setMsg(authException.getMessage());
 		}
