@@ -1,11 +1,15 @@
 package com.huaji.galgamebyhuaji.service.impl;
 
 import com.huaji.galgamebyhuaji.config.JWTConfig;
+import com.huaji.galgamebyhuaji.constant.GlobalLock;
 import com.huaji.galgamebyhuaji.constant.SystemConstant;
 import com.huaji.galgamebyhuaji.dao.UserTokenMapper;
+import com.huaji.galgamebyhuaji.dao.UsersMapper;
 import com.huaji.galgamebyhuaji.entity.UserToken;
+import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.enumPackage.ErrorEnum;
 import com.huaji.galgamebyhuaji.enumPackage.TokenType;
+import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
@@ -45,6 +49,7 @@ public class TokenServiceImpl implements TokenService {
 	RedisMemoryService redisMemoryService;
 	static final int TOKEN_CACHE_USER_TOKEN = 1;
 	static final int TOKEN_CACHE_DATA = 2;
+	private final UsersMapper usersMapper;
 	
 	/**
 	 * 生成缓存键
@@ -90,12 +95,12 @@ public class TokenServiceImpl implements TokenService {
 			throw new OperationException("令牌解析失败: " + result.getMsg());
 		}
 		T onlineUser = result.getReturnResult();
-		if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
-			// 3. 关键信息校验
-			validateTokenConsistency(userId, type, ip, onlineUser);
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
 		try {
 			lock.lock();
+			if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
+				// 3. 关键信息校验
+				validateTokenConsistency(userId, type, ip, onlineUser);
 			// 4. 数据库令牌验证
 			List<UserToken> validTokens = userTokenMapper.verifyToken(token, userId, type.getStatusNum());
 			validateTokenCount(validTokens);
@@ -125,27 +130,22 @@ public class TokenServiceImpl implements TokenService {
 		if (!jwtUtil.isTokenUsable(token)) {
 			throw new OperationException("令牌已过期");
 		}
-		
 		// 2. 解析JWT内容
 		if (type == null) type = TokenType.DEFAULT_STATUS;
 		Class<T> clazz = (Class<T>) type.getTokenClazz();
 		ReturnResult<T> result = jwtUtil.parseToken(token, SystemConstant.JWT_TOKEN_NAME, clazz);
-		
 		if (userId == -1)//为-1时认为用户ID未知跳过ID校验
 			userId = result.getReturnResult().getUserId();
 		if (result.isHasError()) {
 			throw new OperationException("令牌解析失败: " + result.getMsg());
 		}
-		
 		T onlineUser = result.getReturnResult();
-		
-		if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
-			// 3. 关键信息校验
-			validateTokenConsistency(userId, type, ip, onlineUser);
-		
 		ReentrantLock lock = getLockForUser(onlineUser.getUserId());
 		try {
 			lock.lock();
+			if (-1 != userId && !TokenType.DEFAULT_STATUS.equals(type))
+				// 3. 关键信息校验
+				validateTokenConsistency(userId, type, ip, onlineUser);
 			// 4. 数据库令牌验证
 			List<UserToken> validTokens = userTokenMapper.verifyToken(token, userId, type.getStatusNum());
 			validateTokenCount(validTokens);
@@ -163,6 +163,14 @@ public class TokenServiceImpl implements TokenService {
 			else
 				throw new SessionExceptions("您的会话已过期,请重新登录后再试一次", ErrorEnum.SESSION_OVERDUE);
 		}
+		//检查用户状态信息
+		Users user = usersMapper.getUserJurisdiction(validTokens.getFirst().getUserId());
+		UserStatus u = UserStatus.testEnumValue(user.getStatus());
+		if (UserStatus.OK.equals(u))
+			return;
+		if (UserStatus.NOT_AUTHENTICATED.equals(u))
+			return;
+		throw new OperationException(u.getMsg());
 	}
 	
 	private void validateTokenConsistency(int userId, TokenType type,
@@ -192,7 +200,6 @@ public class TokenServiceImpl implements TokenService {
 		ReentrantLock lock = getLockForUser(userToken.getUserId());
 		try {
 			lock.lock();
-			// 双重检查锁模式
 			Class<T> c = (Class<T>) TokenType.getTokenType(userToken.getType()).getTokenClazz();
 			String newToken = jwtUtil.getTokenUsableTime(oldToken, SystemConstant.JWT_TOKEN_NAME, c);
 			userToken.setToken(newToken);
@@ -219,17 +226,23 @@ public class TokenServiceImpl implements TokenService {
 			throw new OperationException("错误!!令牌为空!");
 		// 令牌验证保证用户是登录的,令牌失效后需要重新登录
 		UserToken userToken = verifyToken(token, userId, type, null, false);
-		//应该是有效的登录用户,并且传入的id,type和token一致
-		int i = userTokenMapper.invalidateToken(token, userId, type.getStatusNum(), new Date(114514));
-		if (i != 1) {
-			if (i == 0)
-				throw new SessionExceptions("错误!您的会话信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
-			else
-				throw new SessionExceptions("错误!您当前存在多个会话信息!请联系管理员进行解除", ErrorEnum.SESSION_REPEAT_ERROR);
+		ReentrantLock lock = getLockForUser(userToken.getUserId());
+		try {
+			lock.lock();
+			//应该是有效的登录用户,并且传入的id,type和token一致
+			int i = userTokenMapper.invalidateToken(token, userId, type.getStatusNum(), new Date(114514));
+			if (i != 1) {
+				if (i == 0)
+					throw new SessionExceptions("错误!您的会话信息不存在,请联系管理员确认!", ErrorEnum.SESSION_NOT_AVAILABLE_ERROR);
+				else
+					throw new SessionExceptions("错误!您当前存在多个会话信息!请联系管理员进行解除", ErrorEnum.SESSION_REPEAT_ERROR);
+			}
+			userToken.setDieTime(new Date(0));
+			delTokenCache(token);
+			return userToken;
+		} finally {
+			if (lock != null) GlobalLock.unlockForUser(lock, userToken.getUserId());
 		}
-		userToken.setDieTime(new Date(0));
-		delTokenCache(token);
-		return userToken;
 	}
 	
 	@Override

@@ -501,4 +501,9 @@
             </otherwise>
         </choose>
     </update>
+    <select id="selectUserByName" resultMap="ResultMapWithBLOBs">
+        select *
+        from users
+        where user_name  LIKE CONCAT('%', #{userName}, '%')
+    </select>
 </mapper>

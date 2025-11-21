@@ -2,7 +2,6 @@ package com.huaji.galgamebyhuaji.service;
 
 
 import com.huaji.galgamebyhuaji.entity.UserToken;
-import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
@@ -10,6 +9,7 @@ import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -23,18 +23,20 @@ public interface RootServlet {
 	 * @param usersId 更改后的信息(不可改动ID)
 	 * @param jpeg    更新的图片,为null时为禁用
 	 * @param rootId  管理员账号
+	 *
 	 * @return 更新后的信息
 	 */
-	Users RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError;
+	String RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError, IOException;
 	
 	/**
 	 * 管理员更改用户信息
 	 *
 	 * @param users  更改后的信息(不可改动ID)
 	 * @param rootId 管理员账号
+	 *
 	 * @return 更新后的信息
 	 */
-	Users RootEditUserMxg(UsersWithBLOBs users, int rootId) throws WriteError;
+	String RootEditUserMxg(UsersWithBLOBs users, int rootId) throws WriteError;
 	
 	/**
 	 * 更改用户的状态
@@ -42,9 +44,10 @@ public interface RootServlet {
 	 * @param usersId    被更改用户状态的用户
 	 * @param rootId     管理员账号
 	 * @param userStatus 新的状态
+	 *
 	 * @return 更新后的信息
 	 */
-	Users RootUpdateUSerStatus(int usersId, int rootId, UserStatus userStatus) throws WriteError;
+	String RootUpdateUSerStatus(int usersId, int rootId, UserStatus userStatus) throws WriteError;
 	
 	/**
 	 * 管理员查询用户
@@ -53,16 +56,17 @@ public interface RootServlet {
 	 * @param rootId  管理员
 	 * @return 用户信息
 	 */
-	Users RootSelectUserById(int usersId, int rootId);
+	UsersWithBLOBs RootSelectUserById(int usersId, int rootId);
 	
 	/**
 	 * 根据名字查询用户
 	 *
 	 * @param usersName 用户名/登陆名
 	 * @param root      管理员
+	 *
 	 * @return 用户信息
 	 */
-	List<Users> RootSelectUserByName(String usersName, int root);
+	List<UsersWithBLOBs> RootSelectUserByName(String usersName, int root);
 	
 	boolean isIPWhiteList(String ip);
 	

@@ -67,9 +67,8 @@ public class LoginServiceIMPL implements LoginService {
 			passwordEncryptionUtil.verifyPassword("1145141919810", Constant.CONSTANT_PASSWORD);
 			throw new OperationException("账号或密码不正确，请检查后重试。");
 		}
-		if (login.size() != 1) {
+		if (login.size() != 1)
 			throw new UserException("系统检测到账户信息存在异常，为确保您的账户安全，请稍后重试或联系站长。", login, ErrorEnum.USER_REPEAT_ERROR);
-		}
 		UsersWithBLOBs loginUser = login.getFirst();
 		if (loginUser.getUserId().equals(1) ||
 		    loginUser.getUserId().equals(0)) {//特殊管理员禁止使用密码登录
@@ -77,7 +76,6 @@ public class LoginServiceIMPL implements LoginService {
 			request.setAttribute(SystemConstant.SYSTEM_MSG, ClockIn(loginUser.getUserId()));
 			return userToken;
 		}
-		ReentrantLock lock = GlobalLock.getLockForUser(loginUser.getUserId());
 		boolean b = passwordEncryptionUtil.verifyPassword(
 				users.getUserPassword()
 				, loginUser.getUserPassword()
@@ -91,6 +89,7 @@ public class LoginServiceIMPL implements LoginService {
 					userStatus.getName()
 			));
 		}
+		ReentrantLock lock = GlobalLock.getLockForUser(loginUser.getUserId());
 		try {
 			lock.lock();
 			//签到反馈信息(临时存储)
@@ -104,9 +103,10 @@ public class LoginServiceIMPL implements LoginService {
 	
 	@Override
 	public ReturnResult<Users> register(UsersWithBLOBs users) {
-		String s = users.getMailbox() + users.getUserPe();
+		String s = users.getMailbox() + users.getUserPe() + users.getUserNameLogin();
 		int userHas = s.hashCode();
-		if (userHas > 0) userHas = -userHas;//确保为负数,避免占用正数对象
+		if (userHas > 0) userHas = -userHas;
+		//确保为负数,避免占用正数对象,因为正数对象是已注册用户用的
 		ReentrantLock lockForUserName = GlobalLock.getLockForUser(userHas);
 		try {
 			lockForUserName.lock();

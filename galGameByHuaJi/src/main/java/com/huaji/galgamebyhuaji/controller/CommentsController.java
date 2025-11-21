@@ -30,29 +30,29 @@ public class CommentsController extends BaseController {
 	
 	@GetMapping("/Resources/getComments/{rId}")
 	@ResponseBody
-	public ReturnResult<CommentWithUser> getComments (@PathVariable("rId") int rId) {
+	public ReturnResult<CommentWithUser> getComments(@PathVariable("rId") int rId) {
 		List<CommentWithUser> commentByRId = commentService.getCommentByRId(rId);
 		return !commentByRId.isEmpty() ?
 				ReturnResult.isTrue("获取成功", commentByRId, -1)
 				: ReturnResult.isTrue("获取成功", null);
 	}
 	
-	@PostMapping("/Resources/addComments")
+	@PostMapping("/user/Resources/addComments")
 	@ResponseBody
-	public ReturnResult<CommentWithUser> getComments (Comment c) {
+	public ReturnResult<CommentWithUser> getComments(Comment c) {
 		Users loginUser = getLoginUser(true);
 		c.setCommentUser(loginUser.getUserId());
-		if ( MyStringUtil.isNull(c.getComment()) ) throw new OperationException("评论内容不可为空!");
-		if ( c.getCommentRId() == null || c.getCommentRId() < 0 ) throw new OperationException("资源ID不可为空!");
+		if (MyStringUtil.isNull(c.getComment())) throw new OperationException("评论内容不可为空!");
+		if (c.getCommentRId() == null || c.getCommentRId() < 0) throw new OperationException("资源ID不可为空!");
 		Comment comment = commentService.addComment(c);
 		return ReturnResult.isTrue("评论成功", new CommentWithUser(comment, loginUser));
 	}
 	
 	@GetMapping("/user/getUserCollectionList/{userId}")
 	@ResponseBody
-	public ReturnResult<Integer> getUserCollectionList (@PathVariable("userId") int userId) {
+	public ReturnResult<Integer> getUserCollectionList(@PathVariable("userId") int userId) {
 		Users loginUser = getLoginUser();
-		if ( Constant.TOURIST.equals(loginUser) ) {
+		if (Constant.TOURIST.equals(loginUser)) {
 			return ReturnResult.isFalse("请先登录在进行此操作!");
 		}
 		return ReturnResult.isTrue("获取收藏列表成功", collectServlet.getCollectResources(loginUser.getUserId()), -1);

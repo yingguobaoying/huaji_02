@@ -2,21 +2,20 @@ package com.huaji.galgamebyhuaji.service.impl;
 
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.constant.GlobalLock;
+import com.huaji.galgamebyhuaji.dao.CommentMapper;
 import com.huaji.galgamebyhuaji.dao.LinksMapper;
 import com.huaji.galgamebyhuaji.dao.ResourcesFileMapMapper;
 import com.huaji.galgamebyhuaji.dao.UserResourceRepositoryMapper;
 import com.huaji.galgamebyhuaji.dao.UsersMapper;
-import com.huaji.galgamebyhuaji.entity.Comment;
-import com.huaji.galgamebyhuaji.entity.Links;
-import com.huaji.galgamebyhuaji.entity.UserResourceRepository;
-import com.huaji.galgamebyhuaji.entity.UserResourceRepositoryExample;
-import com.huaji.galgamebyhuaji.entity.Users;
+import com.huaji.galgamebyhuaji.entity.*;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.UserResourceUtil;
 import com.huaji.galgamebyhuaji.service.UserBehaviorService;
+import com.huaji.galgamebyhuaji.service.UserMxgServlet;
+import com.huaji.galgamebyhuaji.vo.CommentWithUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +37,8 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
 	final UsersMapper usersMapper;
 	final UserResourceUtil util;
 	private final LinksMapper linksMapper;
+	private final CommentMapper commentMapper;
+	private final UserMxgServlet mxgServlet;
 	
 	public ReturnResult<UserResourceRepository> getUserResource(Integer userId, Integer rId) {
 		if (userId == null || userId < 0)
@@ -175,11 +176,22 @@ public class UserBehaviorServiceImpl implements UserBehaviorService {
 	
 	@Override
 	public List<Links> getUserUpLink(Users users) {
-		return List.of();
+		LinksExample example = new LinksExample();
+		example.createCriteria().andLinkUpUserEqualTo(users.getUserId());
+		return linksMapper.selectByExample(example);
 	}
 	
 	@Override
-	public List<Comment> getUserComment(Users users) {
-		return List.of();
+	public List<CommentWithUser> getUserComment(Users users) {
+		CommentExample e = new CommentExample();
+		e.createCriteria().andCommentUserEqualTo(users.getUserId());
+		List<Comment> comments = commentMapper.selectByExampleWithBLOBs(e);
+		if (comments == null || comments.isEmpty())
+			return List.of();
+		Users userListMsg = mxgServlet.getUserListMsg(users.getUserId());
+		return comments.stream().map(r ->
+				                             new CommentWithUser(r, userListMsg)
+		
+		).toList();
 	}
 }

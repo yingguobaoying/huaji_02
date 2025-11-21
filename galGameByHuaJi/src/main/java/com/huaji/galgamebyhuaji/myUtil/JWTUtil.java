@@ -7,6 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaji.galgamebyhuaji.config.JWTConfig;
+import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -44,7 +45,7 @@ public class JWTUtil {
 					.sign(algorithm);
 		} catch (Exception e) {
 			MyLogUtil.error(JWTUtil.class, "Token生成失败", e);
-			return null;
+			throw new OperationException("token生成失败");
 		}
 	}
 	
@@ -73,7 +74,7 @@ public class JWTUtil {
 			return jwt.getExpiresAt();
 		} catch (Exception e) {
 			MyLogUtil.error(JWTUtil.class, "判断是否即将过期失败", e);
-			return null;
+			return new Date(0);
 		}
 	}
 	
@@ -98,7 +99,7 @@ public class JWTUtil {
 	public <T> String getTokenUsableTime(String token, String key, Class<T> clazz) {
 		ReturnResult<T> result = parseToken(token, key, clazz);
 		if (!result.isOperationResult()) {
-			return null;
+			throw new OperationException("token生成失败");
 		}
 		return generateToken(key, result.getReturnResult(), jwtConfig.getExpirationTime());
 	}

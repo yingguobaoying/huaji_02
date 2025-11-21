@@ -64,7 +64,7 @@ public class UserBehaviorController extends BaseController {
 		String token = getToken(request);
 		//再次校验token
 		tokenService.verifyToken(token, loginUser.getUserId(), ElseUtil.getClientIp(request), false);
-		return ReturnResult.isTrue("用户头像更新成功!", userMxgServlet.updateUserHeadPortraitUrl(file, loginUser.getUserId(), banHeadPortrait, token));
+		return ReturnResult.isTrue("用户头像更新成功!", userMxgServlet.updateUserHeadPortraitUrl(file, loginUser.getUserId(), banHeadPortrait));
 	}
 	
 }

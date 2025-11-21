@@ -123,7 +123,7 @@ public class IntoListen {
 			               "类加载开始时间:{%s},全部初始化完成时间:{%s},用时{%d}毫秒".formatted(
 					               TimeUtil.getVisualDateFormatTime(starTime),
 					               TimeUtil.getVisualDateFormatTime(new Date()),
-					               System.currentTimeMillis() - starTime.getTime()
+					               starTime.getTime() + System.currentTimeMillis()
 			               )
 			);
 		}

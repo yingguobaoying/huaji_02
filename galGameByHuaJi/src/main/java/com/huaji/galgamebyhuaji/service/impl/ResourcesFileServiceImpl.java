@@ -214,7 +214,6 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 		return url.getMsg();
 	}
 	
-	@Transactional
 	public String delResourceImg(List<String> imgName, int rId, boolean delFirstImg) {
 		Resources resources = resourcesMapper.selectByPrimaryKey(rId);
 		if (resources == null || resources.getrId() == null)
@@ -226,7 +225,7 @@ public class ResourcesFileServiceImpl implements ResourcesFileService {
 				r1.setrId(rId);
 				r1.setrJpeg("null");
 				//清空数据库
-				WriteError.tryWrite(resourcesMapper.insertSelective(r1));
+				WriteError.tryWrite(resourcesMapper.updateByPrimaryKeySelective(r1));
 				//清除文件
 				fileAccessService.deleteFiles(fileName, null);
 			} catch (OperationException e) {

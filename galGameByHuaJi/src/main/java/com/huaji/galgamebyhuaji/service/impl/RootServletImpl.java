@@ -23,12 +23,14 @@ import com.huaji.galgamebyhuaji.service.LoginService;
 import com.huaji.galgamebyhuaji.service.RootServlet;
 import com.huaji.galgamebyhuaji.service.SessionService;
 import com.huaji.galgamebyhuaji.service.TokenService;
+import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -39,36 +41,116 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 @RequiredArgsConstructor
 public class RootServletImpl implements RootServlet {
-	final UsersMapper usersMapper;
-	final TokenService tokenService;
-	final PasswordEncryptionUtil passwordEncryptionUtil;
-	final SessionMapper sessionMapper;
-	final SessionService sessionService;
+	private final UsersMapper usersMapper;
+	private final TokenService tokenService;
+	private final PasswordEncryptionUtil passwordEncryptionUtil;
+	private final SessionMapper sessionMapper;
+	private final SessionService sessionService;
+	private final UserMxgServlet userMxgServlet;
 	
-	// todo 这里还有好多地方都还没写完,不然你猜猜为什么叫做准备上线
 	@Override
-	public Users RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError {
-		return null;
+	public String RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError, IOException {
+		Users root = usersMapper.getUserListMxg(rootId);
+		Users user = usersMapper.getUserListMxg(usersId);
+		MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的头像信息".formatted(
+				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName()
+		));
+		boolean banHead = (jpeg == null || jpeg.isEmpty());
+		boolean isTrue = true;
+		try {
+			if (banHead)
+				return userMxgServlet.updateUserHeadPortraitUrl(null, usersId, true);
+			else
+				return userMxgServlet.updateUserHeadPortraitUrl(jpeg, user.getUserId(), false);
+		} catch (Exception e) {
+			isTrue = false;
+			MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的头像信息失败了,因为%s".formatted(
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e
+			));
+			throw e;
+		} finally {
+			MyLogUtil.info(RootServlet.class, "管理员%d{%s}强制修改%d{%s}的头像信息结果:{%s}".formatted(
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), isTrue ? "成功" : "失败"
+			));
+		}
 	}
 	
 	@Override
-	public Users RootEditUserMxg(UsersWithBLOBs users, int rootId) throws WriteError {
-		return null;
+	public String RootEditUserMxg(UsersWithBLOBs user, int rootId) throws WriteError {
+		Users root = usersMapper.getUserListMxg(rootId);
+		MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的信息".formatted(
+				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName()
+		));
+		boolean isTrue = true;
+		try {
+			if (!(rootId == 1 || rootId == 0)) {//特殊用户保护
+				if (user.getUserId().equals(1) || user.getUserId().equals(0))
+					throw new OperationException("禁止修改特殊用户的用户信息!");
+			}
+			WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(user));
+			return "修改完成";
+		} catch (Exception e) {
+			isTrue = false;
+			MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的信息失败了,因为%s".formatted(
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e
+			));
+			throw e;
+		} finally {
+			MyLogUtil.info(RootServlet.class, "管理员%d{%s}强制修改%d{%s}的信息结果:{%s}".formatted(
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), isTrue ? "成功" : "失败"
+			));
+		}
 	}
 	
 	@Override
-	public Users RootUpdateUSerStatus(int usersId, int rootId, UserStatus userStatus) throws WriteError {
-		return null;
+	public String RootUpdateUSerStatus(int usersId, int rootId, UserStatus userStatus) throws WriteError {
+		Users root = usersMapper.getUserListMxg(rootId);
+		Users user = usersMapper.getUserListMxg(usersId);
+		MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的状态信息,状态变更{%s}->{%s}".formatted(
+				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(),
+				UserStatus.testEnumValue(user.getStatus()).getName(), userStatus.getName()
+		));
+		boolean isTrue = true;
+		try {
+			if (!(rootId == 1 || rootId == 0)) {//特殊用户保护
+				if (user.getUserId().equals(1) || user.getUserId().equals(0))
+					throw new OperationException("禁止修改特殊用户的用户状态信息!");
+			}
+			UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
+			usersWithBLOBs.setUserId(usersId);
+			usersWithBLOBs.setStatus(userStatus.getValue());
+			WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(usersWithBLOBs));
+			return "修改完成";
+		} catch (Exception e) {
+			isTrue = false;
+			MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的状态信息失败了,因为%s".formatted(
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e
+			));
+			throw e;
+		} finally {
+			MyLogUtil.info(RootServlet.class, "管理员%d{%s}强制修改%d{%s}的状态信息结果:{%s}".formatted(
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), isTrue ? "成功" : "失败"
+			));
+		}
 	}
 	
 	@Override
-	public Users RootSelectUserById(int usersId, int rootId) {
+	public UsersWithBLOBs RootSelectUserById(int usersId, int rootId) {
+		Users root = usersMapper.getUserListMxg(rootId);
+		Users user = usersMapper.getUserListMxg(usersId);
+		MyLogUtil.info(RootServlet.class, "管理员%d{%s}查询%d{%s}的信息".formatted(
+				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName()
+		));
 		return usersMapper.selectByPrimaryKey(usersId);
 	}
 	
 	@Override
-	public List<Users> RootSelectUserByName(String usersName, int root) {
-		return List.of();
+	public List<UsersWithBLOBs> RootSelectUserByName(String usersName, int root) {
+		Users r = usersMapper.getUserListMxg(root);
+		MyLogUtil.info(RootServlet.class, "管理员%d{%s}查询用户名保护{%s}的信息".formatted(
+				r.getUserId(), r.getUserName(), usersName
+		));
+		return usersMapper.selectUserByName(usersName);
 	}
 	
 	@Override
@@ -98,21 +180,24 @@ public class RootServletImpl implements RootServlet {
 	@Transactional
 	public UserToken rootLogin(String token, HttpServletRequest request) {
 		ReentrantLock lock = null;
+		ReentrantLock lock1 = null;
 		UserToken userToken;
 		String ip = ElseUtil.getClientIp(request);
 		try {
 			MyLogUtil.info(LoginService.class, "ip:{%s}正在登录特殊root用户".formatted(ip));
 			if (!MyStringUtil.isNull(token) && token.length() >= 20) {
-				lock = GlobalLock.getLockForUser(token.hashCode());
+				lock = GlobalLock.getLockForUser(0);
+				lock1 = GlobalLock.getLockForUser(1);
 				lock.lock();
-				//不自动校验ip
-				userToken = tokenService.verifyToken(token, -1, null, true);
+				lock1.lock();
 				//手动校验ip
 				boolean b = isIPWhiteList(ElseUtil.getClientIp(request));
 				if (!b) {
 					MyLogUtil.info(LoginService.class, "ip:{%s}正在登录特殊root用户时失败了,因为ip不在白名单之内".formatted(ip));
 					throw new OperationException("您使用的ip被防火墙隔离了,请换个ip试试");
 				}
+				//不自动校验ip
+				userToken = tokenService.verifyToken(token, -1, null, true);
 				return userToken;
 			} else {
 				MyLogUtil.error(LoginService.class,
@@ -122,7 +207,8 @@ public class RootServletImpl implements RootServlet {
 			MyLogUtil.error(LoginService.class,
 			                "ip:{%s}正在登录特殊root用户时失败了,因为:".formatted(ip) + e.getMessage());
 		} finally {
-			if (lock != null) {GlobalLock.unlockForUser(lock, token.hashCode());}
+			if (lock != null) {GlobalLock.unlockForUser(lock, 0);}
+			if (lock1 != null) {GlobalLock.unlockForUser(lock1, 1);}
 		}
 		passwordEncryptionUtil.applyRandomDelay(10, 500);
 		throw new OperationException("账号或密码不正确，请检查后重试。");
@@ -167,7 +253,6 @@ public class RootServletImpl implements RootServlet {
 			             "\n" +
 			             "在罗德岛，红豆不仅是一名优秀的战士，更是一个充满活力和激情的年轻人。她用自己的热情和决心感染着身边的每一个人，无论是战斗还是生活，她都用心去面对每一个挑战。");
 			users.setMailbox("Vigna_BABIE_Arknights.com");
-			users.setBio("一只红豆厨");
 			users.setUserNameLogin("Vigna");
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			LocalDate localDate = LocalDate.parse("2019-04-30", formatter);

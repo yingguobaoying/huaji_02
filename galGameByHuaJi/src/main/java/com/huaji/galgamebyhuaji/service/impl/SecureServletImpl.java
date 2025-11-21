@@ -1,6 +1,7 @@
 package com.huaji.galgamebyhuaji.service.impl;
 
 import com.huaji.galgamebyhuaji.constant.Constant;
+import com.huaji.galgamebyhuaji.constant.GlobalLock;
 import com.huaji.galgamebyhuaji.constant.LongTextConstant;
 import com.huaji.galgamebyhuaji.controller.SecureController;
 import com.huaji.galgamebyhuaji.dao.FeedbackMapper;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
@@ -106,99 +108,120 @@ public class SecureServletImpl implements SecureServlet {
 		boolean isRoot = userId != -1;
 		//如果是管理员调用检查令牌
 		if (isRoot) {
-			OnlineUser onlineUser = tokenService.VerifyAndParse(token, -1, TokenType.DEFAULT_STATUS, null);
-			UsersWithBLOBs usersWithBLOBs = usersMapper.selectByPrimaryKey(userId);
-			if (usersWithBLOBs == null || usersWithBLOBs.getUserId() == null)
-				throw new OperationException("被操作的用户不存在");
-			if (!(UserStatus.OK.getValue().equals(usersWithBLOBs.getStatus()) ||
-			      UserStatus.NOT_AUTHENTICATED.getValue().equals(usersWithBLOBs.getStatus())))
-				throw new OperationException("操作失败,因为用户状态为:" + usersWithBLOBs.getStatus());
-			Users users = new Users();
-			users.setUserId(userId);
-			users.setStatus(UserStatus.FROZEN.getValue());
-			WriteError.tryWrite(usersMapper.updateByPrimaryKey(users));
-			MyLogUtil.info(SecureServletImpl.class, "ID为{%d}的管理员手动冻了ID:%d的用户,该用户现在状态为不可用!".formatted(onlineUser.getUserId(), userId));
-			return "操作成功!";
+			ReentrantLock lock = GlobalLock.getLockForUser(userId);
+			try {
+				lock.lock();
+				OnlineUser onlineUser = tokenService.VerifyAndParse(token, -1, TokenType.DEFAULT_STATUS, null);
+				UsersWithBLOBs usersWithBLOBs = usersMapper.selectByPrimaryKey(userId);
+				if (userId == 0 || userId == 1) {
+					passwordEncryptionUtil.applyRandomDelay(10, 500);
+					return "操作成功!";//假装成功了
+				}
+				if (usersWithBLOBs == null || usersWithBLOBs.getUserId() == null)
+					throw new OperationException("被操作的用户不存在");
+				if (!UserStatus.OK.getValue().equals(usersWithBLOBs.getStatus()) &&
+				    !UserStatus.NOT_AUTHENTICATED.getValue().equals(usersWithBLOBs.getStatus()))
+					throw new OperationException("操作失败,因为用户状态为:" + usersWithBLOBs.getStatus());
+				Users users = new Users();
+				users.setUserId(userId);
+				users.setStatus(UserStatus.FROZEN.getValue());
+				WriteError.tryWrite(usersMapper.updateByPrimaryKey(users));
+				MyLogUtil.info(SecureServletImpl.class, "ID为{%d}的管理员手动冻了ID:%d的用户,该用户现在状态为不可用!".formatted(onlineUser.getUserId(), userId));
+				return "操作成功!";
+			} finally {
+				if (lock != null) GlobalLock.unlockForUser(lock, userId);
+			}
 		}
 		//验证令牌
 		FrozenUser onlineUser = tokenService.VerifyAndParse(token, userId, TokenType.FROZEN_USER, null);
-		UsersWithBLOBs users = usersMapper.selectByPrimaryKey(onlineUser.getUserId());
-		if (users == null || users.getUserId() == null) {
-			passwordEncryptionUtil.applyRandomDelay(0, 30);
-			throw new OperationException("用户不存在!");
-		}
-		UserStatus userStatus = UserStatus.testEnumValue(users.getStatus());
-		if (userStatus == UserStatus.OK || UserStatus.NOT_AUTHENTICATED == userStatus) {
-			//root 防护
-			if (users.getUserId() == 0 || users.getUserId() == 1) {
-				//假装成功
-				MyLogUtil.info(SecureServletImpl.class, "警告有人尝试冻结特殊账号!");
+		ReentrantLock lock = GlobalLock.getLockForUser(userId);
+		try {
+			lock.lock();
+			UsersWithBLOBs users = usersMapper.selectByPrimaryKey(onlineUser.getUserId());
+			if (users == null || users.getUserId() == null) {
+				passwordEncryptionUtil.applyRandomDelay(0, 30);
+				throw new OperationException("用户不存在!");
+			}
+			UserStatus userStatus = UserStatus.testEnumValue(users.getStatus());
+			if (userStatus == UserStatus.OK || UserStatus.NOT_AUTHENTICATED == userStatus) {
+				//root 防护
+				if (users.getUserId() == 0 || users.getUserId() == 1) {
+					//假装成功
+					MyLogUtil.info(SecureServletImpl.class, "警告有人尝试冻结特殊账号!");
+					return "您已经成功冻结了您的账号,为了您的账号安全考虑,请尽快联系管理员进行处理!";
+				}
+				//进入冻结
+				UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
+				usersWithBLOBs.setUserId(users.getUserId());
+				usersWithBLOBs.setStatus(UserStatus.FROZEN.getValue());
+				WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(usersWithBLOBs));
 				return "您已经成功冻结了您的账号,为了您的账号安全考虑,请尽快联系管理员进行处理!";
 			}
-			//进入冻结
-			UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
-			usersWithBLOBs.setUserId(users.getUserId());
-			usersWithBLOBs.setStatus(UserStatus.FROZEN.getValue());
-			WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(usersWithBLOBs));
-			return "您已经成功冻结了您的账号,为了您的账号安全考虑,请尽快联系管理员进行处理!";
+			throw new OperationException("冻结失败!因为用户当前状态为:" + userStatus.getName());
+		} finally {
+			if (lock != null) GlobalLock.unlockForUser(lock, onlineUser.getUserId());
 		}
-		throw new OperationException("冻结失败!因为用户当前状态为:" + userStatus.getName());
 	}
 	
 	@Override
 	public String unfrozenUser(int userId, String token, String ip) throws SessionExceptions {
-		//检查是否为管理调用
-		boolean isRoot = userId != -1;
-		//如果是管理员调用检查令牌
-		if (isRoot) {
-			OnlineUser onlineUser;
-			try {
-				onlineUser = tokenService.VerifyAndParse(token, -1, TokenType.DEFAULT_STATUS, null);
-			} catch (Exception e) {
-				passwordEncryptionUtil.applyRandomDelay(0, 30);
-				throw e;
-			}
-			if (!rootServlet.isIPWhiteList(ip)) {
-				throw new OperationException("操作失败!因为ip被防火墙隔离了!");
-			}
-			UsersWithBLOBs usersWithBLOBs = usersMapper.selectByPrimaryKey(userId);
-			if (usersWithBLOBs == null || usersWithBLOBs.getUserId() == null)
-				throw new OperationException("被操作的用户不存在");
-			//无视状态件直接解冻
-			Users users = new Users();
-			users.setUserId(userId);
-			users.setStatus(UserStatus.OK.getValue());
-			WriteError.tryWrite(usersMapper.updateByPrimaryKey(users));
-			MyLogUtil.info(SecureServletImpl.class, "ID为{%d}的管理员手动解冻了ID:%d的用户,该用户现在状态为正常!".formatted(onlineUser.getUserId(), userId));
-			return "操作成功!";
-		}
-		//用户自助操作
-		UsersWithBLOBs user = userMxgServlet.getItselfMxg(userId);
-		UserStatus userStatus = UserStatus.testEnumValue(user.getStatus());
-		if (userStatus == UserStatus.FROZEN) {
-			//验证令牌
-			UnfrozenUser onlineUser;
-			try {
-				onlineUser = tokenService.VerifyAndParse(token, -1, TokenType.UNFROZEN_USER, null);
-			} catch (Exception e) {
-				passwordEncryptionUtil.applyRandomDelay(0, 30);
-				throw e;
-			}
-			if (onlineUser instanceof UnfrozenUser u) {
-				if (!u.getEmail().equals(user.getMailbox()) || !(u.getUserId() == user.getUserId())) {
-					throw new OperationException("解冻失败,因为令牌提供的用户信息和实际的不一致");
+		ReentrantLock lock = GlobalLock.getLockForUser(token.hashCode());
+		try {//检查是否为管理调用
+			lock.lock();
+			boolean isRoot = userId != -1;
+			//如果是管理员调用检查令牌
+			if (isRoot) {
+				OnlineUser onlineUser;
+				try {
+					onlineUser = tokenService.VerifyAndParse(token, -1, TokenType.DEFAULT_STATUS, null);
+				} catch (Exception e) {
+					passwordEncryptionUtil.applyRandomDelay(0, 30);
+					throw e;
 				}
-				//解冻,并重置密码
-				UsersWithBLOBs u1 = new UsersWithBLOBs();
-				u1.setUserId(u.getUserId());
-				u1.setStatus(UserStatus.OK.getValue());
-				u1.setUserPassword(u.getNewPassword());
-				WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(u1));
-				return "解冻成功";
+				if (!rootServlet.isIPWhiteList(ip)) {
+					throw new OperationException("操作失败!因为ip被防火墙隔离了!");
+				}
+				UsersWithBLOBs usersWithBLOBs = usersMapper.selectByPrimaryKey(userId);
+				if (usersWithBLOBs == null || usersWithBLOBs.getUserId() == null)
+					throw new OperationException("被操作的用户不存在");
+				//无视状态件直接解冻
+				Users users = new Users();
+				users.setUserId(userId);
+				users.setStatus(UserStatus.OK.getValue());
+				WriteError.tryWrite(usersMapper.updateByPrimaryKey(users));
+				MyLogUtil.info(SecureServletImpl.class, "ID为{%d}的管理员手动解冻了ID:%d的用户,该用户现在状态为正常!".formatted(onlineUser.getUserId(), userId));
+				return "操作成功!";
 			}
-			throw new OperationException("错误的令牌类型!");
+			//用户自助操作
+			UsersWithBLOBs user = userMxgServlet.getItselfMxg(userId);
+			UserStatus userStatus = UserStatus.testEnumValue(user.getStatus());
+			if (userStatus == UserStatus.FROZEN) {
+				//验证令牌
+				UnfrozenUser onlineUser;
+				try {
+					onlineUser = tokenService.VerifyAndParse(token, -1, TokenType.UNFROZEN_USER, null);
+				} catch (Exception e) {
+					passwordEncryptionUtil.applyRandomDelay(0, 30);
+					throw e;
+				}
+				if (onlineUser instanceof UnfrozenUser u) {
+					if (!u.getEmail().equals(user.getMailbox()) || !(u.getUserId() == user.getUserId())) {
+						throw new OperationException("解冻失败,因为令牌提供的用户信息和实际的不一致");
+					}
+					//解冻,并重置密码
+					UsersWithBLOBs u1 = new UsersWithBLOBs();
+					u1.setUserId(u.getUserId());
+					u1.setStatus(UserStatus.OK.getValue());
+					u1.setUserPassword(u.getNewPassword());
+					WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(u1));
+					return "解冻成功";
+				}
+				throw new OperationException("错误的令牌类型!");
+			}
+			throw new OperationException("解冻失败!因为该用户当前状态为:" + userStatus.getName());
+		} finally {
+			if (lock != null) GlobalLock.unlockForUser(lock, token.hashCode());
 		}
-		throw new OperationException("解冻失败!因为该用户当前状态为:" + userStatus.getName());
 	}
 	
 	@Override
@@ -246,32 +269,44 @@ public class SecureServletImpl implements SecureServlet {
 		if (u.getUserId() == 0 || u.getUserId() == 1) {
 			return "密码已更新!请重新登录";//假装修改成功
 		}
-		UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
-		usersWithBLOBs.setUserId(u.getUserId());
-		usersWithBLOBs.setStatus(UserStatus.OK.getValue());
-		usersWithBLOBs.setUserPassword(passwordEncryptionUtil.hashPassword(newPassword));
-		newPassword = null;
-		WriteError.tryWrite((usersMapper.updateByPrimaryKeySelective(usersWithBLOBs)));
-		Session session = sessionService.getSession(u.getUserId());
-		if (session != null && session.getSessionId() != null) {sessionService.exitLogin(u.getUserId(), true, null);}
-		return "密码已更新!请重新登录";
+		ReentrantLock lock = GlobalLock.getLockForUser(u.getUserId());
+		try {
+			lock.lock();
+			UsersWithBLOBs usersWithBLOBs = new UsersWithBLOBs();
+			usersWithBLOBs.setUserId(u.getUserId());
+			usersWithBLOBs.setStatus(UserStatus.OK.getValue());
+			usersWithBLOBs.setUserPassword(passwordEncryptionUtil.hashPassword(newPassword));
+			WriteError.tryWrite((usersMapper.updateByPrimaryKeySelective(usersWithBLOBs)));
+			Session session = sessionService.getSession(u.getUserId());
+			if (session != null && session.getSessionId() != null) {
+				sessionService.exitLogin(u.getUserId(), true, null);
+			}
+			return "密码已更新!请重新登录";
+		} finally {
+			if (lock != null) GlobalLock.unlockForUser(lock, u.getUserId());
+		}
 	}
 	
 	@Override
 	public String authenticationEmail(String ip, int userId, String token) throws SessionExceptions {
-		//验证令牌
-		VerifyEmail onlineUser = tokenService.VerifyAndParse(token, userId, TokenType.VERIFY_EMAIL, ip);
-		UsersWithBLOBs itselfMxg = usersMapper.selectByPrimaryKey(userId);
-		if (itselfMxg.getJurisdiction() != 2) {
-			return "您已经认证过了,不需要再次认证";
+		ReentrantLock lock = GlobalLock.getLockForUser(userId);
+		try {//验证令牌
+			lock.lock();
+			VerifyEmail onlineUser = tokenService.VerifyAndParse(token, userId, TokenType.VERIFY_EMAIL, ip);
+			UsersWithBLOBs itselfMxg = usersMapper.selectByPrimaryKey(userId);
+			if (itselfMxg.getJurisdiction() != 2) {
+				return "您已经认证过了,不需要再次认证";
+			}
+			//验证成功,将用户状态设置为正常
+			UsersWithBLOBs users = new UsersWithBLOBs();
+			users.setUserId(onlineUser.getUserId());
+			users.setMailbox(onlineUser.getEmail());
+			users.setJurisdiction(JurisdictionLevel.USERS_JURISDICTION.getLevel());
+			users.setStatus(UserStatus.OK.getValue());
+			WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(users));
+			return "您已成功完成邮箱认证!如果主页面仍然显示未认证,请刷新页面或者清除本地缓存";
+		} finally {
+			if (lock != null) GlobalLock.unlockForUser(lock, userId);
 		}
-		//验证成功,将用户状态设置为正常
-		UsersWithBLOBs users = new UsersWithBLOBs();
-		users.setUserId(onlineUser.getUserId());
-		users.setMailbox(onlineUser.getEmail());
-		users.setJurisdiction(JurisdictionLevel.USERS_JURISDICTION.getLevel());
-		users.setStatus(UserStatus.OK.getValue());
-		WriteError.tryWrite(usersMapper.updateByPrimaryKeySelective(users));
-		return "您已成功完成邮箱认证!如果主页面仍然显示未认证,请刷新页面或者清除本地缓存";
 	}
 }

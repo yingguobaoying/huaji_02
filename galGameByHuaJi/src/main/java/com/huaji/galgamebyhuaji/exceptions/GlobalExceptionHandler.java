@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
 	
 	public ReturnResult<Exception> addSystemMsg(ReturnResult<Exception> ex, HttpServletRequest request) {
 		String attribute = (String) request.getAttribute(SystemConstant.SYSTEM_MSG);
-		if (MyStringUtil.isNull(attribute)) {
+		if (!MyStringUtil.isNull(attribute)) {
 			ex.addMap(SystemConstant.SYSTEM_MSG, attribute);
 		}
 		return ex;

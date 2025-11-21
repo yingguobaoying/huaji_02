@@ -1,11 +1,11 @@
 package com.huaji.galgamebyhuaji.service;
 
 
-import com.huaji.galgamebyhuaji.entity.Comment;
 import com.huaji.galgamebyhuaji.entity.Links;
 import com.huaji.galgamebyhuaji.entity.UserResourceRepository;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
+import com.huaji.galgamebyhuaji.vo.CommentWithUser;
 
 import java.util.List;
 
@@ -53,5 +53,5 @@ public interface UserBehaviorService {
 	 *
 	 * @return 用户评论(为回复时仅获取上一级评论以及同级评论信息)
 	 */
-	List<Comment> getUserComment(Users users);
+	List<CommentWithUser> getUserComment(Users users);
 }

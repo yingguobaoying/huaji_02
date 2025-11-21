@@ -34,7 +34,7 @@ public class BackgroundImgController {
 			if (fileNameList == null || fileNameList.length == 0)
 				return ReturnResult.isFalse("没有任何背景图片捏~");
 			List<String> fileName = new ArrayList<>(10);
-			List<String> tempList = Arrays.asList(fileNameList);
+			List<String> tempList = new ArrayList<>(Arrays.asList(fileNameList));
 			Collections.shuffle(tempList);
 			fileName.addAll(tempList.subList(0, Math.min(10, tempList.size())));
 			return ReturnResult.isTrue("背景图片获取成功!", fileName, -1);

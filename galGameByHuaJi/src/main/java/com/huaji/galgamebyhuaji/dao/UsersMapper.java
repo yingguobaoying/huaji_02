@@ -62,4 +62,5 @@ public interface UsersMapper {
 	int buyResources (@Param("userId") int userId, @Param("rId") int rId,@Param("isDown") boolean isDown);
 	
 	Users getUserListMxg(@Param("userId") int userId);
+	List<UsersWithBLOBs> selectUserByName (@Param("userName") String userName);
 }

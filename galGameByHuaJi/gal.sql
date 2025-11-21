@@ -11,7 +11,7 @@
  Target Server Version : 80037
  File Encoding         : 65001
 
- Date: 14/10/2025 20:54:38
+ Date: 11/11/2025 10:20:37
 */
 
 SET NAMES utf8mb4;
@@ -57,7 +57,6 @@ DROP TABLE IF EXISTS `fen`;
 CREATE TABLE `fen`  (
   `r_id` int(0) NOT NULL,
   `user_id` int(0) NULL DEFAULT NULL,
-  PRIMARY KEY (`r_id`) USING BTREE,
   INDEX `fen_user`(`r_id`) USING BTREE,
   INDEX `user_id`(`user_id`) USING BTREE,
   CONSTRAINT `fen_ibfk_1` FOREIGN KEY (`r_id`) REFERENCES `resources` (`r_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -145,7 +144,7 @@ CREATE TABLE `resources`  (
   INDEX `name`(`r_name`) USING BTREE,
   INDEX `changShang`(`r_manufacturer`) USING BTREE,
   INDEX `upUser`(`up_user`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for resources_file_map
@@ -158,6 +157,7 @@ CREATE TABLE `resources_file_map`  (
   `is_public` bit(1) NULL DEFAULT NULL COMMENT '是否为官方渠道',
   `size` int(0) NULL DEFAULT NULL COMMENT '文件数量',
   `file_size` bigint(0) NULL DEFAULT NULL COMMENT '本文件大小',
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '注释信息/使用注意事项',
   INDEX `resources_file_map_ibfk_1`(`r_id`) USING BTREE,
   CONSTRAINT `resources_file_map_ibfk_1` FOREIGN KEY (`r_id`) REFERENCES `resources` (`r_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
@@ -199,7 +199,7 @@ CREATE TABLE `session`  (
   PRIMARY KEY (`session_id`) USING BTREE,
   INDEX `user`(`user_id`) USING BTREE,
   CONSTRAINT `session_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for tag
@@ -210,7 +210,7 @@ CREATE TABLE `tag`  (
   `tag_name` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`tag_id`) USING BTREE,
   INDEX `tag_id`(`tag_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user_download
@@ -235,9 +235,10 @@ DROP TABLE IF EXISTS `user_resource_repository`;
 CREATE TABLE `user_resource_repository`  (
   `user_id` int(0) NOT NULL COMMENT '获取资源的用户ID',
   `r_id` int(0) NULL DEFAULT NULL COMMENT '被获取的资源',
-  `get_type` enum('yes','no') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '是否为本地下载获取',
+  `has_down` bit(1) NULL DEFAULT NULL COMMENT '本地下载权限',
   `expiration_time` datetime(0) NULL DEFAULT NULL COMMENT '保存信息过期时间,默认为24小时',
-  `get_time` datetime(0) NULL DEFAULT NULL COMMENT '获取时间',
+  `get_time` datetime(0) NULL DEFAULT NULL COMMENT 's',
+  `has_link` bit(1) NULL DEFAULT NULL COMMENT '是否有外部链接获取权限',
   INDEX `user_id`(`user_id`) USING BTREE,
   INDEX `r_id`(`r_id`) USING BTREE,
   CONSTRAINT `user_resource_repository_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -256,7 +257,7 @@ CREATE TABLE `user_token`  (
   `token_id` bigint(0) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`token_id`, `user_id`) USING BTREE,
   UNIQUE INDEX `token`(`token`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for users
@@ -270,7 +271,7 @@ CREATE TABLE `users`  (
   `Coin` int(0) NULL DEFAULT 0 COMMENT '用户的积分/硬币,这个是用来限制用户使用本地服务器下载使用的',
   `mailbox` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮箱',
   `bio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '用户的简介',
-  `user_head_portrait_url` varchar(31) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户头像,命名统一为user_id.*(默认为default.jpeg)',
+  `user_head_portrait_url` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户头像,命名统一为user_id.*(默认为default.jpeg)',
   `status` enum('ok','blacklist','frozen','banned','is disabled','Not authenticated') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'Not authenticated' COMMENT '用户的账号状态,当前有:\r\nok:正常  blacklist:被拉黑  frozen:冻结(用户手动)  bnanner:被封号力(管理员操作) is disabled :不可用(因为违反一些规则导致的)Not authenticated:注册了没有验证邮箱',
   `sex` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户性别',
   `jurisdiction` int(0) NULL DEFAULT 2 COMMENT '权限级别:1-10,10为root,9为用户管理,0为游客,1\r\n未验证用户,3为普通用户,4,为高级用户,5为资源管理,\r\n所有用户均可编辑自己上传的链接资源\r\n未说明的后面按照需要添加(高权限有低级权限的所有权限)(如果后面太多可以将其作为一个字典表的主键使用)\r\n',
@@ -282,6 +283,6 @@ CREATE TABLE `users`  (
   UNIQUE INDEX `user login name`(`user_name_login`) USING BTREE,
   UNIQUE INDEX `user mail`(`mailbox`) USING BTREE,
   UNIQUE INDEX `user pe`(`user_pe`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

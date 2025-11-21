@@ -93,7 +93,7 @@ public class VerifyController extends BaseController {
 		boolean isTrue = false;
 		String msg = null;
 		try {
-			msg=secureServlet.authenticationEmail(ip, userId, token);
+			msg = secureServlet.authenticationEmail(ip, userId, token);
 			isTrue = true;
 		} catch (OperationException oe) {
 			msg = oe.getMsg();
@@ -101,22 +101,19 @@ public class VerifyController extends BaseController {
 			ErrorEnum errorEnum = ErrorEnum.SESSION_NOT_AVAILABLE_ERROR;
 			if (errorEnum.getError_num() == e.getErrorNum() && errorEnum.getError_type() == errorEnum.getError_type()) {
 				msg = "您的账号当前不在线,因为我们验证邮件时需要您的账号在线,请您重新登录之后再次操作!";
-			}
-			else {
+			} else {
 				msg = e.getMessage();
 			}
 		} catch (Exception e) {
 			MyLogUtil.error(SecureServlet.class, e);
 		}
 		if (isTrue) {
-			string = LongTextConstant.getReturnPage("操作成功", msg+",您现在可以正常使用我们的小站了");
-		}
-		else {
+			string = LongTextConstant.getReturnPage("操作成功", msg + ",您现在可以正常使用我们的小站了");
+		} else {
 			if (!MyStringUtil.isNull(msg)) {
 				string = LongTextConstant.getReturnPage("操作失败",
 				                                        "出错了,请重新进行一次邮件验证,错误原因是:" + msg);
-			}
-			else {
+			} else {
 				string = LongTextConstant.getReturnPage("操作失败",
 				                                        "服务器出错了,请重新进行一次邮件验证");
 			}

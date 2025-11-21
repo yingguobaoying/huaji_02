@@ -84,17 +84,8 @@ public class UserMxgServletImpl implements UserMxgServlet {
 		});
 	}
 	
-	/**
-	 * 更新用户头像
-	 *
-	 * @param croppedImage 图片
-	 * @param userId       更改头像的用户用于信息验证
-	 * @param userToken    用户token
-	 *
-	 * @return 更新结果信息
-	 */
 	@Override
-	public String updateUserHeadPortraitUrl(MultipartFile croppedImage, int userId, boolean banHeadPortrait, String userToken) throws BestException, IOException {
+	public String updateUserHeadPortraitUrl(MultipartFile croppedImage, int userId, boolean banHeadPortrait) throws IOException {
 		if (userId < 0)
 			throw new OperationException("用户不存在!");
 		Users users = usersMapper.selectByPrimaryKey(userId);
