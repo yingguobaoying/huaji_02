@@ -21,7 +21,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/index")
 @RequiredArgsConstructor
-public class IndexController {
+public class
+
+
+
+
+
+
+IndexController {
 	final
 	ResourcesService resourcesService;
 	final

@@ -2,10 +2,12 @@ package com.huaji.galgamebyhuaji.service;
 
 
 import com.huaji.galgamebyhuaji.entity.UserToken;
+import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.UserStatus;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
+import com.huaji.galgamebyhuaji.myUtil.PageUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,4 +82,9 @@ public interface RootServlet {
 	 * 之后考虑使用特殊链接来进行root登录令牌的重置
 	 */
 	void rootUserInit() throws SessionExceptions;
+	
+	List<Users> getUserList (PageUtil page);
+	
+	Integer getUserSize ();
+	
 }

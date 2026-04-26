@@ -506,4 +506,13 @@
         from users
         where user_name  LIKE CONCAT('%', #{userName}, '%')
     </select>
+    <select id="getUserListMxgByRootList" resultType="com.huaji.galgamebyhuaji.entity.Users">
+        select user_id, user_head_portrait_url, user_name, Coin, register_time, jurisdiction
+        from users
+        limit #{page.startIndex}, #{page.size}
+    </select>
+    <select id="getUserSize" resultType="java.lang.Integer">
+        select count(*)
+        from users
+    </select>
 </mapper>

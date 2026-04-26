@@ -4,6 +4,7 @@ package com.huaji.galgamebyhuaji.service;
 import com.huaji.galgamebyhuaji.entity.UserToken;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
+import com.huaji.galgamebyhuaji.enumPackage.JurisdictionLevel;
 import com.huaji.galgamebyhuaji.exceptions.BestException;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
@@ -89,4 +90,12 @@ public interface LoginService {
 	 * @return 正确信息
 	 */
 	 UserToken loginByToken(String token, HttpServletRequest request) throws BestException;
+	
+	/**
+	 * 判断用户是否拥有权限
+ 	 * @param userId 用户ID
+	 * @param jurisdictionLevel 需要的最低权限
+	 * @return 判断结果,false = 无权限
+	 */
+	boolean userHasJurisdiction (int userId, JurisdictionLevel jurisdictionLevel);
 }

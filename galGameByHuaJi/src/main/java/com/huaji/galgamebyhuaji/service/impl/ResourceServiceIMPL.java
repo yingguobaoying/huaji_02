@@ -53,17 +53,17 @@ public class ResourceServiceIMPL implements ResourcesService {
 	
 	@Override
 	@Transactional
-	public ReturnResult<Resources> addResources(Resources resources, List<Integer> tags) {
+	public ReturnResult<Resources> addResources (Resources resources, List<Integer> tags) {
 		testNewResourcesMxg(resources);
 		resources.setrId(null);
 		WriteError.tryWrite(resourcesMapper.insertSelective(resources));
-		if (resources.getrId() == null) throw new WriteError(1, 0);
+		if ( resources.getrId() == null ) throw new WriteError(1, 0);
 		ResourceExtensionInformation resourceExtensionInformation = getResourceExtensionInformation(resources, true);
 		//添加tag
-		if (tags != null && !tags.isEmpty()) {
+		if ( tags != null && !tags.isEmpty() ) {
 			Map<Integer, Tag> tagMap = tagService.getTagMap();
 			tagMapper.addResourcesTag(tags, resources.getrId());
-			for (Integer tagId : tags) {
+			for ( Integer tagId : tags ) {
 				Tag tag = tagMap.get(tagId);
 				resources.addTag(tag);
 			}
@@ -74,10 +74,10 @@ public class ResourceServiceIMPL implements ResourcesService {
 		return ReturnResult.isTrue("资源信息插入成功", resources);
 	}
 	
-	private ResourceExtensionInformation getResourceExtensionInformation(Resources resources, boolean isAdd) {
+	private ResourceExtensionInformation getResourceExtensionInformation (Resources resources, boolean isAdd) {
 		ResourceExtensionInformation resourceExtensionInformation = resources.getResourceExtensionInformation();
 		//无价格信息
-		if (resourceExtensionInformation == null) {
+		if ( resourceExtensionInformation == null ) {
 			resourceExtensionInformation = new ResourceExtensionInformation();
 			resourceExtensionInformation.setrId(resources.getrId());
 			resourceExtensionInformation.setDownloadLocallyPrice(Constant.DOWNLOAD_LOCALLY);
@@ -85,37 +85,37 @@ public class ResourceServiceIMPL implements ResourcesService {
 			resourceExtensionInformation.setHasDownloadLocally("no");
 		} else {
 			resourceExtensionInformation.setrId(resources.getrId());
-			if (resourceExtensionInformation.getDownloadLocallyPrice() == null)
+			if ( resourceExtensionInformation.getDownloadLocallyPrice() == null )
 				resourceExtensionInformation.setDownloadLocallyPrice(Constant.DOWNLOAD_LOCALLY);
-			if (resourceExtensionInformation.getLinkPrice() == null)
+			if ( resourceExtensionInformation.getLinkPrice() == null )
 				resourceExtensionInformation.setLinkPrice(Constant.EXTERNAL_CLOUD_DISK);
 			//添加时使用默认值
-			if (isAdd)
+			if ( isAdd )
 				resourceExtensionInformation.setHasDownloadLocally("no");
 			
 		}
 		return resourceExtensionInformation;
 	}
 	
-	private ReturnResult<Resources> testNewResourcesMxg(Resources resources) {
+	private ReturnResult<Resources> testNewResourcesMxg (Resources resources) {
 		ResourcesExample resourcesExample = new ResourcesExample();
 		resourcesExample.createCriteria()
 				.andRManufacturerEqualTo(resources.getrManufacturer())
 				.andRNameEqualTo(resources.getrName());
 		List<Resources> resources1 = resourcesMapper.selectByExample(resourcesExample);
-		if (resources1.isEmpty()) return new ReturnResult<Resources>().operationTrue("资源信息可用", null);
-		if (resources1.size() == 1 && resources1.getFirst().getrId().equals(resources.getrId()))
+		if ( resources1.isEmpty() ) return new ReturnResult<Resources>().operationTrue("资源信息可用", null);
+		if ( resources1.size() == 1 && resources1.getFirst().getrId().equals(resources.getrId()) )
 			return new ReturnResult<Resources>().operationTrue("资源信息可用", null);
 		throw new OperationException("资源的资源名称和资源厂家/发行商重复");
 	}
 	
 	@Override
 	@Transactional
-	public ReturnResult<Resources> updateResources(Resources resources, List<Integer> tags) {
+	public ReturnResult<Resources> updateResources (Resources resources, List<Integer> tags) {
 		ReturnResult<Resources> resourcesReturnResult = testNewResourcesMxg(resources);
 		Resources oldMxg = resourcesMapper.selectByPrimaryKey(resources.getrId());
 		MyLogUtil.info(ResourcesService.class, "资源信息发生变动,原先信息如下:" + oldMxg);
-		if (!resourcesReturnResult.isOperationResult()) return resourcesReturnResult;
+		if ( !resourcesReturnResult.isOperationResult() ) return resourcesReturnResult;
 		WriteError.tryWrite(resourcesMapper.updateByPrimaryKeyWithBLOBs(resources));
 		//更新tag信息
 		ResourcesTagMapExample resourcesTagMapExample = new ResourcesTagMapExample();
@@ -125,7 +125,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 		ResourceExtensionInformation resourceExtensionInformation = getResourceExtensionInformation(resources, false);
 		resources.setResourceExtensionInformation(resourceExtensionInformation);
 		WriteError.tryWrite(resourceExtensionInformationMapper.updateByPrimaryKey(resourceExtensionInformation));
-		if (tags != null && !tags.isEmpty()) {//更新数据库中的映射关系
+		if ( tags != null && !tags.isEmpty() ) {//更新数据库中的映射关系
 			WriteError.tryWrite(tagMapper.addResourcesTag(tags, resources.getrId()), tags.size());
 			TagExample tagExample = new TagExample();
 			tagExample.createCriteria().andTagIdIn(tags);
@@ -138,7 +138,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 	
 	@Override
 	@Transactional
-	public ReturnResult<Resources> deleteResources(Integer rId) {
+	public ReturnResult<Resources> deleteResources (Integer rId) {
 		//更新数据库
 		Resources resources = resourcesMapper.selectByPrimaryKey(rId);
 		ResourcesTagMapExample example = new ResourcesTagMapExample();
@@ -152,7 +152,7 @@ public class ResourceServiceIMPL implements ResourcesService {
 	}
 	
 	@Override
-	public List<Resources> getAllResources() {
+	public List<Resources> getAllResources () {
 		//  从数据库获取所有资源及相关信息
 		Map<Integer, Resources> resourcesMap = resourcesMapper.gatResourcesMap();
 		
@@ -188,13 +188,13 @@ public class ResourceServiceIMPL implements ResourcesService {
 					.orElse(Collections.emptyList())
 					.stream()
 					.map(ResourcesJpegMap::getJpegName
-					)
+					    )
 					.collect(Collectors.toList());
 			res.setrPicture(jpegList); // 一次性设置
 			
 			//设置拓展信息
 			ResourceExtensionInformation ext = extensionMap.get(res.getrId());
-			if (ext != null) {
+			if ( ext != null ) {
 				res.setResourceExtensionInformation(ext);
 			}
 			res.setrJpeg(FileUtil.toRelativeUrl(res.getrJpeg(), FileCategory.IMG));
@@ -207,22 +207,22 @@ public class ResourceServiceIMPL implements ResourcesService {
 	}
 	
 	@Override
-	public ReturnResult<SelectViewMag> getResourceStatics() {
+	public ReturnResult<SelectViewMag> getResourceStatics () {
 		List<ResourceStatics> resourceStatics = resourceStatisticsMapper.getResourceStatics();
 		Map<String, Long> result = new HashMap<>();
-		for (ResourceStatics r : resourceStatics) {
+		for ( ResourceStatics r : resourceStatics ) {
 			result.put(r.getRType(), r.getSize());
 		}
 		SelectViewMag selectViewMag = new SelectViewMag();
-		if (resourceStatics.isEmpty()) return ReturnResult.isFalse("全局统计信息获取失败!");
+		if ( resourceStatics.isEmpty() ) return ReturnResult.isFalse("全局统计信息获取失败!");
 		selectViewMag.setResourceStatistics(result);
 		return ReturnResult.isTrue("全局统计信息获取成功!", selectViewMag);
 	}
 	
 	@Override
-	public Resources getResource(int rId) {
+	public Resources getResource (int rId) {
 		Resources resources = redisMemoryService.getData(rId, Resources.class);
-		if (resources == null || resources.getrId() == null) {
+		if ( resources == null || resources.getrId() == null ) {
 			resources = resourcesMapper.selectByPrimaryKey(rId);
 			//获取图片
 			ResourcesJpegMapExample resourcesJpegMapExample = new ResourcesJpegMapExample();
@@ -241,61 +241,52 @@ public class ResourceServiceIMPL implements ResourcesService {
 			Map<Integer, Tag> tagMap = tagService.getTagMap();
 			resources.setTags(
 					resourcesTagIdList.stream().map(tagId -> tagMap.get(tagId.getTagId())).toList()
-			);
+			                 );
 			redisMemoryService.saveData(resources);
 		}
-		if (resources == null || resources.getrId() == null) throw new OperationException("您请求的资源不存在!");
+		if ( resources == null || resources.getrId() == null ) throw new OperationException("您请求的资源不存在!");
 		return resources;
 	}
 	
 	@Override
-	public List<Resources> getResourceList(int start, int end) {
+	public List<Resources> getResourceList (int start, int end) {
 		List<Resources> resources = redisMemoryService.getPagedResources(start, end);
-		if (resources == null || resources.isEmpty())
+		if ( resources == null || resources.isEmpty() )
 			resources = resourcesMapper.selectPage(start, end - start + 1);
-		if (resources == null || resources.isEmpty()) throw new OperationException("您请求的资源不存在!");
+		if ( resources == null || resources.isEmpty() ) throw new OperationException("您请求的资源不存在!");
 		return resources;
 	}
 	
 	@Override
-	public Integer getResourceListSize() {
+	public Integer getResourceListSize () {
 		int size = redisMemoryService.getResourceListSize();
-		if (size == 0) size = resourcesMapper.getResourceListSize();
+		if ( size == 0 ) size = resourcesMapper.getResourceListSize();
 		return size;
 	}
 	
 	@Override
-	public List<ResourcesFileMap> getResourceFileList(int rId) {
-		if (rId < 0) throw new OperationException("错误!不存在的资源信息");
+	public List<ResourcesFileMap> getResourceFileList (int rId) {
+		if ( rId < 0 ) throw new OperationException("错误!不存在的资源信息");
 		ResourcesFileMapExample example = new ResourcesFileMapExample();
 		example.createCriteria()
 				.andRIdEqualTo(rId);
 		List<ResourcesFileMap> list = resourcesFileMap.selectByExample(example);
-		if (list == null || list.isEmpty())
+		if ( list == null || list.isEmpty() )
 			return List.of();
 		else
 			return list;
 	}
 	
 	@Override
-	public List<String> getRType() {
+	public List<String> getRType () {
 		String typeString = resourcesMapper.getrType();
-		if (MyStringUtil.isNull(typeString))
+		if ( MyStringUtil.isNull(typeString) )
 			return List.of();
 		Pattern pattern = Pattern.compile("'([^']*)'");
 		Matcher matcher = pattern.matcher(typeString);
 		List<String> values = new ArrayList<>();
-		while (matcher.find())
+		while ( matcher.find() )
 			values.add(matcher.group(1));
 		return values;
-	}
-	
-	private void updateResourceImgUrl(Resources r) {
-		r.setrJpeg(FileUtil.toRelativeUrl(r.getrJpeg(), FileCategory.IMG));
-		List<String> urls = r.getrPicture();
-		for (String url : urls) {
-			url = FileUtil.toRelativeUrl(url, FileCategory.IMG);
-		}
-		r.setrPicture(urls);
 	}
 }

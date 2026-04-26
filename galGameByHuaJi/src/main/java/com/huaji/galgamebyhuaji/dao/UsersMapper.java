@@ -3,6 +3,7 @@ package com.huaji.galgamebyhuaji.dao;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersExample;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
+import com.huaji.galgamebyhuaji.myUtil.PageUtil;
 import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -63,4 +64,8 @@ public interface UsersMapper {
 	
 	Users getUserListMxg(@Param("userId") int userId);
 	List<UsersWithBLOBs> selectUserByName (@Param("userName") String userName);
+	
+	List<Users> getUserListMxgByRootList (@Param("page") PageUtil page);
+	
+	Integer getUserSize ();
 }

@@ -81,7 +81,7 @@ public class KeyGenerator {
 }
 
 /**
- * 高强度UTF-8随机密钥生成器
+ * UTF-8随机密钥生成器
  * 生成符合Unicode标准的随机字符串，排除控制字符和特殊字符
  */
 class SafeKeyGenerator {
@@ -89,6 +89,7 @@ class SafeKeyGenerator {
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
 	// Unicode字符范围定义
+	//请注意如果使用不支持UTF-8的系统,请注意修改
 	private static final int[] SAFE_UNICODE_RANGES = {
 			// 基本多文种平面（BMP）安全字符范围
 			0x0020, 0x007E,   // 基本拉丁字符（空格到~）
