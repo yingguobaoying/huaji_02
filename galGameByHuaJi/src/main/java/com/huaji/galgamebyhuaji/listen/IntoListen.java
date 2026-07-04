@@ -1,15 +1,16 @@
 package com.huaji.galgamebyhuaji.listen;
 
 
+import com.huaji.galgamebyhuaji.config.AiClientFactory;
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.controller.BackgroundImgController;
 import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
-import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.*;
 import jakarta.servlet.ServletContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.ContextClosedEvent;
@@ -30,8 +31,9 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CONSTANT_PASSWORD;
 @Component
 @DependsOn({"vaultConfigValidator", "JWTConfig"})
 @RequiredArgsConstructor
+@Slf4j
 public class IntoListen {
-	
+	private final AiClientFactory aiClientFactory;
 	private final ResourcesService resourcesService;
 	private final TagService tagService;
 	private final SessionService sessionService;
@@ -45,17 +47,17 @@ public class IntoListen {
 	final
 	RedisMemoryService redisMemoryService;
 	final RootServlet rootServlet;
-	private static Date starTime;
+	private static final Date starTime;
 	
 	static {
 		starTime = new Date();
 	}
 	
 	@EventListener
-	public void onContextRefreshed(ContextRefreshedEvent event) throws Exception {
+	public void onContextRefreshed (ContextRefreshedEvent event) throws Exception {
 		Date date = null;
-		if (event.getApplicationContext().getParent() == null) {
-			MyLogUtil.info(IntoListen.class, "服务器启动监听器开始启动,准备开始初始化各项数据");
+		if ( event.getApplicationContext().getParent() == null ) {
+			log.info("================服务器启动监听器开始启动,准备开始初始化各项数据===================");
 			date = new Date();
 			redisMemoryService.delAllData();//清空旧数据
 			rootServlet.rootUserInit();
@@ -66,30 +68,27 @@ public class IntoListen {
 			CONSTANT_PASSWORD = passwordEncryptionUtil.hashPassword("红豆可爱滴捏_Vigna_very_loveliness");
 			System.out.println(resourceSavePath);
 			File dir = new File(resourceSavePath);
-			if (!dir.exists()) {
-				if (dir.mkdirs())
-					MyLogUtil.info(IntoListen.class,
-					               "静态资源存储文件夹不存在!进行创建!创建位置为:" + resourceSavePath);
+			if ( !dir.exists() ) {
+				if ( dir.mkdirs() )
+					log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", resourceSavePath);
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath);
 			}
 			File imgFile = new File(resourceSavePath + File.separator + FileCategory.IMG.getFILE_SAVE_URL());
 			File rarFile = new File(resourceSavePath + File.separator + FileCategory.ARCHIVE.getFILE_SAVE_URL());
-			if (!imgFile.exists()) {
-				if (imgFile.mkdirs())
-					MyLogUtil.info(IntoListen.class,
-					               "静态资源存储文件夹不存在!进行创建!创建位置为:" + imgFile);
+			if ( !imgFile.exists() ) {
+				if ( imgFile.mkdirs() )
+					log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", imgFile);
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + imgFile);
 			}
-			if (!rarFile.exists()) {
-				if (rarFile.mkdirs())
-					MyLogUtil.info(IntoListen.class,
-					               "静态资源存储文件夹不存在!进行创建!创建位置为:" + rarFile);
+			if ( !rarFile.exists() ) {
+				if ( rarFile.mkdirs() )
+					log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", rarFile);
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
 			}
-			// 使用反射修改静态常量字段
+			aiClientFactory.aiInfo();
 			Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
 			System.out.println("=========================================");
 			System.out.println("=========  滑稽/因果报应的个人小站  =========");
@@ -100,15 +99,15 @@ public class IntoListen {
 			Random random = new Random();
 			int i = random.nextInt(0, 500);
 			//留给后续的我的随机数选择说明:红豆于2019.4.30加入游戏,身高1.42,生日 12.12
-			if (i == 430 || i == 43 || i == 4 || i == 3 || i == 12 || i == 142 || i == 14 || i == 1) {
-				MyLogUtil.info(IntoListen.class, "=========================================");
-				MyLogUtil.info(IntoListen.class, "===========  红豆可爱滴捏~~~~  ============");
-				MyLogUtil.info(IntoListen.class, "=========================================");
+			if ( i == 430 || i == 43 || i == 4 || i == 3 || i == 12 || i == 142 || i == 14 || i == 1 ) {
+				log.info("=========================================");
+				log.info("===========  红豆可爱滴捏~~~~  ============");
+				log.info("=========================================");
 				System.err.println("=========================================");
 				System.err.println("==============  红豆可爱滴捏~~~~  =========");
 				System.err.println("=========================================");
 				System.err.println("*****************************************");
-				System.out.println("************  红豆可爱滴捏~~~~  ***********");
+				System.err.println("************  红豆可爱滴捏~~~~  ***********");
 				System.err.println("*****************************************");
 				System.err.println("=========================================");
 				System.err.println("============  红豆可爱滴捏~~~~  ===========");
@@ -116,25 +115,22 @@ public class IntoListen {
 			}
 			BackgroundImgController.updateFileNameList(
 					Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile()
-			);
-			MyLogUtil.info(IntoListen.class,
-			               "服务器应用层启动完成用时:" + (date.getTime() - System.currentTimeMillis()) + "毫秒");
-			MyLogUtil.info(IntoListen.class,
-			               "类加载开始时间:{%s},全部初始化完成时间:{%s},用时{%d}毫秒".formatted(
-					               TimeUtil.getVisualDateFormatTime(starTime),
-					               TimeUtil.getVisualDateFormatTime(new Date()),
-					               starTime.getTime() + System.currentTimeMillis()
-			               )
-			);
+			                                          );
+			log.info("服务器应用层启动完成用时:{}毫秒", (date.getTime() - System.currentTimeMillis()));
+			log.info("类加载开始时间:{},全部初始化完成时间:{},用时{}毫秒",
+					TimeUtil.getVisualDateFormatTime(starTime),
+					TimeUtil.getVisualDateFormatTime(new Date()),
+					System.currentTimeMillis() - starTime.getTime());
 		}
 	}
 	
 	
 	@EventListener
-	public void onContextClosed(ContextClosedEvent event) {
+	public void onContextClosed (ContextClosedEvent event) {
 		int i = sessionService.manbaOut();
-		MyLogUtil.info(ContextClosedEvent.class, TimeUtil.getSimpleDateFormatTime(new Date()) + "服务器关闭");
-		MyLogUtil.info(ContextClosedEvent.class, "在服务器关闭时,使" + i + "位在线用户离线");
+		log.info("{}服务器关闭", TimeUtil.getSimpleDateFormatTime(new Date()));
+		log.info("在服务器关闭时,使{}位在线用户离线", i);
 		System.err.println("在服务器关闭时,牢大肘击了" + i + "个倒霉用户");
+		log.error("在服务器关闭时,牢大肘击了{}个倒霉用户", i);
 	}
 }

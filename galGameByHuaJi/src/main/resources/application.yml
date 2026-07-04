@@ -12,6 +12,7 @@ spring:
         backend: my-website-key
         default-context: key
         profile-separator: '/'
+        ai-path: 'ai-token'
   liquibase:
     enabled: false
   config:

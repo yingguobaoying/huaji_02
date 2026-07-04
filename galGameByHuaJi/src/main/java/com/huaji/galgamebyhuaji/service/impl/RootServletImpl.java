@@ -15,19 +15,19 @@ import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.jwtToken.OnlineUser;
-import com.huaji.galgamebyhuaji.myUtil.*;
-import com.huaji.galgamebyhuaji.service.LoginService;
+import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.myUtil.PageUtil;
+import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.service.RootServlet;
 import com.huaji.galgamebyhuaji.service.SessionService;
 import com.huaji.galgamebyhuaji.service.TokenService;
-import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -37,47 +37,21 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RootServletImpl implements RootServlet {
 	private final UsersMapper usersMapper;
 	private final TokenService tokenService;
 	private final PasswordEncryptionUtil passwordEncryptionUtil;
 	private final SessionMapper sessionMapper;
 	private final SessionService sessionService;
-	private final UserMxgServlet userMxgServlet;
 	
-	@Override
-	public String RootEditUserHeadPortrait (int usersId, int rootId, MultipartFile jpeg) throws WriteError, IOException {
-		Users root = usersMapper.getUserListMxg(rootId);
-		Users user = usersMapper.getUserListMxg(usersId);
-		MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的头像信息".formatted(
-				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName()
-		                                                                                      ));
-		boolean banHead = (jpeg == null || jpeg.isEmpty());
-		boolean isTrue = true;
-		try {
-			if ( banHead )
-				return userMxgServlet.updateUserHeadPortraitUrl(null, usersId, true);
-			else
-				return userMxgServlet.updateUserHeadPortraitUrl(jpeg, user.getUserId(), false);
-		} catch ( Exception e ) {
-			isTrue = false;
-			MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的头像信息失败了,因为%s".formatted(
-					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e
-			                                                                                                   ));
-			throw e;
-		} finally {
-			MyLogUtil.info(RootServlet.class, "管理员%d{%s}强制修改%d{%s}的头像信息结果:{%s}".formatted(
-					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), isTrue ? "成功" : "失败"
-			                                                                                           ));
-		}
-	}
 	
 	@Override
 	public String RootEditUserMxg (UsersWithBLOBs user, int rootId) throws WriteError {
 		Users root = usersMapper.getUserListMxg(rootId);
-		MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的信息".formatted(
+		log.info("管理员{}}{}尝试强制修改{}{}的信息",
 				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName()
-		                                                                                  ));
+		        );
 		boolean isTrue = true;
 		try {
 			if ( !(rootId == 1 || rootId == 0) ) {//特殊用户保护
@@ -88,14 +62,14 @@ public class RootServletImpl implements RootServlet {
 			return "修改完成";
 		} catch ( Exception e ) {
 			isTrue = false;
-			MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的信息失败了,因为%s".formatted(
-					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e
-			                                                                                               ));
+			log.info("管理员{}{}尝试强制修改{}{}的信息失败了,因为{}",
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e.getMessage(), e
+			        );
 			throw e;
 		} finally {
-			MyLogUtil.info(RootServlet.class, "管理员%d{%s}强制修改%d{%s}的信息结果:{%s}".formatted(
+			log.info("管理员{}{}强制修改{}{}的信息结果:{}",
 					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), isTrue ? "成功" : "失败"
-			                                                                                       ));
+			        );
 		}
 	}
 	
@@ -103,10 +77,10 @@ public class RootServletImpl implements RootServlet {
 	public String RootUpdateUSerStatus (int usersId, int rootId, UserStatus userStatus) throws WriteError {
 		Users root = usersMapper.getUserListMxg(rootId);
 		Users user = usersMapper.getUserListMxg(usersId);
-		MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的状态信息,状态变更{%s}->{%s}".formatted(
+		log.info("管理员{}{}尝试强制修改{}{}的状态信息,状态变更{}->{}",
 				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(),
 				UserStatus.testEnumValue(user.getStatus()).getName(), userStatus.getName()
-		                                                                                                         ));
+		        );
 		boolean isTrue = true;
 		try {
 			if ( !(rootId == 1 || rootId == 0) ) {//特殊用户保护
@@ -120,14 +94,14 @@ public class RootServletImpl implements RootServlet {
 			return "修改完成";
 		} catch ( Exception e ) {
 			isTrue = false;
-			MyLogUtil.info(RootServlet.class, "管理员%d{%s}尝试强制修改%d{%s}的状态信息失败了,因为%s".formatted(
-					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e
-			                                                                                                   ));
+			log.info("管理员{}{}尝试强制修改{}{}的状态信息失败了,因为{}",
+					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), e.getMessage(), e
+			        );
 			throw e;
 		} finally {
-			MyLogUtil.info(RootServlet.class, "管理员%d{%s}强制修改%d{%s}的状态信息结果:{%s}".formatted(
+			log.info("管理员{}{}强制修改{}{}的状态信息结果:{}",
 					root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName(), isTrue ? "成功" : "失败"
-			                                                                                           ));
+			        );
 		}
 	}
 	
@@ -135,18 +109,18 @@ public class RootServletImpl implements RootServlet {
 	public UsersWithBLOBs RootSelectUserById (int usersId, int rootId) {
 		Users root = usersMapper.getUserListMxg(rootId);
 		Users user = usersMapper.getUserListMxg(usersId);
-		MyLogUtil.info(RootServlet.class, "管理员%d{%s}查询%d{%s}的信息".formatted(
+		log.info("管理员{}{}查询{}{}的信息",
 				root.getUserId(), root.getUserName(), user.getUserId(), user.getUserName()
-		                                                                          ));
+		        );
 		return usersMapper.selectByPrimaryKey(usersId);
 	}
 	
 	@Override
 	public List<UsersWithBLOBs> RootSelectUserByName (String usersName, int root) {
 		Users r = usersMapper.getUserListMxg(root);
-		MyLogUtil.info(RootServlet.class, "管理员%d{%s}查询用户{%s}的信息".formatted(
+		log.info("管理员{}{}查询用户{}的信息",
 				r.getUserId(), r.getUserName(), usersName
-		                                                                            ));
+		        );
 		return usersMapper.selectUserByName(usersName);
 	}
 	
@@ -181,7 +155,7 @@ public class RootServletImpl implements RootServlet {
 		UserToken userToken;
 		String ip = ElseUtil.getClientIp(request);
 		try {
-			MyLogUtil.info(LoginService.class, "ip:{%s}正在登录特殊root用户".formatted(ip));
+			log.info("ip:{}正在登录特殊root用户", ip);
 			if ( !MyStringUtil.isNull(token) && token.length() >= 20 ) {
 				lock = GlobalLock.getLockForUser(0);
 				lock1 = GlobalLock.getLockForUser(1);
@@ -190,19 +164,17 @@ public class RootServletImpl implements RootServlet {
 				//手动校验ip
 				boolean b = isIPWhiteList(ElseUtil.getClientIp(request));
 				if ( !b ) {
-					MyLogUtil.info(LoginService.class, "ip:{%s}正在登录特殊root用户时失败了,因为ip不在白名单之内".formatted(ip));
+					log.info("ip:{}正在登录特殊root用户时失败了,因为ip不在白名单之内", ip);
 					throw new OperationException("您使用的ip被防火墙隔离了,请换个ip试试");
 				}
 				//不自动校验ip
 				userToken = tokenService.verifyToken(token, -1, null, true);
 				return userToken;
 			} else {
-				MyLogUtil.error(LoginService.class,
-						"ip:{%s}登录特殊root用户时失败了,因为输入长度不达标".formatted(ip));
+				log.error("ip:{}登录特殊root用户时失败了,因为输入长度不达标", ip);
 			}
 		} catch ( Exception e ) {
-			MyLogUtil.error(LoginService.class,
-					"ip:{%s}正在登录特殊root用户时失败了,因为:".formatted(ip) + e.getMessage());
+			log.error("ip:{}正在登录特殊root用户时失败了,因为:{}", ip, e.getMessage());
 		} finally {
 			if ( lock != null ) {GlobalLock.unlockForUser(lock, 0);}
 			if ( lock1 != null ) {GlobalLock.unlockForUser(lock1, 1);}
@@ -250,15 +222,12 @@ public class RootServletImpl implements RootServlet {
 			users.setCoin(999999);
 			users.setUserName("红豆");
 			users.setUserPassword("红豆可爱滴捏");
-			users.setBio("罗德岛先锋干员红豆，握紧长枪，准备着进入战场。\n" +
-					"\n" +
-					"她很清楚，在需要全身心投入这一点上，战争和摇滚别无二致。萨卡兹少女，代号红豆，身高142cm。出生于卡兹戴尔，但自幼随父母在哥伦比亚城市中生活。作为萨卡兹人，她经历了动荡不安的童年和频繁的城市冲突，这使她形成了坚韧不拔、绝不妥协的性格。\n" +
-					"\n" +
-					"红豆热爱音乐，尤其是摇滚，并用省吃俭用的资金购买了她的第一把电吉他。她相信音乐能够打破歧视和隔阂，传递内心的呐喊。红豆不仅是一名技艺高超的吉他手，也是罗德岛小队的先锋人员，在战术突袭和开辟战场方面表现出色。\n" +
-					"\n" +
-					"尽管感染了矿石病，红豆依然积极向上，努力锻炼自己并改造她的武器。她坚信，人生的目标应靠自己的努力去达成，不管遇到什么困难，她都会坚持自己的信念。\n" +
-					"\n" +
-					"在罗德岛，红豆不仅是一名优秀的战士，更是一个充满活力和激情的年轻人。她用自己的热情和决心感染着身边的每一个人，无论是战斗还是生活，她都用心去面对每一个挑战。");
+			users.setBio("""
+					罗德岛先锋干员红豆，握紧长枪，准备着进入战场。
+					她很清楚，在需要全身心投入这一点上，战争和摇滚别无二致。萨卡兹少女，代号红豆，身高142cm。出生于卡兹戴尔，但自幼随父母在哥伦比亚城市中生活。作为萨卡兹人，她经历了动荡不安的童年和频繁的城市冲突，这使她形成了坚韧不拔、绝不妥协的性格。
+					红豆热爱音乐，尤其是摇滚，并用省吃俭用的资金购买了她的第一把电吉他。她相信音乐能够打破歧视和隔阂，传递内心的呐喊。红豆不仅是一名技艺高超的吉他手，也是罗德岛小队的先锋人员，在战术突袭和开辟战场方面表现出色。
+					尽管感染了矿石病，红豆依然积极向上，努力锻炼自己并改造她的武器。她坚信，人生的目标应靠自己的努力去达成，不管遇到什么困难，她都会坚持自己的信念。
+					在罗德岛，红豆不仅是一名优秀的战士，更是一个充满活力和激情的年轻人。她用自己的热情和决心感染着身边的每一个人，无论是战斗还是生活，她都用心去面对每一个挑战。""");
 			users.setMailbox("Vigna_BABIE_Arknights.com");
 			users.setUserNameLogin("Vigna");
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -280,16 +249,16 @@ public class RootServletImpl implements RootServlet {
 		UserToken userToken1 = tokenService.insertToken(onlineUser1, TokenType.DEFAULT_STATUS,
 				1000L * 60 * 60 * 24 * 100);
 		//todo: 注意后续把这玩意扔到vault里面
-		MyLogUtil.info(LoginService.class, "***********************************************************");
-		MyLogUtil.info(LoginService.class, "***********************root登录令牌更新**********************");
-		MyLogUtil.info(LoginService.class, "***********************************************************");
-		MyLogUtil.info(LoginService.class, "0号root用户登录令牌:" + userToken0.getToken());
+		log.info("***********************************************************");
+		log.info("***********************root登录令牌更新**********************");
+		log.info("***********************************************************");
+		log.info("0号root用户登录令牌:" + userToken0.getToken());
 		System.out.println("0号root用户登录令牌:" + userToken0.getToken());
 		System.out.println("1号root用户登录令牌:" + userToken1.getToken());
-		MyLogUtil.info(LoginService.class, "1号root用户登录令牌:" + userToken1.getToken());
-		MyLogUtil.info(LoginService.class, "***********************************************************");
-		MyLogUtil.info(LoginService.class, "***********此令牌仅本次服务器启动时有效,服务器关闭后失效************");
-		MyLogUtil.info(LoginService.class, "***********************************************************");
+		log.info("1号root用户登录令牌:" + userToken1.getToken());
+		log.info("***********************************************************");
+		log.info("***********此令牌仅本次服务器启动时有效,服务器关闭后失效************");
+		log.info("***********************************************************");
 		//将两个root设置为在线
 		Session user0Session = sessionService.getSession(0);
 		boolean user0IsNull = user0Session == null;

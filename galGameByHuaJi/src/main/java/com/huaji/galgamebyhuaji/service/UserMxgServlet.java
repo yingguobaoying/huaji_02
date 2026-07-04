@@ -4,9 +4,7 @@ package com.huaji.galgamebyhuaji.service;
 import com.huaji.galgamebyhuaji.dto.UserMxgWithOldUserMxg;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.entity.UsersWithBLOBs;
-import com.huaji.galgamebyhuaji.exceptions.BestException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
-import com.huaji.galgamebyhuaji.model.ReturnResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -35,22 +33,22 @@ public interface UserMxgServlet {
 	 */
 	String updateUserHeadPortraitUrl(MultipartFile croppedImage, int userId, boolean banHeadPortrait) throws  IOException;
 	
-	/**
-	 * 删除用户信息,如果身份验证失败仅会记录日志(发生自定义异常时也是)和返回错误信息,
-	 * <p>请注意:</p>
-	 * <li>不能删除权限比你高的用户</li>
-	 * <li>ID为0和1的用户为特殊root用户不可以删除(自己操作自己除外,不过不建议因为一些初始化操作时默认这两个用户存在)</li>
-	 * <li>此操作会尝试验证身份</li>
-	 *
-	 * @param rootId    操作者
-	 * @param usersId   根据用户ID进行,请确保用户ID正确
-	 * @param userToken 用户token
-	 *
-	 * @return 被删除的信息
-	 *
-	 * @throws WriteError 数据读写错误(低概率)
-	 */
-	ReturnResult<Users> deleteUsers(int rootId, int usersId, String userToken) throws BestException;
+//	/**
+//	 * 删除用户信息,如果身份验证失败仅会记录日志(发生自定义异常时也是)和返回错误信息,
+//	 * <p>请注意:</p>
+//	 * <li>不能删除权限比你高的用户</li>
+//	 * <li>ID为0和1的用户为特殊root用户不可以删除(自己操作自己除外,不过不建议因为一些初始化操作时默认这两个用户存在)</li>
+//	 * <li>此操作会尝试验证身份</li>
+//	 *
+//	 * @param rootId    操作者
+//	 * @param usersId   根据用户ID进行,请确保用户ID正确
+//	 * @param userToken 用户token
+//	 *
+//	 * @return 被删除的信息
+//	 *
+//	 * @throws WriteError 数据读写错误(低概率)
+//	 */
+//	ReturnResult<Users> deleteUsers(int rootId, int usersId, String userToken) throws BestException;
 	
 	/**
 	 * 查询某位用户的公开信息
@@ -78,4 +76,6 @@ public interface UserMxgServlet {
 	Users getUserListMsg(Integer usersId);
 	
 	Users getUSerMsgByEmail(String email);
+	
+	String RootEditUserHeadPortrait (int usersId, int rootId, MultipartFile jpeg) throws WriteError, IOException;
 }

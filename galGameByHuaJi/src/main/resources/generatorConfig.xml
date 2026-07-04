@@ -22,7 +22,7 @@
         <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
                         connectionURL="jdbc:mysql://localhost:3306/gal"
                         userId="hongdouchu"
-                        password="root123456">
+                        password="hongdouchu">
         </jdbcConnection>
 
         <!-- 生成pojo包名和位置 -->
@@ -63,9 +63,11 @@
         <!--        <table tableName="resources_tag_map" domainObjectName="ResourcesTagMap"/>-->
         <!--        <table tableName="session" domainObjectName="Session"/>-->
         <!--        <table tableName="tag" domainObjectName="Tag"/>-->
-<!--                <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
+        <!--                <table tableName="user_resource_repository" domainObjectName="UserResourceRepository"/>-->
         <!--        <table tableName="user_token" domainObjectName="UserToken"/>-->
-<!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
+        <!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
         <!--        <table tableName="users" domainObjectName="Users"/>-->
+<!--        <table tableName="ai_record" domainObjectName="AiRecord"/>-->
+        <table tableName="ai_client_config" domainObjectName="AiClientConfig"/>
     </context>
 </generatorConfiguration>

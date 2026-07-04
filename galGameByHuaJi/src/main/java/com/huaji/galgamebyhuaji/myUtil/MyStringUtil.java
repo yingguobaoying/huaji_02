@@ -18,7 +18,8 @@ public class MyStringUtil {
 	public static final Pattern RFC_5322_EMAIL_PATTERN = Pattern.compile(
 			"^(?:(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*)|(?:\".+\"))@(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,63}|(?:\\[(?:\\d{1,3}\\.){3}\\d{1,3}\\]))$",  // domain part
 			Pattern.CASE_INSENSITIVE
-	);
+	                                                                    );
+	public static final Pattern IS_NUM = Pattern.compile("-?\\d+(\\.\\d+)?");
 	
 	/**
 	 * 检查并将对象中的 String 属性设置为 null（如果为空）。 请注意:此方法不会对基本字段类型:int long boolean 等进行检查
@@ -29,37 +30,37 @@ public class MyStringUtil {
 	 * @return 返回设置后的对象, 如果没有有效值则返回null
 	 */
 	@Nullable
-	public static <T> T setNull(T obj) {
-		if (obj == null) return null;
+	public static <T> T setNull (T obj) {
+		if ( obj == null ) return null;
 		
 		Field[] fields = obj.getClass().getDeclaredFields();
 		Method[] methods = obj.getClass().getMethods(); // public 方法，包括 setters
 		boolean allIsNull = true;
 		
-		for (Field field : fields) {
+		for ( Field field : fields ) {
 			try {
 				// 跳过原始类型（int, long, boolean 等）
-				if (field.getType().isPrimitive()) continue;
+				if ( field.getType().isPrimitive() ) continue;
 				
 				field.setAccessible(true);
 				Object value = field.get(obj);
-				if (value == null) continue;
+				if ( value == null ) continue;
 				Class<?> fieldType = field.getType();
 				String fieldName = field.getName();
 				String setterName = "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
 				boolean usedSetter = false;
 				// 检查是否存在 setXXX 方法
-				for (Method method : methods) {
-					if (method.getName().equals(setterName)
-					    && method.getParameterCount() == 1
-					    && method.getParameterTypes()[0].isAssignableFrom(fieldType)) {
-						if (fieldType == String.class && MyStringUtil.isNull((String) value)) {
+				for ( Method method : methods ) {
+					if ( method.getName().equals(setterName)
+							&& method.getParameterCount() == 1
+							&& method.getParameterTypes()[ 0 ].isAssignableFrom(fieldType) ) {
+						if ( fieldType == String.class && MyStringUtil.isNull((String) value) ) {
 							method.invoke(obj, (Object) null);
 							usedSetter = true;
-						} else if (fieldType == List.class && ((List<?>) value).isEmpty()) {
+						} else if ( fieldType == List.class && ((List<?>) value).isEmpty() ) {
 							method.invoke(obj, (Object) null);
 							usedSetter = true;
-						} else if (fieldType == Map.class && ((Map<?, ?>) value).isEmpty()) {
+						} else if ( fieldType == Map.class && ((Map<?, ?>) value).isEmpty() ) {
 							method.invoke(obj, (Object) null);
 							usedSetter = true;
 						} else {
@@ -68,20 +69,20 @@ public class MyStringUtil {
 						break; // 找到 setter 就不继续遍历了
 					}
 				}
-				if (!usedSetter) {
+				if ( !usedSetter ) {
 					// 使用旧逻辑：直接操作字段
-					if (fieldType == String.class && MyStringUtil.isNull((String) value)) {
+					if ( fieldType == String.class && MyStringUtil.isNull((String) value) ) {
 						field.set(obj, null);
-					} else if (fieldType == List.class && ((List<?>) value).isEmpty()) {
+					} else if ( fieldType == List.class && ((List<?>) value).isEmpty() ) {
 						field.set(obj, null);
-					} else if (fieldType == Map.class && ((Map<?, ?>) value).isEmpty()) {
+					} else if ( fieldType == Map.class && ((Map<?, ?>) value).isEmpty() ) {
 						field.set(obj, null);
 					} else {
 						allIsNull = false;
 					}
 				}
 				
-			} catch (Exception e) {
+			} catch ( Exception e ) {
 				MyLogUtil.error(MyStringUtil.class, e);
 				e.printStackTrace();
 			}
@@ -93,9 +94,9 @@ public class MyStringUtil {
 	/**
 	 * 检查字符是否非空,为空返回true
 	 */
-	public static boolean isNull(String str) {
+	public static boolean isNull (String str) {
 		return str == null || "null".equals(str) || "NULL".equals(str) || str.isEmpty() || "NaN".equals(str) ||
-		       str.trim().isEmpty();
+				str.trim().isEmpty();
 	}
 	
 	/**
@@ -103,18 +104,18 @@ public class MyStringUtil {
 	 *
 	 * @param s 需要加密的内容,如果是空字符串将返回null
 	 */
-	public static String encryption(String s) {
-		if (MyStringUtil.isNull(s)) return null;
+	public static String encryption (String s) {
+		if ( MyStringUtil.isNull(s) ) return null;
 		try {
 			s = s.trim(); // 移除首尾空白字符
 			s = Normalizer.normalize(s, Normalizer.Form.NFC); // 统一为 NFC 格式
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			byte[] hashBytes = digest.digest(s.getBytes());
 			StringBuilder hexString = new StringBuilder();
-			for (byte b : hashBytes)
+			for ( byte b : hashBytes )
 				hexString.append(String.format("%02x", b));
 			return hexString.toString();
-		} catch (NoSuchAlgorithmException e) {
+		} catch ( NoSuchAlgorithmException e ) {
 			MyLogUtil.error(MyStringUtil.class, "信息加密失败!");
 			MyLogUtil.error(MyStringUtil.class, e);
 			throw new RuntimeException(e);
@@ -129,13 +130,13 @@ public class MyStringUtil {
 	 *
 	 * @return 提取结果
 	 */
-	public static String extractPrefix(String input, int size) {
-		if (isNull(input)) return "";
-		if (size > input.length()) return input; // 如果要提取的长度大于字符串长度，返回原字符串
+	public static String extractPrefix (String input, int size) {
+		if ( isNull(input) ) return "";
+		if ( size > input.length() ) return input; // 如果要提取的长度大于字符串长度，返回原字符串
 		StringBuilder result = new StringBuilder(size);
-		for (int i = 0; i < input.length() && result.length() < size; i++) {
+		for ( int i = 0; i < input.length() && result.length() < size; i++ ) {
 			char c = input.charAt(i);
-			if (Character.isLetter(c)) {
+			if ( Character.isLetter(c) ) {
 				result.append(Character.toLowerCase(c));
 			}
 		}
@@ -154,17 +155,23 @@ public class MyStringUtil {
 	 *
 	 * @return 如果手机号格式正确返回true，否则返回false
 	 */
-	public static boolean isValidChinesePhoneNumber(String phoneNumber) {
-		if (MyStringUtil.isNull(phoneNumber)) {
+	public static boolean isValidChinesePhoneNumber (String phoneNumber) {
+		if ( MyStringUtil.isNull(phoneNumber) ) {
 			return false;
 		}
 		return PHONE_PATTERN.matcher(phoneNumber).matches();
 	}
 	
-	public static boolean isValidEmail(String email) {
-		if (isNull(email)) {
+	public static boolean isValidEmail (String email) {
+		if ( isNull(email) ) {
 			return false;
 		}
 		return RFC_5322_EMAIL_PATTERN.matcher(email).matches();
+	}
+	public static boolean isValidNum (String num) {
+		if ( isNull(num) ) {
+			return false;
+		}
+		return IS_NUM.matcher(num).matches();
 	}
 }

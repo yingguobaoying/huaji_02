@@ -202,6 +202,9 @@ public class ReturnResult<T> {
 	public static <T> ReturnResult<T> isTrue(String mxg, List<T> val, Integer all) {
 		return new ReturnResult<T>().operationTrue(mxg, val, all == null ? -1 : all);
 	}
+	public static <T> ReturnResult<T> isTrue(String mxg, List<T> val) {
+		return new ReturnResult<T>().operationTrue(mxg, val, 0);
+	}
 	
 	/**
 	 * 自动打包返回错误结果

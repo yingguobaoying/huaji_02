@@ -9,9 +9,7 @@ import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.myUtil.PageUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -19,16 +17,6 @@ import java.util.List;
  * 此接口设计的所有数据均直接从数据库获取,不会走缓存(将同步更新缓存)
  */
 public interface RootServlet {
-	/**
-	 * 管理员更改用户头像信息
-	 *
-	 * @param usersId 更改后的信息(不可改动ID)
-	 * @param jpeg    更新的图片,为null时为禁用
-	 * @param rootId  管理员账号
-	 *
-	 * @return 更新后的信息
-	 */
-	String RootEditUserHeadPortrait(int usersId, int rootId, MultipartFile jpeg) throws WriteError, IOException;
 	
 	/**
 	 * 管理员更改用户信息
