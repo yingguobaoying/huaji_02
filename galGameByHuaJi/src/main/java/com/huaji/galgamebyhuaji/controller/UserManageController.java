@@ -25,7 +25,7 @@ public class UserManageController extends BaseController {
 	private final RootServlet rootServlet;
 	
 	private Users getUser () {
-		Users user = getLoginUser(true);
+		Users user = getLoginUser();
 		if ( !loginService.userHasJurisdiction(user.getUserId(), JurisdictionLevel.ADMIN_JURISDICTION) )
 			throw new OperationException("权限不足,如需进行操作请联系管理员");
 		return user;

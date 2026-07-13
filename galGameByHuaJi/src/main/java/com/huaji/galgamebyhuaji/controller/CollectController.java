@@ -23,7 +23,7 @@ public class CollectController extends BaseController {
 	
 	@GetMapping("/getUserCollectList")
 	public ReturnResult<Integer> getUserCollectList() {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		List<Integer> r = collectServlet.getCollectResources(loginUser.getUserId());
 		return r.isEmpty() ?
 				ReturnResult.isTrue("您未收藏任何资源", null)
@@ -32,14 +32,14 @@ public class CollectController extends BaseController {
 	
 	@GetMapping("/collect/add/{id}")
 	public ReturnResult<Integer> addCollect(@PathVariable("id") int id) {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		collectServlet.collectResources(loginUser.getUserId(), id);
 		return ReturnResult.isTrue("收藏列表已更新", null);
 	}
 	
 	@GetMapping("/collect/del/{id}")
 	public ReturnResult<String> delCollect(@PathVariable("id") int id) {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		collectServlet.unCollectResources(loginUser.getUserId(), id);
 		return ReturnResult.isTrue("收藏列表已更新", null);
 	}

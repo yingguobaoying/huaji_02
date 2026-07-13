@@ -102,7 +102,6 @@ public class EmailService {
 		} catch (MessagingException e) {
 			MyLogUtil.error(EmailService.class, "邮件发送失败!" + e.getMessage());
 			e.printStackTrace();
-			System.out.println("邮件发送失败: " + e.getMessage());
 		}
 	}
 	

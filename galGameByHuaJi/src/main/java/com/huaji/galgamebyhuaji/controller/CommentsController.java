@@ -40,7 +40,7 @@ public class CommentsController extends BaseController {
 	@PostMapping("/user/Resources/addComments")
 	@ResponseBody
 	public ReturnResult<CommentWithUser> getComments(Comment c) {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		c.setCommentUser(loginUser.getUserId());
 		if (MyStringUtil.isNull(c.getComment())) throw new OperationException("评论内容不可为空!");
 		if (c.getCommentRId() == null || c.getCommentRId() < 0) throw new OperationException("资源ID不可为空!");

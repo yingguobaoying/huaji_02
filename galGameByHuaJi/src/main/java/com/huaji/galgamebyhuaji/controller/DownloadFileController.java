@@ -39,7 +39,7 @@ public class DownloadFileController extends BaseController {
 	) throws IOException {
 		if (MyStringUtil.isNull(userNaming))
 			userNaming = fileName;
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		ReturnResult<UserResourceRepository> userResource = userBehaviorService.getUserResource(loginUser.getUserId(), rId);
 		if (!(userResource.isOperationResult() && userResource.getReturnResult().getHasDown()))
 			throw new OperationException("您还没有获取本地资源的下载权限呢~~");

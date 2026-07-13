@@ -50,7 +50,7 @@ public class BuyResourcesController extends BaseController {
 	
 	@GetMapping("/testHasLink/{rId}")
 	public ReturnResult<BuyResourcesUserDTO> testBuyStatus(@PathVariable("rId") int rId) {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		return GlobalLock.safeExecute(loginUser.getUserId(), () -> {
 			ReturnResult<UserResourceRepository> userResource = userBehaviorService.getUserResource(loginUser.getUserId(), rId);
 			if (!userResource.isOperationResult())
@@ -73,7 +73,7 @@ public class BuyResourcesController extends BaseController {
 	) {
 		boolean isLinks = buyLinkRequest.getIsLinks();
 		boolean isDownload = buyLinkRequest.getIsDownload();
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		return GlobalLock.safeExecute(loginUser.getUserId(), () -> {
 			
 			if (!isLinks && !isDownload)
@@ -104,7 +104,7 @@ public class BuyResourcesController extends BaseController {
 	
 	@GetMapping("/getLinks")
 	public ReturnResult<DataWithUserMsg<LinksWithBLOBs>> getLinks(@RequestParam("isAll") boolean isAll, @RequestParam("rId") int rId) throws SessionExceptions {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		return GlobalLock.safeExecute(loginUser.getUserId(), () -> {
 			
 			ReturnResult<UserResourceRepository> userResource = userBehaviorService.getUserResource(loginUser.getUserId(), rId);
@@ -125,7 +125,7 @@ public class BuyResourcesController extends BaseController {
 	
 	@GetMapping("/getDown/{rId}")
 	public ReturnResult<DataWithUserMsg<ResourcesFileMap>> getDown(@PathVariable("rId") int rId) {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		return GlobalLock.safeExecute(loginUser.getUserId(), () -> {
 			ReturnResult<UserResourceRepository> userResource = userBehaviorService.getUserResource(loginUser.getUserId(), rId);
 			if (!userResource.isOperationResult())

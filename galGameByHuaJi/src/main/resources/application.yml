@@ -25,7 +25,7 @@ spring:
       max-file-size: 2GB
       max-request-size: 10GB
       file-size-threshold: 10MB
-      location: E:\temp\tomcat-work\work\Tomcat\localhost\static
+      location: D:\temp\tomcat-work\work\Tomcat\localhost\static
 
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
@@ -111,4 +111,4 @@ mail:
   smtp-email: "1925871606@qq.com"
   smtp-host: "smtp.qq.com"
   smtp-port: "587"
-resource-save-path: 'E:\temp\tomcat-work\work\Tomcat\localhost\static'
+resource-save-path: 'D:\temp\tomcat-work\work\Tomcat\localhost\static'

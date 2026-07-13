@@ -45,7 +45,7 @@ public class VerifyController extends BaseController {
 	public ReturnResult<String> getVerifyEmail (
 			HttpServletRequest request
 	                                           ) throws SessionExceptions {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		long l = Constant.VERIFY_EMAIL_VALID_TIME / 1000 / 60 / 60;
 		//验证token
 		String token;
@@ -129,7 +129,7 @@ public class VerifyController extends BaseController {
 	@GetMapping("/user/verify/getLevel")
 	@ResponseBody
 	public ReturnResult<Integer> getLevel () {
-		Users loginUser = getLoginUser(true);
+		Users loginUser = getLoginUser();
 		loginUser = usersMapper.selectByPrimaryKey(loginUser.getUserId());
 		return ReturnResult.isTrue("权限信息获取成功", JurisdictionLevel.getJurisdiction(loginUser.getJurisdiction()).getLevel());
 	}
