@@ -38,5 +38,6 @@ public interface AiRecordMapper {
     
     int updateByPrimaryKey(AiRecord row);
     
-    List<AiRecordWithBLOBs> selectByTimeToSize(@Param("size") int size,@Param("userId")String userId);
+    List<AiRecordWithBLOBs> selectByTimeToSize(@Param("size") Integer size, @Param("userId") Long userId, @Param("sessionId") String session);
+    
 }

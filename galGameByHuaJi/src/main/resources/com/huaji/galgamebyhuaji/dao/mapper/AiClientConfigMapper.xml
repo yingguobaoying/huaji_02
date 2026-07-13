@@ -142,8 +142,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs" useGeneratedKeys="true"
-          keyProperty="id">
+  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
     insert into ai_client_config (id, code, name, 
       model, key_is_vault, max_tokens, 
       temperature, top_p, frequency_penalty, 
