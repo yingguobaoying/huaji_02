@@ -1,5 +1,6 @@
 package com.huaji.galgamebyhuaji.service.ai.impl;
 
+import com.huaji.galgamebyhuaji.config.AiClientFactory;
 import com.huaji.galgamebyhuaji.constant.AiConstant;
 import com.huaji.galgamebyhuaji.constant.AiPromptTemplate;
 import com.huaji.galgamebyhuaji.constant.PrefixConstant;
@@ -41,6 +42,7 @@ public class AiBastServiceImpl implements AiBastService {
     private String bastPath;
     private final VaultTemplate vaultTemplate;
     private final AESEncryptionUtil aesEncryptionUtil;
+    private final AiClientFactory clientFactory;
     
     @Override
     public ReturnResult<AiClientConfigWithBLOBs> getList() {//控制层控制了仅管理员可用,不脱敏了,反正也是加密的
@@ -210,13 +212,9 @@ public class AiBastServiceImpl implements AiBastService {
         }
         return result;
     }
-    @Override
-    public void selfInspection(){
-        AiClientConfigExample example = new AiClientConfigExample();
-        
-        example.createCriteria().andCodeEqualTo();
-        List<AiClientConfig> aiClientConfigs = aiClientConfigMapper.selectByExample();
-    }
+    
+   
+    
     @Override
     public ReturnResult<String> aiChatByStream(Long idClientId, String code, AiChatClientParam param) {
         

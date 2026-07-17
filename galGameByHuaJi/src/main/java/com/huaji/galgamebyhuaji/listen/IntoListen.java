@@ -89,6 +89,7 @@ public class IntoListen {
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
 			}
 			aiClientFactory.aiInfo();
+			aiClientFactory.selfInspection();
 			Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
 			System.out.println("=========================================");
 			System.out.println("=========  滑稽/因果报应的个人小站  =========");

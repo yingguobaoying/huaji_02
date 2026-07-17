@@ -29,6 +29,7 @@ public interface AiBastService {
      */
     ReturnResult<String> sumUpRecorder(List<AiRecordWithBLOBs> messageList);
     
+    
     /**
      * 使用AI客户端进行聊天,优先级id>代码,二者不可同时为空
      */
