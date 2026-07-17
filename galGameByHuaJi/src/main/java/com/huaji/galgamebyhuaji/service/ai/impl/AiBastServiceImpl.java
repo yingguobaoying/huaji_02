@@ -1,17 +1,20 @@
 package com.huaji.galgamebyhuaji.service.ai.impl;
 
+import com.huaji.galgamebyhuaji.constant.AiConstant;
+import com.huaji.galgamebyhuaji.constant.AiPromptTemplate;
 import com.huaji.galgamebyhuaji.constant.PrefixConstant;
 import com.huaji.galgamebyhuaji.dao.AiClientConfigMapper;
+import com.huaji.galgamebyhuaji.entity.AiClientConfig;
+import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
+import com.huaji.galgamebyhuaji.entity.AiRecord;
+import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage.AiMerchantType;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
+import com.huaji.galgamebyhuaji.model.AiChatClientParam;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
-import com.huaji.galgamebyhuaji.myUtil.AESEncryptionUtil;
-import com.huaji.galgamebyhuaji.myUtil.FileUtil;
-import com.huaji.galgamebyhuaji.myUtil.IdUtil;
-import com.huaji.galgamebyhuaji.myUtil.ListUtil;
-import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.myUtil.*;
 import com.huaji.galgamebyhuaji.service.ai.AiBastService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +23,10 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.vault.core.VaultTemplate;
+import reactor.core.publisher.Flux;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,6 +57,15 @@ public class AiBastServiceImpl implements AiBastService {
         config.setId(null);
         if (MyStringUtil.isNull(config.getCode()))
             config.setCode(IdUtil.getRandomId(PrefixConstant.AiClientConfigPrefix));
+        else {
+            AiClientConfigExample aiClientConfigExample = new AiClientConfigExample();
+            aiClientConfigExample.createCriteria().andCodeEqualTo(config.getCode());
+            List<AiClientConfig> aiClientConfigs = aiClientConfigMapper.selectByExample(aiClientConfigExample);
+            if (!ListUtil.isNull(aiClientConfigs))
+                throw new OperationException(
+                        "添加失败!因为使用的代码:%s,不唯一,冲突配置:%s".formatted(config.getCode(),
+                                                                                  aiClientConfigs.stream().map(AiClientConfig::getCode).toList()));
+        }
         if (Boolean.TRUE.equals(config.getKeyIsVault())) {
             WriteError.tryWrite(aiClientConfigMapper.insert(config));
             if (config.getId() == null)//先写入数据库
@@ -89,6 +99,7 @@ public class AiBastServiceImpl implements AiBastService {
     public ReturnResult<AiClientConfigWithBLOBs> update(AiClientConfigWithBLOBs aiClientConfig, String apiKey) {
         Boolean keyIsVault = aiClientConfig.getKeyIsVault();
         AiClientConfigWithBLOBs old = aiClientConfigMapper.selectByPrimaryKey(aiClientConfig.getId());
+        aiClientConfig.setCode(null);//禁止修改引用代码
         if (old == null || old.getId() == null)
             throw new OperationException("错误不存在的数据");
         if (Boolean.TRUE.equals(keyIsVault)) {
@@ -144,5 +155,76 @@ public class AiBastServiceImpl implements AiBastService {
                 AiMerchantType.values()).collect(Collectors.toMap(
                 AiMerchantType::getName, AiMerchantType::getCode));
         return ReturnResult.isTrue("获取成功", map);
+    }
+    
+    @Override
+    public ReturnResult<String> sumUpRecorder(List<AiRecordWithBLOBs> messageList) {
+        if (ListUtil.isNull(messageList) || messageList.stream().noneMatch(Objects::nonNull)) {
+            return ReturnResult.isFalse("没有需要总结的记录");
+        }
+        int maxIndex = messageList.stream()
+                .filter(Objects::nonNull)
+                .mapToInt(AiRecord::getIndex)
+                .max()
+                .orElse(0);
+        AiChatClientParam aiChatClientParam = new AiChatClientParam();
+        aiChatClientParam.setIndex(maxIndex + 1);
+        Long userId = messageList.getFirst().getUserId();
+        aiChatClientParam.setUserId(userId);
+        String sessionId = messageList.getFirst().getSessionId();
+        aiChatClientParam.setSessionId(sessionId);
+        aiChatClientParam.setPromptContent(AiPromptTemplate.CHAT_SUMMARY_PROMPT);
+        StringBuilder sb = new StringBuilder(2048); //预估容量，减少扩容
+        sb.append("【聊天记录开始】\n");
+        List<Integer> index = new ArrayList<>(messageList.size());
+        for (int i = 0; i < messageList.size(); i++) {
+            AiRecordWithBLOBs m = messageList.get(i);
+            if (m == null || MyStringUtil.isNull(m.getContent())) continue;
+            //内容清洗 + 分隔符，防注入 + 易解析
+            String content = m.getContent()
+                    .replace("【", "[")
+                    .replace("】", "]")
+                    .replaceAll("\\n{3,}", "\n\n"); // 压缩连续换行
+            sb.append("### 记录").append(i).append(" ###\n")
+                    .append(content)
+                    .append("\n[时间]: ")
+                    .append(TimeUtil.getVisualDateFormatTime(m.getCreatedAt()))
+                    .append("\n\n");
+            index.add(m.getIndex());
+        }
+        sb.append("【聊天记录结束】\n【当前时间】: ")
+                .append(TimeUtil.getVisualDateFormatTime());
+        aiChatClientParam.setUserContent(sb.toString());
+        aiChatClientParam.setMessageList(List.of());
+        // 返回前轻量校验（兜底防模型格式偏移）
+        log.info("开始总结聊天记录,聊天记录归属用户:{},sessionId:{},总结记录索引:{}",
+                 userId, sessionId, index
+        );
+        ReturnResult<String> result = aiChatByStream(null, AiConstant.SUM_UP_CODE, aiChatClientParam);
+        if (result.isOperationResult() && MyStringUtil.isNull(result.getReturnResult())) {
+            String summary = result.getReturnResult().trim();
+            if (!summary.contains("# 聊天信息总结") || !summary.contains("# 待办事项总结"))
+                log.warn("总结格式异常: {}", summary);
+        } else {
+            log.error("错误!聊天信息总结失败");
+        }
+        return result;
+    }
+    @Override
+    public void selfInspection(){
+        AiClientConfigExample example = new AiClientConfigExample();
+        
+        example.createCriteria().andCodeEqualTo();
+        List<AiClientConfig> aiClientConfigs = aiClientConfigMapper.selectByExample();
+    }
+    @Override
+    public ReturnResult<String> aiChatByStream(Long idClientId, String code, AiChatClientParam param) {
+        
+        return null;
+    }
+    
+    @Override
+    public Flux<String> aiChat(Long idClientId, String code, AiChatClientParam param) {
+        return null;
     }
 }

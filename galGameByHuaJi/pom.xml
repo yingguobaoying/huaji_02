@@ -152,7 +152,11 @@
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-ollama</artifactId>
         </dependency>
-
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.ai/spring-ai-client-chat -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-client-chat</artifactId>
+        </dependency>
         <!-- 替换 spring-ai-starter-model-openai -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

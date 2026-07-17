@@ -7,7 +7,7 @@ public class AiRecord {
 
     private String sessionId;
 
-    private Byte role;
+    private Integer role;
 
     private Long userId;
 
@@ -22,6 +22,8 @@ public class AiRecord {
     private Integer inputTokens;
 
     private Long clientId;
+
+    private Integer index;
 
     public Long getId() {
         return id;
@@ -39,11 +41,11 @@ public class AiRecord {
         this.sessionId = sessionId == null ? null : sessionId.trim();
     }
 
-    public Byte getRole() {
+    public Integer getRole() {
         return role;
     }
 
-    public void setRole(Byte role) {
+    public void setRole(Integer role) {
         this.role = role;
     }
 
@@ -101,5 +103,13 @@ public class AiRecord {
 
     public void setClientId(Long clientId) {
         this.clientId = clientId;
+    }
+
+    public Integer getIndex() {
+        return index;
+    }
+
+    public void setIndex(Integer index) {
+        this.index = index;
     }
 }

@@ -245,52 +245,52 @@ public class AiRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andRoleEqualTo(Byte value) {
+        public Criteria andRoleEqualTo(Integer value) {
             addCriterion("role =", value, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleNotEqualTo(Byte value) {
+        public Criteria andRoleNotEqualTo(Integer value) {
             addCriterion("role <>", value, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleGreaterThan(Byte value) {
+        public Criteria andRoleGreaterThan(Integer value) {
             addCriterion("role >", value, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleGreaterThanOrEqualTo(Byte value) {
+        public Criteria andRoleGreaterThanOrEqualTo(Integer value) {
             addCriterion("role >=", value, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleLessThan(Byte value) {
+        public Criteria andRoleLessThan(Integer value) {
             addCriterion("role <", value, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleLessThanOrEqualTo(Byte value) {
+        public Criteria andRoleLessThanOrEqualTo(Integer value) {
             addCriterion("role <=", value, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleIn(List<Byte> values) {
+        public Criteria andRoleIn(List<Integer> values) {
             addCriterion("role in", values, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleNotIn(List<Byte> values) {
+        public Criteria andRoleNotIn(List<Integer> values) {
             addCriterion("role not in", values, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleBetween(Byte value1, Byte value2) {
+        public Criteria andRoleBetween(Integer value1, Integer value2) {
             addCriterion("role between", value1, value2, "role");
             return (Criteria) this;
         }
 
-        public Criteria andRoleNotBetween(Byte value1, Byte value2) {
+        public Criteria andRoleNotBetween(Integer value1, Integer value2) {
             addCriterion("role not between", value1, value2, "role");
             return (Criteria) this;
         }
@@ -722,6 +722,66 @@ public class AiRecordExample {
 
         public Criteria andClientIdNotBetween(Long value1, Long value2) {
             addCriterion("client_id not between", value1, value2, "clientId");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexIsNull() {
+            addCriterion("index is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexIsNotNull() {
+            addCriterion("index is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexEqualTo(Integer value) {
+            addCriterion("index =", value, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNotEqualTo(Integer value) {
+            addCriterion("index <>", value, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexGreaterThan(Integer value) {
+            addCriterion("index >", value, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexGreaterThanOrEqualTo(Integer value) {
+            addCriterion("index >=", value, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexLessThan(Integer value) {
+            addCriterion("index <", value, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexLessThanOrEqualTo(Integer value) {
+            addCriterion("index <=", value, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexIn(List<Integer> values) {
+            addCriterion("index in", values, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNotIn(List<Integer> values) {
+            addCriterion("index not in", values, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexBetween(Integer value1, Integer value2) {
+            addCriterion("index between", value1, value2, "index");
+            return (Criteria) this;
+        }
+
+        public Criteria andIndexNotBetween(Integer value1, Integer value2) {
+            addCriterion("index not between", value1, value2, "index");
             return (Criteria) this;
         }
     }

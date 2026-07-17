@@ -4,7 +4,7 @@
     <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.AiRecord">
         <id column="id" jdbcType="BIGINT" property="id"/>
         <result column="session_id" jdbcType="VARCHAR" property="sessionId"/>
-        <result column="role" jdbcType="TINYINT" property="role"/>
+        <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="user_id" jdbcType="BIGINT" property="userId"/>
         <result column="external_id" jdbcType="VARCHAR" property="externalId"/>
         <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
@@ -12,6 +12,7 @@
         <result column="output_tokens" jdbcType="INTEGER" property="outputTokens"/>
         <result column="input_tokens" jdbcType="INTEGER" property="inputTokens"/>
         <result column="client_id" jdbcType="BIGINT" property="clientId"/>
+        <result column="index" jdbcType="INTEGER" property="index"/>
     </resultMap>
     <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
         <result column="content" jdbcType="LONGVARCHAR" property="content"/>
@@ -80,7 +81,7 @@
     </sql>
     <sql id="Base_Column_List">
         id, session_id, role, user_id, external_id, created_at, deleted, output_tokens, input_tokens,
-    client_id
+    client_id, index
     </sql>
     <sql id="Blob_Column_List">
         content, prompt_content, request_json
@@ -140,13 +141,13 @@
         insert into ai_record (id, session_id, role,
                                user_id, external_id, created_at,
                                deleted, output_tokens, input_tokens,
-                               client_id, content, prompt_content,
-                               request_json)
-        values (#{id,jdbcType=BIGINT}, #{sessionId,jdbcType=VARCHAR}, #{role,jdbcType=TINYINT},
+                               client_id, index, content,
+                               prompt_content, request_json)
+        values (#{id,jdbcType=BIGINT}, #{sessionId,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER},
                 #{userId,jdbcType=BIGINT}, #{externalId,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP},
                 #{deleted,jdbcType=BIT}, #{outputTokens,jdbcType=INTEGER}, #{inputTokens,jdbcType=INTEGER},
-                #{clientId,jdbcType=BIGINT}, #{content,jdbcType=LONGVARCHAR}, #{promptContent,jdbcType=LONGVARCHAR},
-                #{requestJson,jdbcType=LONGVARCHAR})
+                #{clientId,jdbcType=BIGINT}, #{index,jdbcType=INTEGER}, #{content,jdbcType=LONGVARCHAR},
+                #{promptContent,jdbcType=LONGVARCHAR}, #{requestJson,jdbcType=LONGVARCHAR})
     </insert>
     <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
         insert into ai_record
@@ -181,6 +182,9 @@
             <if test="clientId != null">
                 client_id,
             </if>
+            <if test="index != null">
+                index,
+            </if>
             <if test="content != null">
                 content,
             </if>
@@ -199,7 +203,7 @@
                 #{sessionId,jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                #{role,jdbcType=TINYINT},
+                #{role,jdbcType=INTEGER},
             </if>
             <if test="userId != null">
                 #{userId,jdbcType=BIGINT},
@@ -221,6 +225,9 @@
             </if>
             <if test="clientId != null">
                 #{clientId,jdbcType=BIGINT},
+            </if>
+            <if test="index != null">
+                #{index,jdbcType=INTEGER},
             </if>
             <if test="content != null">
                 #{content,jdbcType=LONGVARCHAR},
@@ -250,7 +257,7 @@
                 session_id = #{row.sessionId,jdbcType=VARCHAR},
             </if>
             <if test="row.role != null">
-                role = #{row.role,jdbcType=TINYINT},
+                role = #{row.role,jdbcType=INTEGER},
             </if>
             <if test="row.userId != null">
                 user_id = #{row.userId,jdbcType=BIGINT},
@@ -273,6 +280,9 @@
             <if test="row.clientId != null">
                 client_id = #{row.clientId,jdbcType=BIGINT},
             </if>
+            <if test="row.index != null">
+                index = #{row.index,jdbcType=INTEGER},
+            </if>
             <if test="row.content != null">
                 content = #{row.content,jdbcType=LONGVARCHAR},
             </if>
@@ -291,7 +301,7 @@
         update ai_record
         set id = #{row.id,jdbcType=BIGINT},
         session_id = #{row.sessionId,jdbcType=VARCHAR},
-        role = #{row.role,jdbcType=TINYINT},
+        role = #{row.role,jdbcType=INTEGER},
         user_id = #{row.userId,jdbcType=BIGINT},
         external_id = #{row.externalId,jdbcType=VARCHAR},
         created_at = #{row.createdAt,jdbcType=TIMESTAMP},
@@ -299,6 +309,7 @@
         output_tokens = #{row.outputTokens,jdbcType=INTEGER},
         input_tokens = #{row.inputTokens,jdbcType=INTEGER},
         client_id = #{row.clientId,jdbcType=BIGINT},
+        index = #{row.index,jdbcType=INTEGER},
         content = #{row.content,jdbcType=LONGVARCHAR},
         prompt_content = #{row.promptContent,jdbcType=LONGVARCHAR},
         request_json = #{row.requestJson,jdbcType=LONGVARCHAR}
@@ -310,14 +321,15 @@
         update ai_record
         set id = #{row.id,jdbcType=BIGINT},
         session_id = #{row.sessionId,jdbcType=VARCHAR},
-        role = #{row.role,jdbcType=TINYINT},
+        role = #{row.role,jdbcType=INTEGER},
         user_id = #{row.userId,jdbcType=BIGINT},
         external_id = #{row.externalId,jdbcType=VARCHAR},
         created_at = #{row.createdAt,jdbcType=TIMESTAMP},
         deleted = #{row.deleted,jdbcType=BIT},
         output_tokens = #{row.outputTokens,jdbcType=INTEGER},
         input_tokens = #{row.inputTokens,jdbcType=INTEGER},
-        client_id = #{row.clientId,jdbcType=BIGINT}
+        client_id = #{row.clientId,jdbcType=BIGINT},
+        index = #{row.index,jdbcType=INTEGER}
         <if test="example != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
@@ -329,7 +341,7 @@
                 session_id = #{sessionId,jdbcType=VARCHAR},
             </if>
             <if test="role != null">
-                role = #{role,jdbcType=TINYINT},
+                role = #{role,jdbcType=INTEGER},
             </if>
             <if test="userId != null">
                 user_id = #{userId,jdbcType=BIGINT},
@@ -352,6 +364,9 @@
             <if test="clientId != null">
                 client_id = #{clientId,jdbcType=BIGINT},
             </if>
+            <if test="index != null">
+                index = #{index,jdbcType=INTEGER},
+            </if>
             <if test="content != null">
                 content = #{content,jdbcType=LONGVARCHAR},
             </if>
@@ -367,7 +382,7 @@
     <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
         update ai_record
         set session_id     = #{sessionId,jdbcType=VARCHAR},
-            role           = #{role,jdbcType=TINYINT},
+            role           = #{role,jdbcType=INTEGER},
             user_id        = #{userId,jdbcType=BIGINT},
             external_id    = #{externalId,jdbcType=VARCHAR},
             created_at     = #{createdAt,jdbcType=TIMESTAMP},
@@ -375,6 +390,7 @@
             output_tokens  = #{outputTokens,jdbcType=INTEGER},
             input_tokens   = #{inputTokens,jdbcType=INTEGER},
             client_id      = #{clientId,jdbcType=BIGINT},
+            index          = #{index,jdbcType=INTEGER},
             content        = #{content,jdbcType=LONGVARCHAR},
             prompt_content = #{promptContent,jdbcType=LONGVARCHAR},
             request_json   = #{requestJson,jdbcType=LONGVARCHAR}
@@ -383,26 +399,24 @@
     <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.AiRecord">
         update ai_record
         set session_id    = #{sessionId,jdbcType=VARCHAR},
-            role          = #{role,jdbcType=TINYINT},
+            role          = #{role,jdbcType=INTEGER},
             user_id       = #{userId,jdbcType=BIGINT},
             external_id   = #{externalId,jdbcType=VARCHAR},
             created_at    = #{createdAt,jdbcType=TIMESTAMP},
             deleted       = #{deleted,jdbcType=BIT},
             output_tokens = #{outputTokens,jdbcType=INTEGER},
             input_tokens  = #{inputTokens,jdbcType=INTEGER},
-            client_id     = #{clientId,jdbcType=BIGINT}
+            client_id     = #{clientId,jdbcType=BIGINT},
+            index         = #{index,jdbcType=INTEGER}
         where id = #{id,jdbcType=BIGINT}
     </update>
-    <select id="selectByTimeToSize" resultType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
+    <select id="getLatestBySize" resultType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
         select *
         from ai_record
-        where deleted = 0
+        where session_id=#{sessionId}
         and user_id = #{userId}
-        and session_id = #{sessionId}
         order by created_at
-        <if test="size!=null and size !=0">
-            limit #{size}
-        </if>
+        limit #{size}
     </select>
 
 </mapper>

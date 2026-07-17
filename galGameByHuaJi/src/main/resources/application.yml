@@ -1,7 +1,7 @@
 spring:
   cloud:
     vault:
-#      vault密钥配置
+      #      vault密钥配置
       fail-fast: true
       uri: http://127.0.0.1:8200
       token: ${VAULT_TOKEN}
@@ -13,9 +13,9 @@ spring:
         backend: my-website-key
         default-context: key
         profile-separator: '/'
-#        ai密钥路径
+        #        ai密钥路径
         ai-path: 'ai-token'
-#        关闭spring ai的自动初始化客户端功能,因为他提供的太废物了不支持多客户端动态初始化
+  #        关闭spring ai的自动初始化客户端功能,因为他提供的太废物了不支持多客户端动态初始化
   liquibase:
     enabled: false
   config:
@@ -50,7 +50,7 @@ spring:
       test-on-return: false
       pool-prepared-statements: true
       max-pool-prepared-statement-per-connection-size: 20
-#德鲁伊监控页面
+      #德鲁伊监控页面
       stat-view-servlet:
         enabled: true
         # todo:上线时千万别用这玩意
@@ -99,13 +99,13 @@ mybatis:
     #todo 请注意此为简单密钥请在上线时修正
 #    密钥系统,从vault里面读取
 jwt:
-#  JWT轮换密钥
+  #  JWT轮换密钥
   secret-key:
   secret-key1:
   secret-key2:
   secret-key3:
   secret-key4:
-#  默认过期时间和初始版本
+  #  默认过期时间和初始版本
   expiration-time: 1800000
   current-version: 0
   system-salt:
@@ -120,3 +120,6 @@ mail:
   smtp-port: "587"
 resource-save-path: 'D:\temp\tomcat-work\work\Tomcat\localhost\static'
 #资源存放位置
+ai:
+  chat-record-size: 20
+#保留的聊天记录轮数
