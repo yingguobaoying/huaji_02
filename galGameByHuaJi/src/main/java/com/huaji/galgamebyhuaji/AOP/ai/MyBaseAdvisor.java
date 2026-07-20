@@ -1,7 +1,5 @@
 package com.huaji.galgamebyhuaji.AOP.ai;
 
-import com.huaji.galgamebyhuaji.exceptions.OperationException;
-import com.huaji.galgamebyhuaji.model.AiChatClientParam;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
@@ -11,39 +9,41 @@ import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
 
-public class MyBaseAdvisor implements BaseAdvisor {
-    protected AiChatClientParam getParam(ChatClientRequest request) {
-        Object param = request.context().get(AiChatClientParam.PARAM_KEY);
-        if (!(param instanceof AiChatClientParam))
-            throw new OperationException("消息参数传递错误请稍后重试");
-        return (AiChatClientParam) param;
+public abstract class MyBaseAdvisor implements BaseAdvisor {
+    protected Object getParam(ChatClientRequest request, String name) {
+        return request.context().get(name);
     }
     
-    protected AiChatClientParam getParam(ChatClientResponse r) {
-        Object param = r.context().get(AiChatClientParam.PARAM_KEY);
-        if (!(param instanceof AiChatClientParam))
-            throw new OperationException("消息参数传递错误请稍后重试");
-        return (AiChatClientParam) param;
+    protected Object getParam(ChatClientResponse r, String name) {
+        return r.context().get(name);
+    }
+    
+    protected <T> void saveData(ChatClientRequest request, String name, T value) {
+        request.context().put(name, value);
+    }
+    
+    protected <T> void saveData(ChatClientResponse response, String name, T value) {
+        response.context().put(name, value);
     }
     
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
-        return BaseAdvisor.super.adviseCall(chatClientRequest, callAdvisorChain);
+        return callAdvisorChain.nextCall(chatClientRequest);
     }
     
     @Override
     public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain streamAdvisorChain) {
-        return BaseAdvisor.super.adviseStream(chatClientRequest, streamAdvisorChain);
+        return streamAdvisorChain.nextStream(chatClientRequest);
     }
     
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
-        return null;
+        return chatClientRequest;
     }
     
     @Override
     public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
-        return null;
+        return chatClientResponse;
     }
     
     @Override
@@ -51,8 +51,4 @@ public class MyBaseAdvisor implements BaseAdvisor {
         return BaseAdvisor.super.getScheduler();
     }
     
-    @Override
-    public int getOrder() {
-        return 0;
-    }
 }

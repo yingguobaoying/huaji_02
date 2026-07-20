@@ -1,8 +1,8 @@
 package com.huaji.galgamebyhuaji.model;
 
+import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.ai.chat.messages.Message;
 
 import java.util.List;
 
@@ -14,7 +14,8 @@ public class AiChatClientParam {
     private String sessionId;
     private String promptContent;
     private String userContent;
-    private List<Message> messageList;
+    private List<AiRecordWithBLOBs> messageList;
+    private boolean isSumUp=false;
     /**
      * 对话索引,记录当前对话为第几条
      * 比如

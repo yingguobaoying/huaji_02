@@ -66,7 +66,6 @@ public class IntoListen {
 			userMxgServlet.getAllUserListMxg();
 			//设置防止时序攻击的固定密码,不过大部分情况下密码不会包括中文所以这里夹带了点私货
 			CONSTANT_PASSWORD = passwordEncryptionUtil.hashPassword("红豆可爱滴捏_Vigna_very_loveliness");
-			System.out.println(resourceSavePath);
 			File dir = new File(resourceSavePath);
 			if ( !dir.exists() ) {
 				if ( dir.mkdirs() )
@@ -88,9 +87,9 @@ public class IntoListen {
 				else
 					throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
 			}
+			Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
 			aiClientFactory.aiInfo();
 			aiClientFactory.selfInspection();
-			Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
 			System.out.println("=========================================");
 			System.out.println("=========  滑稽/因果报应的个人小站  =========");
 			System.out.println("=========================================");

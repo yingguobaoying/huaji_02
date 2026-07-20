@@ -1,5 +1,8 @@
 package com.huaji.galgamebyhuaji.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.huaji.galgamebyhuaji.AOP.ai.DatabaseChatMemory;
+import com.huaji.galgamebyhuaji.AOP.ai.MyBaseAdvisor;
 import com.huaji.galgamebyhuaji.constant.AiConstant;
 import com.huaji.galgamebyhuaji.dao.AiClientConfigMapper;
 import com.huaji.galgamebyhuaji.entity.AiClientConfig;
@@ -13,6 +16,7 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatOptions;
@@ -26,7 +30,6 @@ import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
 
@@ -41,7 +44,10 @@ import java.util.Map;
 @DependsOn({"vaultConfigValidator"})
 public class AiClientFactory {
     private final AiClientConfigMapper clientConfigMapper;
+    private final ObjectMapper objectMapper;
     private volatile Map<Long, ChatClient> configMap = Collections.emptyMap();
+    private final DatabaseChatMemory databaseChatMemory;
+    private final List<MyBaseAdvisor> allAdvisor;
     
     public ChatClient getChatClient(long id) {
         return configMap.get(id);
@@ -156,6 +162,9 @@ public class AiClientFactory {
                     }
                     default -> {
                         // OpenAI 及所有兼容 OpenAI 协议的模型 (如中转API)
+                        Map json = null;
+                        if (MyStringUtil.isNull(config.getExtraConfigJson()))
+                            json = objectMapper.readValue(config.getExtraConfigJson(), Map.class);
                         OpenAiChatOptions options = OpenAiChatOptions.builder()
                                 .model(config.getModel())
                                 .temperature(temperature)
@@ -176,9 +185,10 @@ public class AiClientFactory {
                 }
                 //构建 ChatClient 并绑定默认系统提示词
                 ChatClient.Builder clientBuilder = ChatClient.builder(chatModel);
-                if (StringUtils.hasText(config.getContent())) {
+                if (MyStringUtil.isNull(config.getContent())) {
                     clientBuilder.defaultSystem(config.getContent());
                 }
+                clientBuilder.defaultAdvisors((Advisor) allAdvisor);
                 map.put(config.getId(), clientBuilder.build());
                 ok++;
                 log.info("成功加载AI模型: id={}, name={}, merchant={}", config.getId(), config.getName(), merchantType.getName());

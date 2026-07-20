@@ -31,12 +31,22 @@ public interface AiBastService {
     
     
     /**
-     * 使用AI客户端进行聊天,优先级id>代码,二者不可同时为空
+     * 使用AI客户端进行聊天,优先级id>代码>AiChatClientParam设置,二者不可同时为空
      */
-    ReturnResult<String> aiChatByStream(Long idClientId, String code, AiChatClientParam param);
+    ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param);
+    
+    /**
+     * 可配置的AI聊天\(非流)
+     */
+    ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config);
     
     /**
      * 使用AI客户端进行聊天(流式)
      */
-    Flux<String> aiChat(Long idClientId, String code, AiChatClientParam param);
+    Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param);
+    
+    /**
+     * 使用AI客户端进行聊天(流式)
+     */
+    Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config);
 }

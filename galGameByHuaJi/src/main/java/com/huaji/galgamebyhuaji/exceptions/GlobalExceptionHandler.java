@@ -63,11 +63,9 @@ public class GlobalExceptionHandler {
 			return handleOperationException((OperationException) ex, request);
 		if ( ex instanceof AccessDeniedException
 				|| ex instanceof AuthenticationException
-				|| ex instanceof InsufficientAuthenticationException
 		) handleSecurityException(ex);
-		ex.printStackTrace();//todo 仅在开发时使用,上线时清除,避免暴露错误信息
 		log.error("错误{}", ex.getMessage(), ex);
-		ReturnResult<Exception> error = ReturnResult.isError(ex.getMessage(), ex);
+		ReturnResult<Exception> error = ReturnResult.isError(ex.getMessage());
 		return addSystemMsg(error, request);
 	}
 	
