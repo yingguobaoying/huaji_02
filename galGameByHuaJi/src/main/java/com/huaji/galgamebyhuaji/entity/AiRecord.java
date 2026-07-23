@@ -9,7 +9,7 @@ public class AiRecord {
 
     private Integer role;
 
-    private Long userId;
+    private Integer userId;
 
     private String externalId;
 
@@ -49,11 +49,11 @@ public class AiRecord {
         this.role = role;
     }
 
-    public Long getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 

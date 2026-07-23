@@ -174,7 +174,7 @@ public class AiBastServiceImpl implements AiBastService {
         }
         int maxIndex = 1;
         AiChatClientParam aiChatClientParam = new AiChatClientParam();
-        Long userId = messageList.getFirst().getUserId();
+        Integer userId = messageList.getFirst().getUserId();
         aiChatClientParam.setUserId(userId);
         String sessionId = messageList.getFirst().getSessionId();
         aiChatClientParam.setSessionId(sessionId);
@@ -298,7 +298,7 @@ public class AiBastServiceImpl implements AiBastService {
         // 获取历史记录
         List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize, param.getUserId(), param.getSessionId());
         param.setMessageList(latest);
-        if(ListUtil.isNull(latest))
+        if (ListUtil.isNull(latest))
             param.setIndex(1);
         boolean hasTempConfig = config != null;
         if (hasTempConfig) {

@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-
 @Mapper
 public interface AiClientConfigMapper {
     long countByExample(AiClientConfigExample example);
@@ -37,4 +36,6 @@ public interface AiClientConfigMapper {
     int updateByPrimaryKeyWithBLOBs(AiClientConfigWithBLOBs row);
     
     int updateByPrimaryKey(AiClientConfig row);
+    
+    List<AiClientConfigWithBLOBs> getUserUseModer();
 }

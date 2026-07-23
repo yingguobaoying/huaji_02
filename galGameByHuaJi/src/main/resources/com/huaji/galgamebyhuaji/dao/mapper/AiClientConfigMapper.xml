@@ -1,565 +1,580 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.huaji.galgamebyhuaji.dao.AiClientConfigMapper">
-  <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.AiClientConfig">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="code" jdbcType="VARCHAR" property="code" />
-    <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="model" jdbcType="VARCHAR" property="model" />
-    <result column="key_is_vault" jdbcType="BIT" property="keyIsVault" />
-    <result column="max_tokens" jdbcType="INTEGER" property="maxTokens" />
-    <result column="temperature" jdbcType="INTEGER" property="temperature" />
-    <result column="top_p" jdbcType="INTEGER" property="topP" />
-    <result column="frequency_penalty" jdbcType="INTEGER" property="frequencyPenalty" />
-    <result column="presence_penalty" jdbcType="INTEGER" property="presencePenalty" />
-    <result column="thinking" jdbcType="BIT" property="thinking" />
-    <result column="reasoning_effort" jdbcType="VARCHAR" property="reasoningEffort" />
-    <result column="stream" jdbcType="BIT" property="stream" />
-    <result column="timeout" jdbcType="INTEGER" property="timeout" />
-    <result column="is_active" jdbcType="BIT" property="isActive" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
-    <result column="merchant" jdbcType="VARCHAR" property="merchant" />
-    <result column="description" jdbcType="VARCHAR" property="description" />
-  </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
-    <result column="base_url" jdbcType="LONGVARCHAR" property="baseUrl" />
-    <result column="api_key" jdbcType="LONGVARCHAR" property="apiKey" />
-    <result column="extra_config json" jdbcType="LONGVARCHAR" property="extraConfigJson" />
-    <result column="content" jdbcType="LONGVARCHAR" property="content" />
-  </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue">
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue">
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue">
-                  and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+    <resultMap id="BaseResultMap" type="com.huaji.galgamebyhuaji.entity.AiClientConfig">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="code" jdbcType="VARCHAR" property="code"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="model" jdbcType="VARCHAR" property="model"/>
+        <result column="key_is_vault" jdbcType="BIT" property="keyIsVault"/>
+        <result column="max_tokens" jdbcType="INTEGER" property="maxTokens"/>
+        <result column="temperature" jdbcType="INTEGER" property="temperature"/>
+        <result column="top_p" jdbcType="INTEGER" property="topP"/>
+        <result column="frequency_penalty" jdbcType="INTEGER" property="frequencyPenalty"/>
+        <result column="presence_penalty" jdbcType="INTEGER" property="presencePenalty"/>
+        <result column="thinking" jdbcType="BIT" property="thinking"/>
+        <result column="reasoning_effort" jdbcType="VARCHAR" property="reasoningEffort"/>
+        <result column="stream" jdbcType="BIT" property="stream"/>
+        <result column="timeout" jdbcType="INTEGER" property="timeout"/>
+        <result column="is_active" jdbcType="BIT" property="isActive"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="merchant" jdbcType="VARCHAR" property="merchant"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+    </resultMap>
+    <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
+               type="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+        <result column="base_url" jdbcType="LONGVARCHAR" property="baseUrl"/>
+        <result column="api_key" jdbcType="LONGVARCHAR" property="apiKey"/>
+        <result column="extra_config json" jdbcType="LONGVARCHAR" property="extraConfigJson"/>
+        <result column="content" jdbcType="LONGVARCHAR" property="content"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue">
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue">
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue">
-                  and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Base_Column_List">
-    id, code, name, model, key_is_vault, max_tokens, temperature, top_p, frequency_penalty, 
-    presence_penalty, thinking, reasoning_effort, stream, timeout, is_active, created_at, 
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, code, name, model, key_is_vault, max_tokens, temperature, top_p, frequency_penalty,
+    presence_penalty, thinking, reasoning_effort, stream, timeout, is_active, created_at,
     updated_at, merchant, description
-  </sql>
-  <sql id="Blob_Column_List">
-    base_url, api_key, "extra_config json", content
-  </sql>
-  <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample" resultMap="ResultMapWithBLOBs">
-    select
-    <if test="distinct">
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from ai_client_config
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null">
-      order by ${orderByClause}
-    </if>
-  </select>
-  <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample" resultMap="BaseResultMap">
-    select
-    <if test="distinct">
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    from ai_client_config
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null">
-      order by ${orderByClause}
-    </if>
-  </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
-    select 
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from ai_client_config
-    where id = #{id,jdbcType=BIGINT}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    delete from ai_client_config
-    where id = #{id,jdbcType=BIGINT}
-  </delete>
-  <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample">
-    delete from ai_client_config
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-  </delete>
-  <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
-    insert into ai_client_config (id, code, name, 
-      model, key_is_vault, max_tokens, 
-      temperature, top_p, frequency_penalty, 
-      presence_penalty, thinking, reasoning_effort, 
-      stream, timeout, is_active, 
-      created_at, updated_at, merchant, 
-      description, base_url, api_key, 
-      "extra_config json", content)
-    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
-      #{model,jdbcType=VARCHAR}, #{keyIsVault,jdbcType=BIT}, #{maxTokens,jdbcType=INTEGER}, 
-      #{temperature,jdbcType=INTEGER}, #{topP,jdbcType=INTEGER}, #{frequencyPenalty,jdbcType=INTEGER}, 
-      #{presencePenalty,jdbcType=INTEGER}, #{thinking,jdbcType=BIT}, #{reasoningEffort,jdbcType=VARCHAR}, 
-      #{stream,jdbcType=BIT}, #{timeout,jdbcType=INTEGER}, #{isActive,jdbcType=BIT}, 
-      #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}, #{merchant,jdbcType=VARCHAR}, 
-      #{description,jdbcType=VARCHAR}, #{baseUrl,jdbcType=LONGVARCHAR}, #{apiKey,jdbcType=LONGVARCHAR}, 
-      #{extraConfigJson,jdbcType=LONGVARCHAR}, #{content,jdbcType=LONGVARCHAR})
-  </insert>
-  <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
-    insert into ai_client_config
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        id,
-      </if>
-      <if test="code != null">
-        code,
-      </if>
-      <if test="name != null">
-        name,
-      </if>
-      <if test="model != null">
-        model,
-      </if>
-      <if test="keyIsVault != null">
-        key_is_vault,
-      </if>
-      <if test="maxTokens != null">
-        max_tokens,
-      </if>
-      <if test="temperature != null">
-        temperature,
-      </if>
-      <if test="topP != null">
-        top_p,
-      </if>
-      <if test="frequencyPenalty != null">
-        frequency_penalty,
-      </if>
-      <if test="presencePenalty != null">
-        presence_penalty,
-      </if>
-      <if test="thinking != null">
-        thinking,
-      </if>
-      <if test="reasoningEffort != null">
-        reasoning_effort,
-      </if>
-      <if test="stream != null">
-        stream,
-      </if>
-      <if test="timeout != null">
-        timeout,
-      </if>
-      <if test="isActive != null">
-        is_active,
-      </if>
-      <if test="createdAt != null">
-        created_at,
-      </if>
-      <if test="updatedAt != null">
-        updated_at,
-      </if>
-      <if test="merchant != null">
-        merchant,
-      </if>
-      <if test="description != null">
-        description,
-      </if>
-      <if test="baseUrl != null">
-        base_url,
-      </if>
-      <if test="apiKey != null">
-        api_key,
-      </if>
-      <if test="extraConfigJson != null">
-        "extra_config json",
-      </if>
-      <if test="content != null">
-        content,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="id != null">
-        #{id,jdbcType=BIGINT},
-      </if>
-      <if test="code != null">
-        #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null">
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="model != null">
-        #{model,jdbcType=VARCHAR},
-      </if>
-      <if test="keyIsVault != null">
-        #{keyIsVault,jdbcType=BIT},
-      </if>
-      <if test="maxTokens != null">
-        #{maxTokens,jdbcType=INTEGER},
-      </if>
-      <if test="temperature != null">
-        #{temperature,jdbcType=INTEGER},
-      </if>
-      <if test="topP != null">
-        #{topP,jdbcType=INTEGER},
-      </if>
-      <if test="frequencyPenalty != null">
-        #{frequencyPenalty,jdbcType=INTEGER},
-      </if>
-      <if test="presencePenalty != null">
-        #{presencePenalty,jdbcType=INTEGER},
-      </if>
-      <if test="thinking != null">
-        #{thinking,jdbcType=BIT},
-      </if>
-      <if test="reasoningEffort != null">
-        #{reasoningEffort,jdbcType=VARCHAR},
-      </if>
-      <if test="stream != null">
-        #{stream,jdbcType=BIT},
-      </if>
-      <if test="timeout != null">
-        #{timeout,jdbcType=INTEGER},
-      </if>
-      <if test="isActive != null">
-        #{isActive,jdbcType=BIT},
-      </if>
-      <if test="createdAt != null">
-        #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedAt != null">
-        #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="merchant != null">
-        #{merchant,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null">
-        #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="baseUrl != null">
-        #{baseUrl,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="apiKey != null">
-        #{apiKey,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="extraConfigJson != null">
-        #{extraConfigJson,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="content != null">
-        #{content,jdbcType=LONGVARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample" resultType="java.lang.Long">
-    select count(*) from ai_client_config
-    <if test="_parameter != null">
-      <include refid="Example_Where_Clause" />
-    </if>
-  </select>
-  <update id="updateByExampleSelective" parameterType="map">
-    update ai_client_config
-    <set>
-      <if test="row.id != null">
-        id = #{row.id,jdbcType=BIGINT},
-      </if>
-      <if test="row.code != null">
+    </sql>
+    <sql id="Blob_Column_List">
+        base_url, api_key, "extra_config json", content
+    </sql>
+    <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample"
+            resultMap="ResultMapWithBLOBs">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from ai_client_config
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByExample" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample"
+            resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from ai_client_config
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+        select
+        <include refid="Base_Column_List"/>
+        ,
+        <include refid="Blob_Column_List"/>
+        from ai_client_config
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from ai_client_config
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample">
+        delete from ai_client_config
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+        insert into ai_client_config (id, code, name,
+                                      model, key_is_vault, max_tokens,
+                                      temperature, top_p, frequency_penalty,
+                                      presence_penalty, thinking, reasoning_effort,
+                                      stream, timeout, is_active,
+                                      created_at, updated_at, merchant,
+                                      description, base_url, api_key,
+                                      "extra_config json", content)
+        values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+                #{model,jdbcType=VARCHAR}, #{keyIsVault,jdbcType=BIT}, #{maxTokens,jdbcType=INTEGER},
+                #{temperature,jdbcType=INTEGER}, #{topP,jdbcType=INTEGER}, #{frequencyPenalty,jdbcType=INTEGER},
+                #{presencePenalty,jdbcType=INTEGER}, #{thinking,jdbcType=BIT}, #{reasoningEffort,jdbcType=VARCHAR},
+                #{stream,jdbcType=BIT}, #{timeout,jdbcType=INTEGER}, #{isActive,jdbcType=BIT},
+                #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}, #{merchant,jdbcType=VARCHAR},
+                #{description,jdbcType=VARCHAR}, #{baseUrl,jdbcType=LONGVARCHAR}, #{apiKey,jdbcType=LONGVARCHAR},
+                #{extraConfigJson,jdbcType=LONGVARCHAR}, #{content,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+        insert into ai_client_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="code != null">
+                code,
+            </if>
+            <if test="name != null">
+                name,
+            </if>
+            <if test="model != null">
+                model,
+            </if>
+            <if test="keyIsVault != null">
+                key_is_vault,
+            </if>
+            <if test="maxTokens != null">
+                max_tokens,
+            </if>
+            <if test="temperature != null">
+                temperature,
+            </if>
+            <if test="topP != null">
+                top_p,
+            </if>
+            <if test="frequencyPenalty != null">
+                frequency_penalty,
+            </if>
+            <if test="presencePenalty != null">
+                presence_penalty,
+            </if>
+            <if test="thinking != null">
+                thinking,
+            </if>
+            <if test="reasoningEffort != null">
+                reasoning_effort,
+            </if>
+            <if test="stream != null">
+                stream,
+            </if>
+            <if test="timeout != null">
+                timeout,
+            </if>
+            <if test="isActive != null">
+                is_active,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="updatedAt != null">
+                updated_at,
+            </if>
+            <if test="merchant != null">
+                merchant,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="baseUrl != null">
+                base_url,
+            </if>
+            <if test="apiKey != null">
+                api_key,
+            </if>
+            <if test="extraConfigJson != null">
+                "extra_config json",
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="code != null">
+                #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="model != null">
+                #{model,jdbcType=VARCHAR},
+            </if>
+            <if test="keyIsVault != null">
+                #{keyIsVault,jdbcType=BIT},
+            </if>
+            <if test="maxTokens != null">
+                #{maxTokens,jdbcType=INTEGER},
+            </if>
+            <if test="temperature != null">
+                #{temperature,jdbcType=INTEGER},
+            </if>
+            <if test="topP != null">
+                #{topP,jdbcType=INTEGER},
+            </if>
+            <if test="frequencyPenalty != null">
+                #{frequencyPenalty,jdbcType=INTEGER},
+            </if>
+            <if test="presencePenalty != null">
+                #{presencePenalty,jdbcType=INTEGER},
+            </if>
+            <if test="thinking != null">
+                #{thinking,jdbcType=BIT},
+            </if>
+            <if test="reasoningEffort != null">
+                #{reasoningEffort,jdbcType=VARCHAR},
+            </if>
+            <if test="stream != null">
+                #{stream,jdbcType=BIT},
+            </if>
+            <if test="timeout != null">
+                #{timeout,jdbcType=INTEGER},
+            </if>
+            <if test="isActive != null">
+                #{isActive,jdbcType=BIT},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null">
+                #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="merchant != null">
+                #{merchant,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="baseUrl != null">
+                #{baseUrl,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="apiKey != null">
+                #{apiKey,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="extraConfigJson != null">
+                #{extraConfigJson,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=LONGVARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample"
+            resultType="java.lang.Long">
+        select count(*) from ai_client_config
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update ai_client_config
+        <set>
+            <if test="row.id != null">
+                id = #{row.id,jdbcType=BIGINT},
+            </if>
+            <if test="row.code != null">
+                code = #{row.code,jdbcType=VARCHAR},
+            </if>
+            <if test="row.name != null">
+                name = #{row.name,jdbcType=VARCHAR},
+            </if>
+            <if test="row.model != null">
+                model = #{row.model,jdbcType=VARCHAR},
+            </if>
+            <if test="row.keyIsVault != null">
+                key_is_vault = #{row.keyIsVault,jdbcType=BIT},
+            </if>
+            <if test="row.maxTokens != null">
+                max_tokens = #{row.maxTokens,jdbcType=INTEGER},
+            </if>
+            <if test="row.temperature != null">
+                temperature = #{row.temperature,jdbcType=INTEGER},
+            </if>
+            <if test="row.topP != null">
+                top_p = #{row.topP,jdbcType=INTEGER},
+            </if>
+            <if test="row.frequencyPenalty != null">
+                frequency_penalty = #{row.frequencyPenalty,jdbcType=INTEGER},
+            </if>
+            <if test="row.presencePenalty != null">
+                presence_penalty = #{row.presencePenalty,jdbcType=INTEGER},
+            </if>
+            <if test="row.thinking != null">
+                thinking = #{row.thinking,jdbcType=BIT},
+            </if>
+            <if test="row.reasoningEffort != null">
+                reasoning_effort = #{row.reasoningEffort,jdbcType=VARCHAR},
+            </if>
+            <if test="row.stream != null">
+                stream = #{row.stream,jdbcType=BIT},
+            </if>
+            <if test="row.timeout != null">
+                timeout = #{row.timeout,jdbcType=INTEGER},
+            </if>
+            <if test="row.isActive != null">
+                is_active = #{row.isActive,jdbcType=BIT},
+            </if>
+            <if test="row.createdAt != null">
+                created_at = #{row.createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.updatedAt != null">
+                updated_at = #{row.updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="row.merchant != null">
+                merchant = #{row.merchant,jdbcType=VARCHAR},
+            </if>
+            <if test="row.description != null">
+                description = #{row.description,jdbcType=VARCHAR},
+            </if>
+            <if test="row.baseUrl != null">
+                base_url = #{row.baseUrl,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="row.apiKey != null">
+                api_key = #{row.apiKey,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="row.extraConfigJson != null">
+                "extra_config json" = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="row.content != null">
+                content = #{row.content,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExampleWithBLOBs" parameterType="map">
+        update ai_client_config
+        set id = #{row.id,jdbcType=BIGINT},
         code = #{row.code,jdbcType=VARCHAR},
-      </if>
-      <if test="row.name != null">
         name = #{row.name,jdbcType=VARCHAR},
-      </if>
-      <if test="row.model != null">
         model = #{row.model,jdbcType=VARCHAR},
-      </if>
-      <if test="row.keyIsVault != null">
         key_is_vault = #{row.keyIsVault,jdbcType=BIT},
-      </if>
-      <if test="row.maxTokens != null">
         max_tokens = #{row.maxTokens,jdbcType=INTEGER},
-      </if>
-      <if test="row.temperature != null">
         temperature = #{row.temperature,jdbcType=INTEGER},
-      </if>
-      <if test="row.topP != null">
         top_p = #{row.topP,jdbcType=INTEGER},
-      </if>
-      <if test="row.frequencyPenalty != null">
         frequency_penalty = #{row.frequencyPenalty,jdbcType=INTEGER},
-      </if>
-      <if test="row.presencePenalty != null">
         presence_penalty = #{row.presencePenalty,jdbcType=INTEGER},
-      </if>
-      <if test="row.thinking != null">
         thinking = #{row.thinking,jdbcType=BIT},
-      </if>
-      <if test="row.reasoningEffort != null">
         reasoning_effort = #{row.reasoningEffort,jdbcType=VARCHAR},
-      </if>
-      <if test="row.stream != null">
         stream = #{row.stream,jdbcType=BIT},
-      </if>
-      <if test="row.timeout != null">
         timeout = #{row.timeout,jdbcType=INTEGER},
-      </if>
-      <if test="row.isActive != null">
         is_active = #{row.isActive,jdbcType=BIT},
-      </if>
-      <if test="row.createdAt != null">
         created_at = #{row.createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="row.updatedAt != null">
         updated_at = #{row.updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="row.merchant != null">
         merchant = #{row.merchant,jdbcType=VARCHAR},
-      </if>
-      <if test="row.description != null">
         description = #{row.description,jdbcType=VARCHAR},
-      </if>
-      <if test="row.baseUrl != null">
         base_url = #{row.baseUrl,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="row.apiKey != null">
         api_key = #{row.apiKey,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="row.extraConfigJson != null">
         "extra_config json" = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="row.content != null">
-        content = #{row.content,jdbcType=LONGVARCHAR},
-      </if>
-    </set>
-    <if test="example != null">
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map">
-    update ai_client_config
-    set id = #{row.id,jdbcType=BIGINT},
-      code = #{row.code,jdbcType=VARCHAR},
-      name = #{row.name,jdbcType=VARCHAR},
-      model = #{row.model,jdbcType=VARCHAR},
-      key_is_vault = #{row.keyIsVault,jdbcType=BIT},
-      max_tokens = #{row.maxTokens,jdbcType=INTEGER},
-      temperature = #{row.temperature,jdbcType=INTEGER},
-      top_p = #{row.topP,jdbcType=INTEGER},
-      frequency_penalty = #{row.frequencyPenalty,jdbcType=INTEGER},
-      presence_penalty = #{row.presencePenalty,jdbcType=INTEGER},
-      thinking = #{row.thinking,jdbcType=BIT},
-      reasoning_effort = #{row.reasoningEffort,jdbcType=VARCHAR},
-      stream = #{row.stream,jdbcType=BIT},
-      timeout = #{row.timeout,jdbcType=INTEGER},
-      is_active = #{row.isActive,jdbcType=BIT},
-      created_at = #{row.createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{row.updatedAt,jdbcType=TIMESTAMP},
-      merchant = #{row.merchant,jdbcType=VARCHAR},
-      description = #{row.description,jdbcType=VARCHAR},
-      base_url = #{row.baseUrl,jdbcType=LONGVARCHAR},
-      api_key = #{row.apiKey,jdbcType=LONGVARCHAR},
-      "extra_config json" = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
-      content = #{row.content,jdbcType=LONGVARCHAR}
-    <if test="example != null">
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExample" parameterType="map">
-    update ai_client_config
-    set id = #{row.id,jdbcType=BIGINT},
-      code = #{row.code,jdbcType=VARCHAR},
-      name = #{row.name,jdbcType=VARCHAR},
-      model = #{row.model,jdbcType=VARCHAR},
-      key_is_vault = #{row.keyIsVault,jdbcType=BIT},
-      max_tokens = #{row.maxTokens,jdbcType=INTEGER},
-      temperature = #{row.temperature,jdbcType=INTEGER},
-      top_p = #{row.topP,jdbcType=INTEGER},
-      frequency_penalty = #{row.frequencyPenalty,jdbcType=INTEGER},
-      presence_penalty = #{row.presencePenalty,jdbcType=INTEGER},
-      thinking = #{row.thinking,jdbcType=BIT},
-      reasoning_effort = #{row.reasoningEffort,jdbcType=VARCHAR},
-      stream = #{row.stream,jdbcType=BIT},
-      timeout = #{row.timeout,jdbcType=INTEGER},
-      is_active = #{row.isActive,jdbcType=BIT},
-      created_at = #{row.createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{row.updatedAt,jdbcType=TIMESTAMP},
-      merchant = #{row.merchant,jdbcType=VARCHAR},
-      description = #{row.description,jdbcType=VARCHAR}
-    <if test="example != null">
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
-    update ai_client_config
-    <set>
-      <if test="code != null">
-        code = #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="name != null">
-        name = #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="model != null">
-        model = #{model,jdbcType=VARCHAR},
-      </if>
-      <if test="keyIsVault != null">
-        key_is_vault = #{keyIsVault,jdbcType=BIT},
-      </if>
-      <if test="maxTokens != null">
-        max_tokens = #{maxTokens,jdbcType=INTEGER},
-      </if>
-      <if test="temperature != null">
-        temperature = #{temperature,jdbcType=INTEGER},
-      </if>
-      <if test="topP != null">
-        top_p = #{topP,jdbcType=INTEGER},
-      </if>
-      <if test="frequencyPenalty != null">
-        frequency_penalty = #{frequencyPenalty,jdbcType=INTEGER},
-      </if>
-      <if test="presencePenalty != null">
-        presence_penalty = #{presencePenalty,jdbcType=INTEGER},
-      </if>
-      <if test="thinking != null">
-        thinking = #{thinking,jdbcType=BIT},
-      </if>
-      <if test="reasoningEffort != null">
-        reasoning_effort = #{reasoningEffort,jdbcType=VARCHAR},
-      </if>
-      <if test="stream != null">
-        stream = #{stream,jdbcType=BIT},
-      </if>
-      <if test="timeout != null">
-        timeout = #{timeout,jdbcType=INTEGER},
-      </if>
-      <if test="isActive != null">
-        is_active = #{isActive,jdbcType=BIT},
-      </if>
-      <if test="createdAt != null">
-        created_at = #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedAt != null">
-        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="merchant != null">
-        merchant = #{merchant,jdbcType=VARCHAR},
-      </if>
-      <if test="description != null">
-        description = #{description,jdbcType=VARCHAR},
-      </if>
-      <if test="baseUrl != null">
-        base_url = #{baseUrl,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="apiKey != null">
-        api_key = #{apiKey,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="extraConfigJson != null">
-        "extra_config json" = #{extraConfigJson,jdbcType=LONGVARCHAR},
-      </if>
-      <if test="content != null">
-        content = #{content,jdbcType=LONGVARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
-    update ai_client_config
-    set code = #{code,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      model = #{model,jdbcType=VARCHAR},
-      key_is_vault = #{keyIsVault,jdbcType=BIT},
-      max_tokens = #{maxTokens,jdbcType=INTEGER},
-      temperature = #{temperature,jdbcType=INTEGER},
-      top_p = #{topP,jdbcType=INTEGER},
-      frequency_penalty = #{frequencyPenalty,jdbcType=INTEGER},
-      presence_penalty = #{presencePenalty,jdbcType=INTEGER},
-      thinking = #{thinking,jdbcType=BIT},
-      reasoning_effort = #{reasoningEffort,jdbcType=VARCHAR},
-      stream = #{stream,jdbcType=BIT},
-      timeout = #{timeout,jdbcType=INTEGER},
-      is_active = #{isActive,jdbcType=BIT},
-      created_at = #{createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{updatedAt,jdbcType=TIMESTAMP},
-      merchant = #{merchant,jdbcType=VARCHAR},
-      description = #{description,jdbcType=VARCHAR},
-      base_url = #{baseUrl,jdbcType=LONGVARCHAR},
-      api_key = #{apiKey,jdbcType=LONGVARCHAR},
-      "extra_config json" = #{extraConfigJson,jdbcType=LONGVARCHAR},
-      content = #{content,jdbcType=LONGVARCHAR}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfig">
-    update ai_client_config
-    set code = #{code,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      model = #{model,jdbcType=VARCHAR},
-      key_is_vault = #{keyIsVault,jdbcType=BIT},
-      max_tokens = #{maxTokens,jdbcType=INTEGER},
-      temperature = #{temperature,jdbcType=INTEGER},
-      top_p = #{topP,jdbcType=INTEGER},
-      frequency_penalty = #{frequencyPenalty,jdbcType=INTEGER},
-      presence_penalty = #{presencePenalty,jdbcType=INTEGER},
-      thinking = #{thinking,jdbcType=BIT},
-      reasoning_effort = #{reasoningEffort,jdbcType=VARCHAR},
-      stream = #{stream,jdbcType=BIT},
-      timeout = #{timeout,jdbcType=INTEGER},
-      is_active = #{isActive,jdbcType=BIT},
-      created_at = #{createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{updatedAt,jdbcType=TIMESTAMP},
-      merchant = #{merchant,jdbcType=VARCHAR},
-      description = #{description,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
+        content = #{row.content,jdbcType=LONGVARCHAR}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update ai_client_config
+        set id = #{row.id,jdbcType=BIGINT},
+        code = #{row.code,jdbcType=VARCHAR},
+        name = #{row.name,jdbcType=VARCHAR},
+        model = #{row.model,jdbcType=VARCHAR},
+        key_is_vault = #{row.keyIsVault,jdbcType=BIT},
+        max_tokens = #{row.maxTokens,jdbcType=INTEGER},
+        temperature = #{row.temperature,jdbcType=INTEGER},
+        top_p = #{row.topP,jdbcType=INTEGER},
+        frequency_penalty = #{row.frequencyPenalty,jdbcType=INTEGER},
+        presence_penalty = #{row.presencePenalty,jdbcType=INTEGER},
+        thinking = #{row.thinking,jdbcType=BIT},
+        reasoning_effort = #{row.reasoningEffort,jdbcType=VARCHAR},
+        stream = #{row.stream,jdbcType=BIT},
+        timeout = #{row.timeout,jdbcType=INTEGER},
+        is_active = #{row.isActive,jdbcType=BIT},
+        created_at = #{row.createdAt,jdbcType=TIMESTAMP},
+        updated_at = #{row.updatedAt,jdbcType=TIMESTAMP},
+        merchant = #{row.merchant,jdbcType=VARCHAR},
+        description = #{row.description,jdbcType=VARCHAR}
+        <if test="example != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+        update ai_client_config
+        <set>
+            <if test="code != null">
+                code = #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="model != null">
+                model = #{model,jdbcType=VARCHAR},
+            </if>
+            <if test="keyIsVault != null">
+                key_is_vault = #{keyIsVault,jdbcType=BIT},
+            </if>
+            <if test="maxTokens != null">
+                max_tokens = #{maxTokens,jdbcType=INTEGER},
+            </if>
+            <if test="temperature != null">
+                temperature = #{temperature,jdbcType=INTEGER},
+            </if>
+            <if test="topP != null">
+                top_p = #{topP,jdbcType=INTEGER},
+            </if>
+            <if test="frequencyPenalty != null">
+                frequency_penalty = #{frequencyPenalty,jdbcType=INTEGER},
+            </if>
+            <if test="presencePenalty != null">
+                presence_penalty = #{presencePenalty,jdbcType=INTEGER},
+            </if>
+            <if test="thinking != null">
+                thinking = #{thinking,jdbcType=BIT},
+            </if>
+            <if test="reasoningEffort != null">
+                reasoning_effort = #{reasoningEffort,jdbcType=VARCHAR},
+            </if>
+            <if test="stream != null">
+                stream = #{stream,jdbcType=BIT},
+            </if>
+            <if test="timeout != null">
+                timeout = #{timeout,jdbcType=INTEGER},
+            </if>
+            <if test="isActive != null">
+                is_active = #{isActive,jdbcType=BIT},
+            </if>
+            <if test="createdAt != null">
+                created_at = #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="merchant != null">
+                merchant = #{merchant,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="baseUrl != null">
+                base_url = #{baseUrl,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="apiKey != null">
+                api_key = #{apiKey,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="extraConfigJson != null">
+                "extra_config json" = #{extraConfigJson,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+        update ai_client_config
+        set code                = #{code,jdbcType=VARCHAR},
+            name                = #{name,jdbcType=VARCHAR},
+            model               = #{model,jdbcType=VARCHAR},
+            key_is_vault        = #{keyIsVault,jdbcType=BIT},
+            max_tokens          = #{maxTokens,jdbcType=INTEGER},
+            temperature         = #{temperature,jdbcType=INTEGER},
+            top_p               = #{topP,jdbcType=INTEGER},
+            frequency_penalty   = #{frequencyPenalty,jdbcType=INTEGER},
+            presence_penalty    = #{presencePenalty,jdbcType=INTEGER},
+            thinking            = #{thinking,jdbcType=BIT},
+            reasoning_effort    = #{reasoningEffort,jdbcType=VARCHAR},
+            stream              = #{stream,jdbcType=BIT},
+            timeout             = #{timeout,jdbcType=INTEGER},
+            is_active           = #{isActive,jdbcType=BIT},
+            created_at          = #{createdAt,jdbcType=TIMESTAMP},
+            updated_at          = #{updatedAt,jdbcType=TIMESTAMP},
+            merchant            = #{merchant,jdbcType=VARCHAR},
+            description         = #{description,jdbcType=VARCHAR},
+            base_url            = #{baseUrl,jdbcType=LONGVARCHAR},
+            api_key             = #{apiKey,jdbcType=LONGVARCHAR},
+            "extra_config json" = #{extraConfigJson,jdbcType=LONGVARCHAR},
+            content             = #{content,jdbcType=LONGVARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfig">
+        update ai_client_config
+        set code              = #{code,jdbcType=VARCHAR},
+            name              = #{name,jdbcType=VARCHAR},
+            model             = #{model,jdbcType=VARCHAR},
+            key_is_vault      = #{keyIsVault,jdbcType=BIT},
+            max_tokens        = #{maxTokens,jdbcType=INTEGER},
+            temperature       = #{temperature,jdbcType=INTEGER},
+            top_p             = #{topP,jdbcType=INTEGER},
+            frequency_penalty = #{frequencyPenalty,jdbcType=INTEGER},
+            presence_penalty  = #{presencePenalty,jdbcType=INTEGER},
+            thinking          = #{thinking,jdbcType=BIT},
+            reasoning_effort  = #{reasoningEffort,jdbcType=VARCHAR},
+            stream            = #{stream,jdbcType=BIT},
+            timeout           = #{timeout,jdbcType=INTEGER},
+            is_active         = #{isActive,jdbcType=BIT},
+            created_at        = #{createdAt,jdbcType=TIMESTAMP},
+            updated_at        = #{updatedAt,jdbcType=TIMESTAMP},
+            merchant          = #{merchant,jdbcType=VARCHAR},
+            description       = #{description,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <select id="getUserUseModer" resultType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+        select name,
+               description,
+               id,
+               code
+        from ai_client_config
+        where is_active = true
+    </select>
 </mapper>

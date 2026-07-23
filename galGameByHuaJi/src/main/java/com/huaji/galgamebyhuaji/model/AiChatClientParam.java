@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class AiChatClientParam {
-    private Long userId;
+    private Integer userId;
     private Long clientId;
     private String sessionId;
     private String promptContent;

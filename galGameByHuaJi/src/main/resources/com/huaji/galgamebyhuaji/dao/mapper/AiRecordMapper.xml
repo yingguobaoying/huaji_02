@@ -5,7 +5,7 @@
         <id column="id" jdbcType="BIGINT" property="id"/>
         <result column="session_id" jdbcType="VARCHAR" property="sessionId"/>
         <result column="role" jdbcType="INTEGER" property="role"/>
-        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
         <result column="external_id" jdbcType="VARCHAR" property="externalId"/>
         <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
         <result column="deleted" jdbcType="BIT" property="deleted"/>
@@ -144,7 +144,7 @@
                                client_id, index, content,
                                prompt_content, request_json)
         values (#{id,jdbcType=BIGINT}, #{sessionId,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER},
-                #{userId,jdbcType=BIGINT}, #{externalId,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP},
+                #{userId,jdbcType=INTEGER}, #{externalId,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP},
                 #{deleted,jdbcType=BIT}, #{outputTokens,jdbcType=INTEGER}, #{inputTokens,jdbcType=INTEGER},
                 #{clientId,jdbcType=BIGINT}, #{index,jdbcType=INTEGER}, #{content,jdbcType=LONGVARCHAR},
                 #{promptContent,jdbcType=LONGVARCHAR}, #{requestJson,jdbcType=LONGVARCHAR})
@@ -206,7 +206,7 @@
                 #{role,jdbcType=INTEGER},
             </if>
             <if test="userId != null">
-                #{userId,jdbcType=BIGINT},
+                #{userId,jdbcType=INTEGER},
             </if>
             <if test="externalId != null">
                 #{externalId,jdbcType=VARCHAR},
@@ -260,7 +260,7 @@
                 role = #{row.role,jdbcType=INTEGER},
             </if>
             <if test="row.userId != null">
-                user_id = #{row.userId,jdbcType=BIGINT},
+                user_id = #{row.userId,jdbcType=INTEGER},
             </if>
             <if test="row.externalId != null">
                 external_id = #{row.externalId,jdbcType=VARCHAR},
@@ -302,7 +302,7 @@
         set id = #{row.id,jdbcType=BIGINT},
         session_id = #{row.sessionId,jdbcType=VARCHAR},
         role = #{row.role,jdbcType=INTEGER},
-        user_id = #{row.userId,jdbcType=BIGINT},
+        user_id = #{row.userId,jdbcType=INTEGER},
         external_id = #{row.externalId,jdbcType=VARCHAR},
         created_at = #{row.createdAt,jdbcType=TIMESTAMP},
         deleted = #{row.deleted,jdbcType=BIT},
@@ -322,7 +322,7 @@
         set id = #{row.id,jdbcType=BIGINT},
         session_id = #{row.sessionId,jdbcType=VARCHAR},
         role = #{row.role,jdbcType=INTEGER},
-        user_id = #{row.userId,jdbcType=BIGINT},
+        user_id = #{row.userId,jdbcType=INTEGER},
         external_id = #{row.externalId,jdbcType=VARCHAR},
         created_at = #{row.createdAt,jdbcType=TIMESTAMP},
         deleted = #{row.deleted,jdbcType=BIT},
@@ -344,7 +344,7 @@
                 role = #{role,jdbcType=INTEGER},
             </if>
             <if test="userId != null">
-                user_id = #{userId,jdbcType=BIGINT},
+                user_id = #{userId,jdbcType=INTEGER},
             </if>
             <if test="externalId != null">
                 external_id = #{externalId,jdbcType=VARCHAR},
@@ -383,7 +383,7 @@
         update ai_record
         set session_id     = #{sessionId,jdbcType=VARCHAR},
             role           = #{role,jdbcType=INTEGER},
-            user_id        = #{userId,jdbcType=BIGINT},
+            user_id        = #{userId,jdbcType=INTEGER},
             external_id    = #{externalId,jdbcType=VARCHAR},
             created_at     = #{createdAt,jdbcType=TIMESTAMP},
             deleted        = #{deleted,jdbcType=BIT},
@@ -400,7 +400,7 @@
         update ai_record
         set session_id    = #{sessionId,jdbcType=VARCHAR},
             role          = #{role,jdbcType=INTEGER},
-            user_id       = #{userId,jdbcType=BIGINT},
+            user_id       = #{userId,jdbcType=INTEGER},
             external_id   = #{externalId,jdbcType=VARCHAR},
             created_at    = #{createdAt,jdbcType=TIMESTAMP},
             deleted       = #{deleted,jdbcType=BIT},
@@ -413,10 +413,38 @@
     <select id="getLatestBySize" resultType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
         select *
         from ai_record
-        where session_id=#{sessionId}
-        and user_id = #{userId}
+        where session_id = #{sessionId}
+          and user_id = #{userId}
         order by created_at
         limit #{size}
+    </select>
+    <select id="getRecord" resultType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
+        select session_id,
+               user_id,
+               content,
+               created_at,
+               client_id,
+               id,
+               role,
+               `index`
+        from ai_record
+        where user_id = #{userId}
+          and session_id = #{sessionId
+        u}
+    </select>
+    <select id="getFirstRecord" resultType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
+        select session_id,
+               user_id,
+               content,
+               created_at,
+               client_id,
+               id,
+               role,
+               `index`
+        from ai_record
+        where user_id = #{userId}
+          and `index` = 1
+        order by session_id
     </select>
 
 </mapper>

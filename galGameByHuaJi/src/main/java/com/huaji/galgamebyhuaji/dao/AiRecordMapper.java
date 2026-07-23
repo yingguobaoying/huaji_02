@@ -37,5 +37,9 @@ public interface AiRecordMapper {
 
     int updateByPrimaryKey(AiRecord row);
     
-    List<AiRecordWithBLOBs> getLatestBySize(@Param("size") int size, @Param("userId") Long userId, @Param("sessionId") String sessionId);
+    List<AiRecordWithBLOBs> getLatestBySize(@Param("size") int size, @Param("userId") int userId, @Param("sessionId") String sessionId);
+    
+    List<AiRecordWithBLOBs> getFirstRecord(@Param("userId") int userId);
+    
+    List<AiRecordWithBLOBs> getRecord(@Param("userId") int userId, @Param("sessionId") String sessionId);
 }
