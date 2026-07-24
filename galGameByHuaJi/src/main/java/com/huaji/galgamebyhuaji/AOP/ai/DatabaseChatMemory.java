@@ -76,8 +76,8 @@ public class DatabaseChatMemory extends MyBaseAdvisor {
             }
         }
         
-        // 如果需要自动总结
-        if (needSumUp) {
+        // 如果需要自动总结,并且自身不是总结
+        if (needSumUp&& !param.isSumUp()) {
             try {
                 ReturnResult<String> summaryResult = chatService.sumUpRecorder(lastRecord);
                 if (summaryResult.isOperationResult()) {

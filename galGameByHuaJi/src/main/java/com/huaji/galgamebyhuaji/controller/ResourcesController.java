@@ -7,8 +7,10 @@ import com.huaji.galgamebyhuaji.entity.Resources;
 import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
+import com.huaji.galgamebyhuaji.entity.Tag;
 import com.huaji.galgamebyhuaji.service.ResourcesFileService;
 import com.huaji.galgamebyhuaji.service.ResourcesService;
+import com.huaji.galgamebyhuaji.service.TagService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -143,6 +145,59 @@ public class ResourcesController extends BaseController {
         String string = resourcesFileService.addResourceFile(fileList, fileUpMsg.getAtResource(), fileUpMsg.getFileName(), fileUpMsg.getNotes());
         MyLogUtil.UserBehaviorLog(log, "上传文件完成", loginUser);
         return ReturnResult.isTrue(string, string);
+    }
+    
+    // ==================== Tag 管理 ====================
+    final TagService tagService;
+    
+    /**
+     * 新增标签
+     */
+    @PostMapping("/tag/add")
+    @PreAuthorize("hasRole('RESOURCES_ADMIN_JURISDICTION')")
+    public ReturnResult addTag(@RequestBody Tag tag) {
+        Users loginUser = getLoginUser();
+        if (tag.getTagName() == null || tag.getTagName().isBlank())
+            return ReturnResult.isFalse("标签名称不可为空");
+        log.info("管理员{}{}添加标签:{}", loginUser.getUserId(), loginUser.getUserName(), tag);
+        return tagService.addTag(tag);
+    }
+    
+    /**
+     * 修改标签
+     */
+    @PostMapping("/tag/update")
+    @PreAuthorize("hasRole('RESOURCES_ADMIN_JURISDICTION')")
+    public ReturnResult updateTag(@RequestBody Tag tag) {
+        Users loginUser = getLoginUser();
+        if (tag.getTagId() == null || tag.getTagId() < 0)
+            return ReturnResult.isFalse("错误!请提供有效的标签ID");
+        if (tag.getTagName() == null || tag.getTagName().isBlank())
+            return ReturnResult.isFalse("标签名称不可为空");
+        log.info("管理员{}{}更新标签:{}", loginUser.getUserId(), loginUser.getUserName(), tag);
+        return tagService.updateTag(tag);
+    }
+    
+    /**
+     * 删除标签
+     */
+    @PostMapping("/tag/delete/{id}")
+    @PreAuthorize("hasRole('RESOURCES_ADMIN_JURISDICTION')")
+    public ReturnResult deleteTag(@PathVariable("id") Integer id) {
+        Users loginUser = getLoginUser();
+        if (id == null || id < 0)
+            return ReturnResult.isFalse("错误!请提供有效的标签ID");
+        log.info("管理员{}{}删除标签,ID:{}", loginUser.getUserId(), loginUser.getUserName(), id);
+        return tagService.deleteTag(id);
+    }
+    
+    /**
+     * 获取全部标签列表
+     */
+    @GetMapping("/tag/list")
+    @PreAuthorize("hasRole('RESOURCES_ADMIN_JURISDICTION')")
+    public ReturnResult getTagList() {
+        return ReturnResult.isTrue("标签列表获取成功", tagService.getTagMap().values());
     }
     
 }
