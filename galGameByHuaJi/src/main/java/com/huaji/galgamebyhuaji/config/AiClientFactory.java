@@ -1,7 +1,6 @@
 package com.huaji.galgamebyhuaji.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.huaji.galgamebyhuaji.AOP.ai.DatabaseChatMemory;
 import com.huaji.galgamebyhuaji.AOP.ai.MyBaseAdvisor;
 import com.huaji.galgamebyhuaji.constant.AiConstant;
 import com.huaji.galgamebyhuaji.dao.AiClientConfigMapper;
@@ -10,14 +9,11 @@ import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage.AiMerchantType;
 import com.huaji.galgamebyhuaji.myUtil.AESEncryptionUtil;
-import com.huaji.galgamebyhuaji.myUtil.FileUtil;
-import com.huaji.galgamebyhuaji.myUtil.VaultPathUtil;
 import com.huaji.galgamebyhuaji.myUtil.ListUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatOptions;
@@ -47,7 +43,6 @@ public class AiClientFactory {
     private final AiClientConfigMapper clientConfigMapper;
     private final ObjectMapper objectMapper;
     private static volatile Map<Long, ChatClient> configMap = Collections.emptyMap();
-    private final DatabaseChatMemory databaseChatMemory;
     private final List<MyBaseAdvisor> allAdvisor;
     
     public static ChatClient getChatClient(long id) {
@@ -58,10 +53,9 @@ public class AiClientFactory {
     private String aiTokenPath;
     @Value("${spring.cloud.vault.kv.backend}")
     private String bastPath;
-    @Value("${spring.cloud.vault.kv.kv-version:1}")
-    private int kvVersion;
     private final VaultTemplate vaultTemplate;
     private final AESEncryptionUtil aesEncryptionUtil;
+    public static final String API_KEY_PLACEHOLDER = "红豆可爱捏";
     
     public void aiInfo() {
         log.info("***********************开始加载AI配置项*****************************");
@@ -86,13 +80,19 @@ public class AiClientFactory {
                     lost++;
                     continue;
                 }
+                if (API_KEY_PLACEHOLDER.equalsIgnoreCase(apiKey)) {
+                    log.error("配置错误!配置{}的API_KEY为占位符!已经跳过此不安全的配置!", config.getId());
+                    lost++;
+                    continue;
+                }
                 if (Boolean.TRUE.equals(config.getKeyIsVault())) {
                     if (MyStringUtil.isNull(config.getApiKey())) {
                         log.error("*****配置{}读取失败,因为路径信息为空***", config.getName());
                         lost++;
                         continue;
                     }
-                    String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, config.getApiKey());
+                    // KV v2 路径: {backend}/data/{ai-path}/{key}
+                    String path = bastPath + "/data/" + aiTokenPath + "/" + config.getApiKey();
                     try {
                         VaultResponse response = vaultTemplate.read(path);
                         if (response == null || response.getData() == null || response.getData().isEmpty()) {
@@ -100,12 +100,27 @@ public class AiClientFactory {
                             lost++;
                             continue;
                         }
+                        // KV v2 响应: {"data": {"key":"val"...}, "metadata":{...}}
+                        // response.getData() 返回外层 data 对象，需从中取 "data" 字段
                         Map<String, Object> data = response.getData();
-                        String name = data.keySet().iterator().next();
-                        if (data.size() != 1)
+                        Object innerData = data.get("data");
+                        if (!(innerData instanceof Map)) {
+                            log.error("*****配置{}读取失败,路径{}响应结构异常***", config.getName(), path);
+                            lost++;
+                            continue;
+                        }
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> kvData = (Map<String, Object>) innerData;
+                        if (kvData.isEmpty()) {
+                            log.error("*****配置{}读取失败,因为路径{}下数据为空***", config.getName(), path);
+                            lost++;
+                            continue;
+                        }
+                        String name = kvData.keySet().iterator().next();
+                        if (kvData.size() != 1)
                             log.warn("*****配置{}读取在路径{}下发现多个密钥,随机选取一个{},\n全部密钥名称{}\n***********"
-                                    , config.getName(), path, name, data.keySet());
-                        apiKey = data.get(name).toString();
+                                    , config.getName(), path, name, kvData.keySet());
+                        apiKey = kvData.get(name).toString();
                         if (MyStringUtil.isNull(apiKey)) {
                             log.error("*****配置{}读取失败,因为路径{}下读取的密钥{}为空***", config.getName(), path, name);
                             lost++;
@@ -192,7 +207,7 @@ public class AiClientFactory {
                 if (MyStringUtil.isNull(config.getContent())) {
                     clientBuilder.defaultSystem(config.getContent());
                 }
-                clientBuilder.defaultAdvisors((Advisor) allAdvisor);
+                clientBuilder.defaultAdvisors((List) allAdvisor);
                 map.put(config.getId(), clientBuilder.build());
                 ok++;
                 log.info("成功加载AI模型: id={}, name={}, merchant={}", config.getId(), config.getName(), merchantType.getName());

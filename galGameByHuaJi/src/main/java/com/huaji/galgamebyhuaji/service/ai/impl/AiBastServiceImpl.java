@@ -17,12 +17,10 @@ import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.AiChatClientParam;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.AESEncryptionUtil;
-import com.huaji.galgamebyhuaji.myUtil.FileUtil;
 import com.huaji.galgamebyhuaji.myUtil.IdUtil;
 import com.huaji.galgamebyhuaji.myUtil.ListUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
-import com.huaji.galgamebyhuaji.myUtil.VaultPathUtil;
 import com.huaji.galgamebyhuaji.service.ai.AiBastService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +48,6 @@ public class AiBastServiceImpl implements AiBastService {
     private String aiTokenPath;
     @Value("${spring.cloud.vault.kv.backend}")
     private String bastPath;
-    @Value("${spring.cloud.vault.kv.kv-version:1}")
-    private int kvVersion;
     @Value("${ai.chat-record-size}")
     private int chatRecordSize;
     private final VaultTemplate vaultTemplate;
@@ -59,8 +55,29 @@ public class AiBastServiceImpl implements AiBastService {
     private final AiRecordMapper recordMapper;
     private final TransactionTemplate transactionTemplate;
     
+    /**
+     * KV v2 data 路径: {backend}/data/{aiPath}/{sub}
+     */
+    private String dataPath(String sub) {
+        return bastPath + "/data/" + aiTokenPath + "/" + sub;
+    }
+    
+    /**
+     * KV v2 metadata 路径（用于删除）: {backend}/metadata/{aiPath}/{sub}
+     */
+    private String metadataPath(String sub) {
+        return bastPath + "/metadata/" + aiTokenPath + "/" + sub;
+    }
+    
+    /**
+     * KV v2 写入请求体: {"data": {"key":"val"}}
+     */
+    private Map<String, Object> wrapKv2Body(Map<String, Object> kvData) {
+        return Map.of("data", kvData);
+    }
+    
     @Override
-    public ReturnResult<AiClientConfigWithBLOBs> getList() {//控制层控制了仅管理员可用,不脱敏了,反正也是加密的
+    public ReturnResult<AiClientConfigWithBLOBs> getList() {
         List<AiClientConfigWithBLOBs> val = aiClientConfigMapper.selectByExampleWithBLOBs(null);
         if (ListUtil.isNull(val)) val = val.stream().peek(v -> v.setApiKey(null)).toList();
         return ReturnResult.isTrue("返回成功", val, null);
@@ -72,6 +89,7 @@ public class AiBastServiceImpl implements AiBastService {
         if (MyStringUtil.isNull(apiKey))
             throw new OperationException("密钥不可为空");
         config.setId(null);
+        config.setApiKey(AiClientFactory.API_KEY_PLACEHOLDER);
         config.setCreatedAt(new Date());
         config.setUpdatedAt(new Date());
         if (MyStringUtil.isNull(config.getCode()))
@@ -87,24 +105,22 @@ public class AiBastServiceImpl implements AiBastService {
         }
         if (Boolean.TRUE.equals(config.getKeyIsVault())) {
             WriteError.tryWrite(aiClientConfigMapper.insert(config));
-            if (config.getId() == null)//先写入数据库
+            if (config.getId() == null)
                 throw new OperationException("数据库读写失败");
-            //编号规则:模型名称-配置id-YYYY-MM-DD-HH-mm
-            String jsonName =
-                    String.format("%s-%s-%s",
-                                  AiMerchantType.getByTypeNum(config.getMerchant()).getProviderName(),
-                                  config.getId(),
-                                  new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
-            String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, jsonName);
+            String jsonName = String.format("%s-%s-%s",
+                                            AiMerchantType.getByTypeNum(config.getMerchant()).getProviderName(),
+                                            config.getId(),
+                                            new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
+            String path = dataPath(jsonName);
             config.setKeyIsVault(true);
             config.setApiKey(jsonName);
             try {
-                WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKey(config));
+                WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeyWithBLOBs(config));
             } catch (Exception e) {
-                vaultTemplate.delete(path);
+                vaultTemplate.delete(metadataPath(jsonName));
                 throw e;
             }
-            vaultTemplate.write(path, Map.of("api-Key", apiKey));
+            vaultTemplate.write(path, wrapKv2Body(Map.of("api-Key", apiKey)));
         } else {
             config.setApiKey(aesEncryptionUtil.encryptValue(apiKey));
             config.setKeyIsVault(false);
@@ -118,31 +134,31 @@ public class AiBastServiceImpl implements AiBastService {
     public ReturnResult<AiClientConfigWithBLOBs> update(AiClientConfigWithBLOBs aiClientConfig, String apiKey) {
         Boolean keyIsVault = aiClientConfig.getKeyIsVault();
         AiClientConfigWithBLOBs old = aiClientConfigMapper.selectByPrimaryKey(aiClientConfig.getId());
-        aiClientConfig.setCode(null);//禁止修改引用代码
+        aiClientConfig.setCode(null);
         if (old == null || old.getId() == null)
             throw new OperationException("错误不存在的数据");
         if (Boolean.TRUE.equals(keyIsVault)) {
             if (MyStringUtil.isNull(apiKey))
                 throw new OperationException("修改密钥托管时必须重新修改密钥!");
-            if (old.getKeyIsVault()) {//旧的在
-                String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, old.getApiKey());
+            if (old.getKeyIsVault()) {
+                String path = dataPath(old.getApiKey());
                 WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfig));
-                vaultTemplate.write(path, Map.of("api-Key", apiKey));
-            } else {//旧的不在
+                vaultTemplate.write(path, wrapKv2Body(Map.of("api-Key", apiKey)));
+            } else {
                 String jsonName = String.format("%s-%s-%s",
                                                 AiMerchantType.getByTypeNum(aiClientConfig.getMerchant()).getProviderName(),
                                                 aiClientConfig.getId(),
                                                 new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
-                String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, jsonName);
+                String path = dataPath(jsonName);
                 aiClientConfig.setApiKey(jsonName);
                 WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfig));
-                vaultTemplate.write(path, Map.of("api-Key", apiKey));
+                vaultTemplate.write(path, wrapKv2Body(Map.of("api-Key", apiKey)));
             }
-        } else {//新的不在vault里面或者没有修改
+        } else {
             boolean hasKey = !MyStringUtil.isNull(apiKey);
             if (hasKey) {aiClientConfig.setApiKey(aesEncryptionUtil.encryptValue(apiKey));} else {
                 aiClientConfig.setKeyIsVault(old.getKeyIsVault());
-                aiClientConfig.setApiKey(old.getApiKey());//防止前端乱来
+                aiClientConfig.setApiKey(old.getApiKey());
             }
             try {
                 WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfig));
@@ -150,9 +166,8 @@ public class AiBastServiceImpl implements AiBastService {
                 log.error("更新数据库时出错", e);
                 throw new OperationException("密钥更新成功,但是其余部分更新失败");
             }
-            if (old.getKeyIsVault() && hasKey) {//旧的在并且更新密钥
-                String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, old.getApiKey());
-                vaultTemplate.delete(path);
+            if (old.getKeyIsVault() && hasKey) {
+                vaultTemplate.delete(metadataPath(old.getApiKey()));
             }
         }
         return ReturnResult.isTrue("修改完成", aiClientConfig);
@@ -188,17 +203,16 @@ public class AiBastServiceImpl implements AiBastService {
         String sessionId = messageList.getFirst().getSessionId();
         aiChatClientParam.setSessionId(sessionId);
         aiChatClientParam.setPromptContent(AiPromptTemplate.CHAT_SUMMARY_PROMPT);
-        StringBuilder sb = new StringBuilder(4096); //预估容量，减少扩容
+        StringBuilder sb = new StringBuilder(4096);
         sb.append("【聊天记录开始】\n");
         List<Integer> index = new ArrayList<>(messageList.size());
         for (int i = 0; i < messageList.size(); i++) {
             AiRecordWithBLOBs m = messageList.get(i);
             if (m == null || MyStringUtil.isNull(m.getContent())) continue;
-            //内容清洗 + 分隔符,此处进行清洗是为了将用户输入与系统拼接的东西隔离开
             String content = m.getContent()
                     .replace("【", "[")
                     .replace("】", "]")
-                    .replaceAll("\\n{3,}", "\n\n"); // 压缩连续换行
+                    .replaceAll("\\n{3,}", "\n\n");
             sb.append("### 记录").append(i).append(" ###\n")
                     .append(content)
                     .append("\n【时间】: ")
@@ -214,7 +228,6 @@ public class AiBastServiceImpl implements AiBastService {
         aiChatClientParam.setUserContent(sb.toString());
         aiChatClientParam.setMessageList(List.of());
         aiChatClientParam.setSumUp(true);
-        // 返回前轻量校验（兜底防模型格式偏移）
         log.info("开始总结聊天记录,聊天记录归属用户:{},sessionId:{},总结记录索引:{}",
                  userId, sessionId, index
         );
@@ -238,12 +251,10 @@ public class AiBastServiceImpl implements AiBastService {
     @Override
     public Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config) {
         Long useClientId = getClientId(clientId, code, param);
-        // 1. 通过工厂获取已有的 ChatClient 实例
         ChatClient chatClient = AiClientFactory.getChatClient(useClientId);
         if (chatClient == null) {
             return Flux.error(new OperationException("ai客户端调用失败"));
         }
-        // 获取历史记录
         List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize, param.getUserId(), param.getSessionId());
         param.setMessageList(latest);
         if (ListUtil.isNull(latest))
@@ -252,11 +263,9 @@ public class AiBastServiceImpl implements AiBastService {
         if (hasTempConfig) {
             param.setPromptContent(config.getContent());
         }
-        // 使用 chatClient 的 Fluent API 构建请求
         ChatClient.ChatClientRequestSpec requestSpec = chatClient.prompt()
                 .user(param.getUserContent())
                 .advisors(advisor -> advisor.param(AiChatClientParam.PARAM_KEY, param));
-        // 设置系统提示词
         if (MyStringUtil.isNull(param.getPromptContent())) {
             if (hasTempConfig && !MyStringUtil.isNull(config.getContent())) {
                 requestSpec.system(config.getContent());
@@ -264,7 +273,6 @@ public class AiBastServiceImpl implements AiBastService {
         } else {
             requestSpec.system(param.getPromptContent());
         }
-        // 设置模型参数 (通过 options 方法)
         if (hasTempConfig) {
             ChatOptions.Builder optionsBuilder = ChatOptions.builder();
             if (config.getMaxTokens() != null) {
@@ -285,7 +293,6 @@ public class AiBastServiceImpl implements AiBastService {
             requestSpec.options(optionsBuilder.build());
         }
         StringBuilder fullResponseBuilder = new StringBuilder();
-        // 执行流式调用并返回 Flux<String> 内容流
         return requestSpec.stream()
                 .content()
                 .doOnNext(fullResponseBuilder::append)
@@ -299,12 +306,10 @@ public class AiBastServiceImpl implements AiBastService {
     @Override
     public ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config) {
         Long useClientId = getClientId(clientId, code, param);
-        // 1. 通过工厂获取已有的 ChatClient 实例
         ChatClient chatClient = AiClientFactory.getChatClient(useClientId);
         if (chatClient == null) {
             throw new OperationException("ai客户端调用失败");
         }
-        // 获取历史记录
         List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize, param.getUserId(), param.getSessionId());
         param.setMessageList(latest);
         if (ListUtil.isNull(latest))
@@ -313,11 +318,9 @@ public class AiBastServiceImpl implements AiBastService {
         if (hasTempConfig) {
             param.setPromptContent(config.getContent());
         }
-        //使用 chatClient 的 Fluent API 构建请求
         ChatClient.ChatClientRequestSpec requestSpec = chatClient.prompt()
-                .user(param.getUserContent()) // 设置用户消息内容
-                .advisors(advisor -> advisor.param(AiChatClientParam.PARAM_KEY, param)); // 配置顾问
-        //设置系统提示词
+                .user(param.getUserContent())
+                .advisors(advisor -> advisor.param(AiChatClientParam.PARAM_KEY, param));
         if (MyStringUtil.isNull(param.getPromptContent())) {
             if (hasTempConfig && !MyStringUtil.isNull(config.getContent())) {
                 requestSpec.system(config.getContent());
@@ -325,10 +328,8 @@ public class AiBastServiceImpl implements AiBastService {
         } else {
             requestSpec.system(param.getPromptContent());
         }
-        //设置模型参数 (通过 options 方法)
         if (hasTempConfig) {
             ChatOptions.Builder optionsBuilder = ChatOptions.builder();
-            // 设置各种参数
             if (config.getMaxTokens() != null) {
                 optionsBuilder.maxTokens(config.getMaxTokens());
             }
@@ -346,9 +347,8 @@ public class AiBastServiceImpl implements AiBastService {
             }
             requestSpec.options(optionsBuilder.build());
         }
-        //执行调用并获取响应
         String responseContent = requestSpec.call()
-                .content(); // 直接获取响应文本
+                .content();
         return ReturnResult.isTrue("响应完成", responseContent);
     }
     
