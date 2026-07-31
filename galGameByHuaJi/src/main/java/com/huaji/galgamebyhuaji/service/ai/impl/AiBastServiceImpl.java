@@ -16,7 +16,13 @@ import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.AiChatClientParam;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
-import com.huaji.galgamebyhuaji.myUtil.*;
+import com.huaji.galgamebyhuaji.myUtil.AESEncryptionUtil;
+import com.huaji.galgamebyhuaji.myUtil.FileUtil;
+import com.huaji.galgamebyhuaji.myUtil.IdUtil;
+import com.huaji.galgamebyhuaji.myUtil.ListUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
+import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
+import com.huaji.galgamebyhuaji.myUtil.VaultPathUtil;
 import com.huaji.galgamebyhuaji.service.ai.AiBastService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +50,12 @@ public class AiBastServiceImpl implements AiBastService {
     private String aiTokenPath;
     @Value("${spring.cloud.vault.kv.backend}")
     private String bastPath;
+    @Value("${spring.cloud.vault.kv.kv-version:1}")
+    private int kvVersion;
     @Value("${ai.chat-record-size}")
     private int chatRecordSize;
     private final VaultTemplate vaultTemplate;
     private final AESEncryptionUtil aesEncryptionUtil;
-    private final AiClientFactory clientFactory;
     private final AiRecordMapper recordMapper;
     private final TransactionTemplate transactionTemplate;
     
@@ -65,6 +72,8 @@ public class AiBastServiceImpl implements AiBastService {
         if (MyStringUtil.isNull(apiKey))
             throw new OperationException("密钥不可为空");
         config.setId(null);
+        config.setCreatedAt(new Date());
+        config.setUpdatedAt(new Date());
         if (MyStringUtil.isNull(config.getCode()))
             config.setCode(IdUtil.getRandomId(PrefixConstant.AiClientConfigPrefix));
         else {
@@ -86,7 +95,7 @@ public class AiBastServiceImpl implements AiBastService {
                                   AiMerchantType.getByTypeNum(config.getMerchant()).getProviderName(),
                                   config.getId(),
                                   new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
-            String path = FileUtil.formatUrl(bastPath, aiTokenPath, jsonName);
+            String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, jsonName);
             config.setKeyIsVault(true);
             config.setApiKey(jsonName);
             try {
@@ -116,7 +125,7 @@ public class AiBastServiceImpl implements AiBastService {
             if (MyStringUtil.isNull(apiKey))
                 throw new OperationException("修改密钥托管时必须重新修改密钥!");
             if (old.getKeyIsVault()) {//旧的在
-                String path = FileUtil.formatUrl(bastPath, aiTokenPath, old.getApiKey());
+                String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, old.getApiKey());
                 WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfig));
                 vaultTemplate.write(path, Map.of("api-Key", apiKey));
             } else {//旧的不在
@@ -124,7 +133,7 @@ public class AiBastServiceImpl implements AiBastService {
                                                 AiMerchantType.getByTypeNum(aiClientConfig.getMerchant()).getProviderName(),
                                                 aiClientConfig.getId(),
                                                 new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
-                String path = FileUtil.formatUrl(bastPath, aiTokenPath, jsonName);
+                String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, jsonName);
                 aiClientConfig.setApiKey(jsonName);
                 WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfig));
                 vaultTemplate.write(path, Map.of("api-Key", apiKey));
@@ -142,7 +151,7 @@ public class AiBastServiceImpl implements AiBastService {
                 throw new OperationException("密钥更新成功,但是其余部分更新失败");
             }
             if (old.getKeyIsVault() && hasKey) {//旧的在并且更新密钥
-                String path = FileUtil.formatUrl(bastPath, aiTokenPath, old.getApiKey());
+                String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, old.getApiKey());
                 vaultTemplate.delete(path);
             }
         }
@@ -230,7 +239,7 @@ public class AiBastServiceImpl implements AiBastService {
     public Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config) {
         Long useClientId = getClientId(clientId, code, param);
         // 1. 通过工厂获取已有的 ChatClient 实例
-        ChatClient chatClient = clientFactory.getChatClient(useClientId);
+        ChatClient chatClient = AiClientFactory.getChatClient(useClientId);
         if (chatClient == null) {
             return Flux.error(new OperationException("ai客户端调用失败"));
         }
@@ -291,7 +300,7 @@ public class AiBastServiceImpl implements AiBastService {
     public ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config) {
         Long useClientId = getClientId(clientId, code, param);
         // 1. 通过工厂获取已有的 ChatClient 实例
-        ChatClient chatClient = clientFactory.getChatClient(useClientId);
+        ChatClient chatClient = AiClientFactory.getChatClient(useClientId);
         if (chatClient == null) {
             throw new OperationException("ai客户端调用失败");
         }

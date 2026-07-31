@@ -26,7 +26,7 @@
                type="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
         <result column="base_url" jdbcType="LONGVARCHAR" property="baseUrl"/>
         <result column="api_key" jdbcType="LONGVARCHAR" property="apiKey"/>
-        <result column="extra_config json" jdbcType="LONGVARCHAR" property="extraConfigJson"/>
+        <result column="extra_config_json" jdbcType="LONGVARCHAR" property="extraConfigJson"/>
         <result column="content" jdbcType="LONGVARCHAR" property="content"/>
     </resultMap>
     <sql id="Example_Where_Clause">
@@ -91,11 +91,11 @@
     </sql>
     <sql id="Base_Column_List">
         id, code, name, model, key_is_vault, max_tokens, temperature, top_p, frequency_penalty,
-    presence_penalty, thinking, reasoning_effort, stream, timeout, is_active, created_at,
+    presence_penalty, thinking, reasoning_effort, stream, timeout, is_active, created_at, 
     updated_at, merchant, description
     </sql>
     <sql id="Blob_Column_List">
-        base_url, api_key, "extra_config json", content
+        base_url, api_key, extra_config_json, content
     </sql>
     <select id="selectByExampleWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigExample"
             resultMap="ResultMapWithBLOBs">
@@ -148,7 +148,8 @@
             <include refid="Example_Where_Clause"/>
         </if>
     </delete>
-    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+    <insert id="insert" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs"
+            useGeneratedKeys="true" keyProperty="id">
         insert into ai_client_config (id, code, name,
                                       model, key_is_vault, max_tokens,
                                       temperature, top_p, frequency_penalty,
@@ -156,7 +157,7 @@
                                       stream, timeout, is_active,
                                       created_at, updated_at, merchant,
                                       description, base_url, api_key,
-                                      "extra_config json", content)
+                                      extra_config_json, content)
         values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
                 #{model,jdbcType=VARCHAR}, #{keyIsVault,jdbcType=BIT}, #{maxTokens,jdbcType=INTEGER},
                 #{temperature,jdbcType=INTEGER}, #{topP,jdbcType=INTEGER}, #{frequencyPenalty,jdbcType=INTEGER},
@@ -233,7 +234,7 @@
                 api_key,
             </if>
             <if test="extraConfigJson != null">
-                "extra_config json",
+                extra_config_json,
             </if>
             <if test="content != null">
                 content,
@@ -385,7 +386,7 @@
                 api_key = #{row.apiKey,jdbcType=LONGVARCHAR},
             </if>
             <if test="row.extraConfigJson != null">
-                "extra_config json" = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
+                extra_config_json = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
             </if>
             <if test="row.content != null">
                 content = #{row.content,jdbcType=LONGVARCHAR},
@@ -418,7 +419,7 @@
         description = #{row.description,jdbcType=VARCHAR},
         base_url = #{row.baseUrl,jdbcType=LONGVARCHAR},
         api_key = #{row.apiKey,jdbcType=LONGVARCHAR},
-        "extra_config json" = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
+        extra_config_json = #{row.extraConfigJson,jdbcType=LONGVARCHAR},
         content = #{row.content,jdbcType=LONGVARCHAR}
         <if test="example != null">
             <include refid="Update_By_Example_Where_Clause"/>
@@ -513,7 +514,7 @@
                 api_key = #{apiKey,jdbcType=LONGVARCHAR},
             </if>
             <if test="extraConfigJson != null">
-                "extra_config json" = #{extraConfigJson,jdbcType=LONGVARCHAR},
+                extra_config_json = #{extraConfigJson,jdbcType=LONGVARCHAR},
             </if>
             <if test="content != null">
                 content = #{content,jdbcType=LONGVARCHAR},
@@ -523,28 +524,28 @@
     </update>
     <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
         update ai_client_config
-        set code                = #{code,jdbcType=VARCHAR},
-            name                = #{name,jdbcType=VARCHAR},
-            model               = #{model,jdbcType=VARCHAR},
-            key_is_vault        = #{keyIsVault,jdbcType=BIT},
-            max_tokens          = #{maxTokens,jdbcType=INTEGER},
-            temperature         = #{temperature,jdbcType=INTEGER},
-            top_p               = #{topP,jdbcType=INTEGER},
-            frequency_penalty   = #{frequencyPenalty,jdbcType=INTEGER},
-            presence_penalty    = #{presencePenalty,jdbcType=INTEGER},
-            thinking            = #{thinking,jdbcType=BIT},
-            reasoning_effort    = #{reasoningEffort,jdbcType=VARCHAR},
-            stream              = #{stream,jdbcType=BIT},
-            timeout             = #{timeout,jdbcType=INTEGER},
-            is_active           = #{isActive,jdbcType=BIT},
-            created_at          = #{createdAt,jdbcType=TIMESTAMP},
-            updated_at          = #{updatedAt,jdbcType=TIMESTAMP},
-            merchant            = #{merchant,jdbcType=VARCHAR},
-            description         = #{description,jdbcType=VARCHAR},
-            base_url            = #{baseUrl,jdbcType=LONGVARCHAR},
-            api_key             = #{apiKey,jdbcType=LONGVARCHAR},
-            "extra_config json" = #{extraConfigJson,jdbcType=LONGVARCHAR},
-            content             = #{content,jdbcType=LONGVARCHAR}
+        set code              = #{code,jdbcType=VARCHAR},
+            name              = #{name,jdbcType=VARCHAR},
+            model             = #{model,jdbcType=VARCHAR},
+            key_is_vault      = #{keyIsVault,jdbcType=BIT},
+            max_tokens        = #{maxTokens,jdbcType=INTEGER},
+            temperature       = #{temperature,jdbcType=INTEGER},
+            top_p             = #{topP,jdbcType=INTEGER},
+            frequency_penalty = #{frequencyPenalty,jdbcType=INTEGER},
+            presence_penalty  = #{presencePenalty,jdbcType=INTEGER},
+            thinking          = #{thinking,jdbcType=BIT},
+            reasoning_effort  = #{reasoningEffort,jdbcType=VARCHAR},
+            stream            = #{stream,jdbcType=BIT},
+            timeout           = #{timeout,jdbcType=INTEGER},
+            is_active         = #{isActive,jdbcType=BIT},
+            created_at        = #{createdAt,jdbcType=TIMESTAMP},
+            updated_at        = #{updatedAt,jdbcType=TIMESTAMP},
+            merchant          = #{merchant,jdbcType=VARCHAR},
+            description       = #{description,jdbcType=VARCHAR},
+            base_url          = #{baseUrl,jdbcType=LONGVARCHAR},
+            api_key           = #{apiKey,jdbcType=LONGVARCHAR},
+            extra_config_json = #{extraConfigJson,jdbcType=LONGVARCHAR},
+            content           = #{content,jdbcType=LONGVARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
     <update id="updateByPrimaryKey" parameterType="com.huaji.galgamebyhuaji.entity.AiClientConfig">
@@ -569,6 +570,7 @@
             description       = #{description,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
+
     <select id="getUserUseModer" resultType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
         select name,
                description,

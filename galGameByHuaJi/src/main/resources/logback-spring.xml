@@ -4,7 +4,7 @@
     <property name="LOG_FILE_PATH" value="./logs"/>
     <property name="ENCODING" value="UTF-8"/>
 
-    <!-- 控制台 -->
+    <!-- ==================== 控制台 ==================== -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -12,7 +12,7 @@
         </encoder>
     </appender>
 
-    <!-- 错误日志 -->
+    <!-- ==================== 错误日志 (仅 ERROR) ==================== -->
     <appender name="errorFile" class="ch.qos.logback.core.FileAppender">
         <file>${LOG_FILE_PATH}/error.txt</file>
         <append>true</append>
@@ -27,7 +27,7 @@
         </filter>
     </appender>
 
-    <!-- 更新删除操作日志 (记录INFO及以上) -->
+    <!-- ==================== 增删改操作日志 (被 root 引用，无需单独 logger) ==================== -->
     <appender name="updateDelFile" class="ch.qos.logback.core.FileAppender">
         <file>${LOG_FILE_PATH}/updateAndDel.txt</file>
         <append>true</append>
@@ -40,8 +40,8 @@
         </filter>
     </appender>
 
-    <!-- 安全相关日志 -->
-    <appender name="loginFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- ==================== 账户安全日志: 登录/注册/找回密码/验证 ==================== -->
+    <appender name="safetyFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE_PATH}/safety.log</file>
         <encoder>
             <charset>${ENCODING}</charset>
@@ -49,32 +49,76 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE_PATH}/safety.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>90</maxHistory>
+            <maxHistory>5</maxHistory>
         </rollingPolicy>
     </appender>
-    <!--安全日志-->
+
+    <!-- Service 层安全日志 -->
     <logger name="com.huaji.galgamebyhuaji.service.impl.LoginServiceIMPL" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="safetyFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.impl.SecureServletImpl" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="safetyFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.impl.TokenServiceImpl" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="safetyFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.service.impl.SessionServiceIMPL" level="INFO" additivity="false">
+        <appender-ref ref="safetyFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.LoginService" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="safetyFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.SecureServlet" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="safetyFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.TokenService" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="safetyFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.service.SessionService" level="INFO" additivity="false">
+        <appender-ref ref="safetyFile"/>
+    </logger>
+
+    <!-- Controller 层安全相关 -->
+    <logger name="com.huaji.galgamebyhuaji.controller.LoginController" level="INFO" additivity="false">
+        <appender-ref ref="safetyFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.controller.VerifyController" level="INFO" additivity="false">
+        <appender-ref ref="safetyFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.controller.SecureController" level="INFO" additivity="false">
+        <appender-ref ref="safetyFile"/>
+    </logger>
+
+    <!-- 邮件服务 -->
+    <logger name="com.huaji.galgamebyhuaji.service.impl.EmailService" level="INFO" additivity="false">
+        <appender-ref ref="safetyFile"/>
+    </logger>
+
+    <!-- ==================== Root 行为日志: 管理员操作 ==================== -->
+    <appender name="rootBehaviorFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE_PATH}/rootBehavior.log</file>
+        <encoder>
+            <charset>${ENCODING}</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE_PATH}/rootBehavior.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>5</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.huaji.galgamebyhuaji.controller.UserManageController" level="INFO" additivity="false">
+        <appender-ref ref="rootBehaviorFile"/>
+    </logger>
+    <logger name="com.huaji.galgamebyhuaji.service.impl.RootServletImpl" level="INFO" additivity="false">
+        <appender-ref ref="rootBehaviorFile"/>
     </logger>
     <logger name="com.huaji.galgamebyhuaji.service.RootServlet" level="INFO" additivity="false">
-        <appender-ref ref="loginFile"/>
+        <appender-ref ref="rootBehaviorFile"/>
     </logger>
-    <!-- 用户行为日志 -->
+
+    <!-- ==================== 用户行为日志: 访问/操作 ==================== -->
     <appender name="userFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE_PATH}/userBehavior.log</file>
         <encoder>
@@ -83,7 +127,7 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE_PATH}/userBehavior.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <maxHistory>5</maxHistory>
         </rollingPolicy>
     </appender>
 
@@ -105,7 +149,8 @@
     <logger name="com.huaji.galgamebyhuaji.service.impl.FileUploadServiceImpl" level="INFO" additivity="false">
         <appender-ref ref="userFile"/>
     </logger>
-    <!-- 验证日志 -->
+
+    <!-- ==================== 过滤器验证日志 ==================== -->
     <appender name="userVerification" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE_PATH}/userVerification.log</file>
         <encoder>
@@ -114,13 +159,15 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE_PATH}/userVerification.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <maxHistory>5</maxHistory>
         </rollingPolicy>
     </appender>
     <logger name="com.huaji.galgamebyhuaji.Interceptor" level="INFO" additivity="false">
         <appender-ref ref="userVerification"/>
     </logger>
-    <!-- 根记录器 -->
+
+    <!-- ==================== 根记录器 ==================== -->
+    <!-- 未被上述特殊 logger 捕获的日志（即 Controller 层增删改等）全部落入 updateAndDel.txt -->
     <root level="DEBUG">
         <appender-ref ref="console"/>
         <appender-ref ref="errorFile"/>

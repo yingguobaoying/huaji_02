@@ -11,6 +11,7 @@ import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage.AiMerchantType;
 import com.huaji.galgamebyhuaji.myUtil.AESEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
+import com.huaji.galgamebyhuaji.myUtil.VaultPathUtil;
 import com.huaji.galgamebyhuaji.myUtil.ListUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import lombok.RequiredArgsConstructor;
@@ -45,11 +46,11 @@ import java.util.Map;
 public class AiClientFactory {
     private final AiClientConfigMapper clientConfigMapper;
     private final ObjectMapper objectMapper;
-    private volatile Map<Long, ChatClient> configMap = Collections.emptyMap();
+    private static volatile Map<Long, ChatClient> configMap = Collections.emptyMap();
     private final DatabaseChatMemory databaseChatMemory;
     private final List<MyBaseAdvisor> allAdvisor;
     
-    public ChatClient getChatClient(long id) {
+    public static ChatClient getChatClient(long id) {
         return configMap.get(id);
     }
     
@@ -57,6 +58,8 @@ public class AiClientFactory {
     private String aiTokenPath;
     @Value("${spring.cloud.vault.kv.backend}")
     private String bastPath;
+    @Value("${spring.cloud.vault.kv.kv-version:1}")
+    private int kvVersion;
     private final VaultTemplate vaultTemplate;
     private final AESEncryptionUtil aesEncryptionUtil;
     
@@ -73,7 +76,7 @@ public class AiClientFactory {
         
         log.info("***********************取得启用AI配置项共:{}项****************************", aiClientConfigs.size());
         int ok = 0, lost = 0;
-        Map<Long, ChatClient> map = new HashMap<Long, ChatClient>(50);
+        Map<Long, ChatClient> map = new HashMap<>(50);
         for (AiClientConfigWithBLOBs config : aiClientConfigs) {
             try {
                 // 处理 API Key (支持 Vault)
@@ -89,7 +92,7 @@ public class AiClientFactory {
                         lost++;
                         continue;
                     }
-                    String path = FileUtil.formatUrl(bastPath, aiTokenPath, config.getApiKey()).toString();
+                    String path = VaultPathUtil.buildPath(kvVersion, bastPath, aiTokenPath, config.getApiKey());
                     try {
                         VaultResponse response = vaultTemplate.read(path);
                         if (response == null || response.getData() == null || response.getData().isEmpty()) {
@@ -172,6 +175,7 @@ public class AiClientFactory {
                                 .frequencyPenalty(freqPenalty)
                                 .presencePenalty(presPenalty)
                                 .maxTokens(config.getMaxTokens())
+                                .extraBody(json)
                                 .build();
                         
                         chatModel = OpenAiChatModel.builder()

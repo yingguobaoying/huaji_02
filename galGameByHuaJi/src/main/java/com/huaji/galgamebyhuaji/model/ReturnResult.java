@@ -221,12 +221,12 @@ public class ReturnResult<T> {
 	 * @param mxg 反馈信息
 	 * @param e   异常类或者描述
 	 */
-	public static <T> ReturnResult<T> isError(String mxg, T e) {
+	public static ReturnResult<Exception> isError(String mxg, Exception e) {
 		if (e instanceof BestException e1) {//为自定义错误时调用另一个方法自动设置错误代码
-			return new ReturnResult<T>().operationError(e1.getMessage(), e,
+			return new ReturnResult<Exception>().operationError(e1.getMessage(), e,
 			                                            e1.getErrorType() * 1000 + e1.getErrorNum());
 		}
-		return new ReturnResult<T>().operationError(mxg, e, 1);
+		return new ReturnResult<Exception>().operationError(mxg, e, 1);
 	}
 	
 	public static <T> ReturnResult<T> isFalse(String mxg) {

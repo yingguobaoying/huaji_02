@@ -2,10 +2,8 @@ package com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage;
 
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public enum AiMerchantType {
 	DEEP_SEEK_CLOUD("deepSeek/迪克api", 1, "deepseek"),
 	OLLAMA_CLOUD("Ollama-云模型", 2, "ollamayun"),
@@ -16,10 +14,17 @@ public enum AiMerchantType {
 	private final int code;
 	private final String providerName;
 	
+	AiMerchantType(String name, int code, String providerName) {
+		this.name = name;
+		this.code = code;
+		this.providerName = providerName;
+	}
+	
 	public static AiMerchantType getByTypeNum (String merchant) {
-		if ( OPEN_AI.getProviderName().equalsIgnoreCase(merchant) ) return DEEP_SEEK_CLOUD;
+		if ( OPEN_AI.getProviderName().equalsIgnoreCase(merchant) ) return OPEN_AI;
 		if ( OLLAMA_CLOUD.getProviderName().equalsIgnoreCase(merchant) ) return OLLAMA_CLOUD;
 		if ( OLLAMA.getProviderName().equalsIgnoreCase(merchant) ) return OLLAMA;
+		if ( DEEP_SEEK_CLOUD.getProviderName().equalsIgnoreCase(merchant) ) return DEEP_SEEK_CLOUD;
 		//检查是否为数字
 		if ( MyStringUtil.isValidNum(merchant) ) {
 			try {

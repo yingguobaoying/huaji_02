@@ -40,7 +40,7 @@ public class UserManageController extends BaseController {
     }
     
     @GetMapping("/getUserList/{page}")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<Users> getUserList(@PathVariable("page") int page) {
         Users user = getUser();
         LogUtil.RootBehaviorLog(log, "获取用户列表,当前页数{%s}".formatted(page), user);
@@ -49,7 +49,7 @@ public class UserManageController extends BaseController {
     
     
     @GetMapping("/getUserSize")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<Integer> getUserSize() {
         Users user = getUser();
         LogUtil.RootBehaviorLog(log, "获取用户总数量", user);
@@ -58,7 +58,7 @@ public class UserManageController extends BaseController {
     
     
     @GetMapping("/getUserInfo/{id}")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<UsersWithBLOBs> getUserInfo(@PathVariable("id") int id) {
         Users user = getUser();
         LogUtil.RootBehaviorLog(log, "获取用户信息,用户id{%s}".formatted(id), user);
@@ -69,7 +69,7 @@ public class UserManageController extends BaseController {
      * 管理员编辑用户信息
      */
     @PostMapping("/editUser")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<String> editUser(@RequestBody UsersWithBLOBs users) {
         Users root = getUser();
         if (users.getUserId() == null || users.getUserId() < 0)
@@ -83,7 +83,7 @@ public class UserManageController extends BaseController {
      * 管理员更改用户状态（封禁/解封/冻结）
      */
     @PostMapping("/updateUserStatus")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<String> updateUserStatus(@RequestBody Map<String, Object> body) {
         Users root = getUser();
         Object userIdObj = body.get("userId");
@@ -106,7 +106,7 @@ public class UserManageController extends BaseController {
      * 管理员按用户名/登录名搜索用户
      */
     @GetMapping("/searchUser/{name}")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<UsersWithBLOBs> searchUser(@PathVariable("name") String name) {
         Users root = getUser();
         LogUtil.RootBehaviorLog(log, "搜索用户,关键词{%s}".formatted(name), root);
@@ -117,7 +117,7 @@ public class UserManageController extends BaseController {
      * 管理员冻结指定用户
      */
     @PostMapping("/frozenUser/{userId}")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<String> frozenUser(@PathVariable("userId") int userId, HttpServletRequest request) throws Exception {
         Users root = getUser();
         if (userId < 0)
@@ -146,7 +146,7 @@ public class UserManageController extends BaseController {
      * 管理员解冻指定用户
      */
     @PostMapping("/unfrozenUser/{userId}")
-    @PreAuthorize("hasRole('USERS_JURISDICTION')")
+    @PreAuthorize("hasRole('ADMIN_JURISDICTION')")
     public ReturnResult<String> unfrozenUser(@PathVariable("userId") int userId, HttpServletRequest request) throws Exception {
         Users root = getUser();
         if (userId < 0)
