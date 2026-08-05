@@ -218,9 +218,9 @@ public class AiBastServiceImpl implements AiBastService {
                     .append("\n【时间】: ")
                     .append(TimeUtil.getVisualDateFormatTime(m.getCreatedAt()))
                     .append("\n\n");
-            index.add(m.getIndex());
-            if (maxIndex < m.getIndex())
-                maxIndex = m.getIndex();
+            index.add(m.getChatIndex());
+            if (maxIndex < m.getChatIndex())
+                maxIndex = m.getChatIndex();
         }
         aiChatClientParam.setIndex(maxIndex + 1);
         sb.append("【聊天记录结束】\n【当前时间】: ")
@@ -259,6 +259,12 @@ public class AiBastServiceImpl implements AiBastService {
         param.setMessageList(latest);
         if (ListUtil.isNull(latest))
             param.setIndex(1);
+        else
+            param.setIndex(latest.stream()
+                .filter(Objects::nonNull)
+                .mapToInt(r -> r.getChatIndex() == null ? 0 : r.getChatIndex())
+                .max()
+                .orElse(0) + 1);
         boolean hasTempConfig = config != null;
         if (hasTempConfig) {
             param.setPromptContent(config.getContent());
@@ -314,6 +320,12 @@ public class AiBastServiceImpl implements AiBastService {
         param.setMessageList(latest);
         if (ListUtil.isNull(latest))
             param.setIndex(1);
+        else
+            param.setIndex(latest.stream()
+                .filter(Objects::nonNull)
+                .mapToInt(r -> r.getChatIndex() == null ? 0 : r.getChatIndex())
+                .max()
+                .orElse(0) + 1);
         boolean hasTempConfig = config != null;
         if (hasTempConfig) {
             param.setPromptContent(config.getContent());
@@ -347,8 +359,11 @@ public class AiBastServiceImpl implements AiBastService {
             }
             requestSpec.options(optionsBuilder.build());
         }
-        String responseContent = requestSpec.call()
+        ChatClient.CallResponseSpec call = requestSpec.call();
+        log.info("输出内容" + call);
+        String responseContent = call
                 .content();
+        //插入
         return ReturnResult.isTrue("响应完成", responseContent);
     }
     

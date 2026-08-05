@@ -87,14 +87,13 @@ public class DatabaseChatMemory extends MyBaseAdvisor {
                 log.error("自动总结上下文失败", e);
             }
         }
-        
         Prompt currentPrompt = chatClientRequest.prompt();
         List<SystemMessage> currentMessages = currentPrompt.getSystemMessages();
         Message currentSystemMsg = currentMessages.stream()
                 .filter(m -> m.getMessageType() == MessageType.SYSTEM)
                 .findFirst()
                 .orElse(null);
-        Message currentUserMsg = currentMessages.stream()
+        Message currentUserMsg = currentPrompt.getUserMessages().stream()
                 .filter(m -> m.getMessageType() == MessageType.USER)
                 .reduce((first, second) -> second)
                 .orElse(null);

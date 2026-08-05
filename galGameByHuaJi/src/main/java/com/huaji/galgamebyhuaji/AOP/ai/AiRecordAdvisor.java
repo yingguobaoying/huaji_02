@@ -4,7 +4,10 @@ import com.huaji.galgamebyhuaji.dao.AiRecordMapper;
 import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage.MsgType;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
+import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.AiChatClientParam;
+import com.huaji.galgamebyhuaji.myUtil.IdUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -27,6 +30,7 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
     
     /**
      * 保存用户消息到数据库（在请求发送前）
+     * index 由调用方 (aiChat/aiChatByStream) 预先设置好
      */
     private void saveUserMsg(ChatClientRequest request) {
         try {
@@ -35,16 +39,20 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
                 log.warn("未找到 AiChatClientParam，跳过用户消息记录");
                 return;
             }
+            int index = param.getIndex();
             transactionTemplate.execute(status -> {
                 AiRecordWithBLOBs record = new AiRecordWithBLOBs();
                 record.setContent(param.getUserContent());
                 record.setPromptContent(param.getPromptContent());
-                record.setIndex(param.getIndex());
+                record.setChatIndex(index);
                 record.setUserId(param.getUserId());
                 record.setCreatedAt(new Date());
                 record.setRole(param.isSumUp() ? MsgType.SUMMARY.getType() : MsgType.USER.getType());
-                record.setSessionId(param.getSessionId());
+                record.setSessionId(MyStringUtil.isNull(param.getSessionId()) ?
+                                            IdUtil.getRandomId("ai_chat_") : param.getSessionId());
                 aiRecordMapper.insertSelective(record);
+                if (record.getId() == null)
+                    WriteError.tryWrite(0);
                 saveData(request, "userRecordId", record.getId());
                 return null;
             });
@@ -63,14 +71,14 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
         if (!(rawParam instanceof AiChatClientParam param)) {
             log.error("未找到 AiChatClientParam，跳过AI消息记录");
             if (response.chatResponse() != null) {
-                log.info("无参数ai响应记录:{}",response.chatResponse().getResult().getOutput().toString());
+                log.info("无参数ai响应记录:{}", response.chatResponse().getResult().getOutput().toString());
             }
             return response;
         }
         
         String aiContent = null;
         if (response.chatResponse() != null && response.chatResponse().getResult() != null) {
-            aiContent = response.chatResponse().getResult().getOutput().toString();
+            aiContent = response.chatResponse().getResult().getOutput().getText();
         }
         if (aiContent == null) {
             aiContent = "AI响应为空";
@@ -88,7 +96,7 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
                 record.setContent(finalAiContent);
                 record.setPromptContent(param.getPromptContent());
                 record.setRequestJson(finalAiContent);
-                record.setIndex(param.getIndex() + 1);
+                record.setChatIndex(param.getIndex() + 1);
                 record.setUserId(param.getUserId());
                 record.setCreatedAt(new Date());
                 record.setRole(MsgType.AI_MSG.getType());

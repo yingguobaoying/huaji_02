@@ -207,7 +207,10 @@ public class AiClientFactory {
                 if (MyStringUtil.isNull(config.getContent())) {
                     clientBuilder.defaultSystem(config.getContent());
                 }
-                clientBuilder.defaultAdvisors((List) allAdvisor);
+                
+                clientBuilder
+                        .defaultAdvisors() // 清空默认顾问（包括 ChatModelCallAdvisor）
+                        .defaultAdvisors((List) allAdvisor);
                 map.put(config.getId(), clientBuilder.build());
                 ok++;
                 log.info("成功加载AI模型: id={}, name={}, merchant={}", config.getId(), config.getName(), merchantType.getName());

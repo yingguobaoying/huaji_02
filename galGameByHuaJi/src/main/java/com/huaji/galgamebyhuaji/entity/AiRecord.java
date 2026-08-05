@@ -23,7 +23,7 @@ public class AiRecord {
 
     private Long clientId;
 
-    private Integer index;
+    private Integer chatIndex;
 
     public Long getId() {
         return id;
@@ -105,11 +105,11 @@ public class AiRecord {
         this.clientId = clientId;
     }
 
-    public Integer getIndex() {
-        return index;
+    public Integer getChatIndex() {
+        return chatIndex;
     }
 
-    public void setIndex(Integer index) {
-        this.index = index;
+    public void setChatIndex(Integer chatIndex) {
+        this.chatIndex = chatIndex;
     }
 }

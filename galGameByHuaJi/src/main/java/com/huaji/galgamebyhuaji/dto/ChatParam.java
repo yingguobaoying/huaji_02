@@ -8,7 +8,6 @@ public class ChatParam {
     /**
      * 会话id
      */
-    @CustomNotNull
     String sessionId;
     /**
      * 输入

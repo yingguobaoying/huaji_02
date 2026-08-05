@@ -1,3 +1,20 @@
+create table gal.ai_classification
+(
+    client_id         bigint not null comment 'ai客户端id',
+    gave_user         int    null comment '授权的用户',
+    id                bigint auto_increment comment 'id'
+        primary key,
+    need_jurisdiction int    null comment '需要的权限,当这里有值的时候无法授予用户',
+    constraint ai_classification_ai_client_config_id_fk
+        foreign key (client_id) references gal.ai_client_config (id)
+            on update cascade on delete cascade,
+    constraint ai_classification_users_user_id_fk
+        foreign key (gave_user) references gal.users (user_id)
+            on update cascade on delete cascade
+)
+    comment 'AI授权列表';
+
+
 create table ai_client_config
 (
     id                  bigint auto_increment comment '主键ID'
@@ -32,14 +49,14 @@ create table ai_client_config
 create index idx_is_active
     on ai_client_config (is_active);
 
-create table ai_record
+create table gal.ai_record
 (
     id             bigint auto_increment comment '主键ID'
         primary key,
     session_id     varchar(64)                          not null comment '会话标识（用于区分不同对话）',
     role           int        default 1                 not null comment '消息角色：1-用户，2-系统 ,3-ai回复,4-工具',
     content        text                                 not null comment '消息内容',
-    user_id        bigint                               not null comment '所属用户ID（记录谁发的消息）',
+    user_id        int                                  not null comment '所属用户ID（记录谁发的消息）',
     external_id    varchar(100)                         null comment '外部系统ID（如第三方消息ID）',
     created_at     datetime   default CURRENT_TIMESTAMP not null comment '创建时间',
     deleted        tinyint(1) default 0                 not null comment '逻辑删除标志：0-正常，1-已删除',
@@ -48,9 +65,19 @@ create table ai_record
     client_id      bigint                               null comment '客户端ID',
     prompt_content text                                 null comment '使用的提示词(如果存在)',
     request_json   json                                 null comment '请求体json',
-    `index`        int                                  null comment '对话索引'
+    chat_index     int                                  null comment '对话索引'
 )
     comment 'AI聊天记录表（支持多轮会话）' row_format = DYNAMIC;
+
+create index idx_created_at
+    on gal.ai_record (created_at);
+
+create index idx_session_id
+    on gal.ai_record (session_id);
+
+create index idx_user_id
+    on gal.ai_record (user_id);
+
 
 create index idx_created_at
     on ai_record (created_at);

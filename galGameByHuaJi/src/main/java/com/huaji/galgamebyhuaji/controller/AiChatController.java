@@ -7,6 +7,7 @@ import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.model.AiChatClientParam;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.service.ai.AiBastService;
+import com.huaji.galgamebyhuaji.service.ai.AiClassificationServlet;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import java.util.List;
 @Slf4j
 public class AiChatController extends BaseController {
     private final AiBastService chatService;
+    private final AiClassificationServlet classificationServlet;
     private final AiRecordMapper aiRecordMapper;
     
     /**
@@ -38,6 +40,8 @@ public class AiChatController extends BaseController {
         }
         AiChatClientParam param = new AiChatClientParam();
         Users loginUser = getLoginUser();
+        if (!classificationServlet.userCanSee(loginUser.getUserId(), chatParam.getClientId()))
+            return ReturnResult.isFalse("您没有权限使用该模型,请联系管理员授权");
         param.setUserId(loginUser.getUserId());
         param.setSessionId(chatParam.getSessionId());
         param.setUserContent(chatParam.getContent());
@@ -69,7 +73,7 @@ public class AiChatController extends BaseController {
      * 获取指定会话的聊天历史
      */
     @GetMapping("/chat/history/{sessionId}")
-    public ReturnResult getChatHistory(@PathVariable("sessionId") String sessionId) {
+    public ReturnResult<AiRecordWithBLOBs> getChatHistory(@PathVariable("sessionId") String sessionId) {
         Users loginUser = getLoginUser();
         List<AiRecordWithBLOBs> records = aiRecordMapper.getRecord(
                 loginUser.getUserId(), sessionId);
@@ -83,7 +87,7 @@ public class AiChatController extends BaseController {
      * 获取该用户所有会话的首条记录（用于显示会话列表）
      */
     @GetMapping("/chat/sessions")
-    public ReturnResult getChatSessions() {
+    public ReturnResult<AiRecordWithBLOBs> getChatSessions() {
         Users loginUser = getLoginUser();
         List<AiRecordWithBLOBs> records = aiRecordMapper.getFirstRecord(loginUser.getUserId());
         if (records == null || records.isEmpty()) {

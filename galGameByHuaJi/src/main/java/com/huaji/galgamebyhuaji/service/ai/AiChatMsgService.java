@@ -19,5 +19,5 @@ public interface AiChatMsgService {
     /**
      * 获取所有可用模型列表
      */
-    List<AiModerList> getAiConfig();
+    List<AiModerList> getAiConfig(int userId);
 }

@@ -67,7 +67,8 @@
         <!--        <table tableName="user_token" domainObjectName="UserToken"/>-->
         <!--        <table tableName="resources_file_map" domainObjectName="ResourcesFileMap"/>-->
         <!--        <table tableName="users" domainObjectName="Users"/>-->
-<!--        <table tableName="ai_record" domainObjectName="AiRecord"/>-->
-        <table tableName="ai_client_config" domainObjectName="AiClientConfig"/>
+                <table tableName="ai_record" domainObjectName="AiRecord"/>
+        <!--        <table tableName="ai_client_config" domainObjectName="AiClientConfig"/>-->
+<!--        <table tableName="ai_classification" domainObjectName="AiClassification"/>-->
     </context>
 </generatorConfiguration>

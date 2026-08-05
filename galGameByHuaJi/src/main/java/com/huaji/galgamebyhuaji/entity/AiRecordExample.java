@@ -725,63 +725,63 @@ public class AiRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andIndexIsNull() {
-            addCriterion("index is null");
+        public Criteria andChatIndexIsNull() {
+            addCriterion("chat_index is null");
             return (Criteria) this;
         }
 
-        public Criteria andIndexIsNotNull() {
-            addCriterion("index is not null");
+        public Criteria andChatIndexIsNotNull() {
+            addCriterion("chat_index is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIndexEqualTo(Integer value) {
-            addCriterion("index =", value, "index");
+        public Criteria andChatIndexEqualTo(Integer value) {
+            addCriterion("chat_index =", value, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexNotEqualTo(Integer value) {
-            addCriterion("index <>", value, "index");
+        public Criteria andChatIndexNotEqualTo(Integer value) {
+            addCriterion("chat_index <>", value, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexGreaterThan(Integer value) {
-            addCriterion("index >", value, "index");
+        public Criteria andChatIndexGreaterThan(Integer value) {
+            addCriterion("chat_index >", value, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexGreaterThanOrEqualTo(Integer value) {
-            addCriterion("index >=", value, "index");
+        public Criteria andChatIndexGreaterThanOrEqualTo(Integer value) {
+            addCriterion("chat_index >=", value, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexLessThan(Integer value) {
-            addCriterion("index <", value, "index");
+        public Criteria andChatIndexLessThan(Integer value) {
+            addCriterion("chat_index <", value, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexLessThanOrEqualTo(Integer value) {
-            addCriterion("index <=", value, "index");
+        public Criteria andChatIndexLessThanOrEqualTo(Integer value) {
+            addCriterion("chat_index <=", value, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexIn(List<Integer> values) {
-            addCriterion("index in", values, "index");
+        public Criteria andChatIndexIn(List<Integer> values) {
+            addCriterion("chat_index in", values, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexNotIn(List<Integer> values) {
-            addCriterion("index not in", values, "index");
+        public Criteria andChatIndexNotIn(List<Integer> values) {
+            addCriterion("chat_index not in", values, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexBetween(Integer value1, Integer value2) {
-            addCriterion("index between", value1, value2, "index");
+        public Criteria andChatIndexBetween(Integer value1, Integer value2) {
+            addCriterion("chat_index between", value1, value2, "chatIndex");
             return (Criteria) this;
         }
 
-        public Criteria andIndexNotBetween(Integer value1, Integer value2) {
-            addCriterion("index not between", value1, value2, "index");
+        public Criteria andChatIndexNotBetween(Integer value1, Integer value2) {
+            addCriterion("chat_index not between", value1, value2, "chatIndex");
             return (Criteria) this;
         }
     }
