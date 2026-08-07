@@ -42,4 +42,6 @@ public interface AiRecordMapper {
     List<AiRecordWithBLOBs> getFirstRecord(@Param("userId") int userId);
     
     List<AiRecordWithBLOBs> getRecord(@Param("userId") int userId, @Param("sessionId") String sessionId);
+    
+    int selectSessionChatSize(@Param("sessionId") String sessionId);
 }

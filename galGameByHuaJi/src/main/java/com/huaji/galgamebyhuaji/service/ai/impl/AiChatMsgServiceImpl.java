@@ -7,13 +7,16 @@ import com.huaji.galgamebyhuaji.entity.AiClassification;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
+import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.myUtil.ListUtil;
 import com.huaji.galgamebyhuaji.service.ai.AiChatMsgService;
 import com.huaji.galgamebyhuaji.vo.AiModerList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -52,5 +55,25 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
                     moder.setContent(l.getContent());
                     return moder;
                 }).toList();
+    }
+    
+    @Override
+    @Transactional
+    public long installData(AiRecordWithBLOBs record) {
+        record.setId(null);
+        record.setCreatedAt(new Date());
+        WriteError.tryWrite(recordMapper.insertSelective(record));
+        if (record.getId() == null)
+            WriteError.tryWrite(0);
+        return record.getId();
+    }
+    
+    @Transactional
+    @Override
+    public void setRecordJson(long id, String json) {
+        AiRecordWithBLOBs bloBs = new AiRecordWithBLOBs();
+        bloBs.setId(id);
+        bloBs.setRequestJson(json);
+        WriteError.tryWrite(recordMapper.updateByPrimaryKeySelective(bloBs));
     }
 }

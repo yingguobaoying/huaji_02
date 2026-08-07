@@ -25,5 +25,7 @@ public class AiChatClientParam {
      * ...
      */
     private int index;
+    /** HTTP 拦截器分配的唯一记录 ID，流式场景用于在 doOnComplete 中消费 */
+    private long httpRecordId;
     public final static String PARAM_KEY = "Vigna_loveliness";
 }

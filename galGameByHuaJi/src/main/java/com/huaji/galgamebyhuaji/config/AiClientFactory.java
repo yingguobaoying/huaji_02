@@ -26,9 +26,11 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
+import org.springframework.web.client.RestClient;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,11 +46,11 @@ public class AiClientFactory {
     private final ObjectMapper objectMapper;
     private static volatile Map<Long, ChatClient> configMap = Collections.emptyMap();
     private final List<MyBaseAdvisor> allAdvisor;
-    
+
     public static ChatClient getChatClient(long id) {
         return configMap.get(id);
     }
-    
+
     @Value("${spring.cloud.vault.kv.ai-path}")
     private String aiTokenPath;
     @Value("${spring.cloud.vault.kv.backend}")
@@ -56,24 +58,31 @@ public class AiClientFactory {
     private final VaultTemplate vaultTemplate;
     private final AESEncryptionUtil aesEncryptionUtil;
     public static final String API_KEY_PLACEHOLDER = "红豆可爱捏";
-    
+
+    /**
+     * 创建带 AI HTTP 拦截器的 RestClient.Builder，用于捕获原始请求/响应 JSON
+     */
+    private RestClient.Builder interceptedRestClientBuilder() {
+        return RestClient.builder()
+                .requestInterceptor(new AiHttpRecordInterceptor());
+    }
+
     public void aiInfo() {
         log.info("***********************开始加载AI配置项*****************************");
         AiClientConfigExample configExample = new AiClientConfigExample();
         configExample.createCriteria().andIsActiveEqualTo(true);
         List<AiClientConfigWithBLOBs> aiClientConfigs = clientConfigMapper.selectByExampleWithBLOBs(configExample);
-        
+
         if (ListUtil.isNull(aiClientConfigs)) {
             log.info("***********************未检查到启用项目,AI配置检测完成****************************");
             return;
         }
-        
+
         log.info("***********************取得启用AI配置项共:{}项****************************", aiClientConfigs.size());
         int ok = 0, lost = 0;
         Map<Long, ChatClient> map = new HashMap<>(50);
         for (AiClientConfigWithBLOBs config : aiClientConfigs) {
             try {
-                // 处理 API Key (支持 Vault)
                 String apiKey = config.getApiKey();
                 if (MyStringUtil.isNull(apiKey)) {
                     log.error("*****配置{}读取失败,因为密钥信息为空***", config.getName());
@@ -91,7 +100,6 @@ public class AiClientFactory {
                         lost++;
                         continue;
                     }
-                    // KV v2 路径: {backend}/data/{ai-path}/{key}
                     String path = bastPath + "/data/" + aiTokenPath + "/" + config.getApiKey();
                     try {
                         VaultResponse response = vaultTemplate.read(path);
@@ -100,8 +108,6 @@ public class AiClientFactory {
                             lost++;
                             continue;
                         }
-                        // KV v2 响应: {"data": {"key":"val"...}, "metadata":{...}}
-                        // response.getData() 返回外层 data 对象，需从中取 "data" 字段
                         Map<String, Object> data = response.getData();
                         Object innerData = data.get("data");
                         if (!(innerData instanceof Map)) {
@@ -125,7 +131,6 @@ public class AiClientFactory {
                             log.error("*****配置{}读取失败,因为路径{}下读取的密钥{}为空***", config.getName(), path, name);
                             lost++;
                             continue;
-                            
                         }
                     } catch (Exception e) {
                         log.info("*****配置{}读取失败,失败路径{},失败原因{}***", config.getName(), path, e.getMessage());
@@ -135,15 +140,14 @@ public class AiClientFactory {
                 } else {
                     apiKey = aesEncryptionUtil.decryptValue(config.getApiKey());
                 }
-                // 转换数据库参数 (0~100 -> 0.0~1.0)
                 Double temperature = config.getTemperature() != null ? config.getTemperature() / 100.0 : null;
                 Double topP = config.getTopP() != null ? config.getTopP() / 100.0 : null;
                 Double freqPenalty = config.getFrequencyPenalty() != null ? config.getFrequencyPenalty() / 100.0 : null;
                 Double presPenalty = config.getPresencePenalty() != null ? config.getPresencePenalty() / 100.0 : null;
-                
+
                 ChatModel chatModel;
                 AiMerchantType merchantType = AiMerchantType.getByTypeNum(config.getMerchant());
-                
+
                 switch (merchantType) {
                     case DEEP_SEEK_CLOUD -> {
                         DeepSeekChatOptions options = DeepSeekChatOptions.builder()
@@ -154,12 +158,13 @@ public class AiClientFactory {
                                 .presencePenalty(presPenalty)
                                 .maxTokens(config.getMaxTokens())
                                 .build();
-                        
+
                         chatModel = DeepSeekChatModel.builder()
                                 .deepSeekApi(DeepSeekApi.builder()
-                                                     .apiKey(apiKey)
-                                                     .baseUrl(config.getBaseUrl())
-                                                     .build())
+                                        .apiKey(apiKey)
+                                        .baseUrl(config.getBaseUrl())
+                                        .restClientBuilder(interceptedRestClientBuilder())
+                                        .build())
                                 .defaultOptions(options)
                                 .build();
                     }
@@ -170,16 +175,16 @@ public class AiClientFactory {
                                 .topP(topP)
                                 .numPredict(config.getMaxTokens())
                                 .build();
-                        
+
                         chatModel = OllamaChatModel.builder()
                                 .ollamaApi(OllamaApi.builder()
-                                                   .baseUrl(config.getBaseUrl())
-                                                   .build())
+                                        .baseUrl(config.getBaseUrl())
+                                        .restClientBuilder(interceptedRestClientBuilder())
+                                        .build())
                                 .defaultOptions(options)
                                 .build();
                     }
                     default -> {
-                        // OpenAI 及所有兼容 OpenAI 协议的模型 (如中转API)
                         Map json = null;
                         if (MyStringUtil.isNull(config.getExtraConfigJson()))
                             json = objectMapper.readValue(config.getExtraConfigJson(), Map.class);
@@ -192,48 +197,45 @@ public class AiClientFactory {
                                 .maxTokens(config.getMaxTokens())
                                 .extraBody(json)
                                 .build();
-                        
+
                         chatModel = OpenAiChatModel.builder()
                                 .openAiApi(OpenAiApi.builder()
-                                                   .apiKey(apiKey)
-                                                   .baseUrl(config.getBaseUrl())
-                                                   .build())
+                                        .apiKey(apiKey)
+                                        .baseUrl(config.getBaseUrl())
+                                        .restClientBuilder(interceptedRestClientBuilder())
+                                        .build())
                                 .defaultOptions(options)
                                 .build();
                     }
                 }
-                //构建 ChatClient 并绑定默认系统提示词
                 ChatClient.Builder clientBuilder = ChatClient.builder(chatModel);
                 if (MyStringUtil.isNull(config.getContent())) {
                     clientBuilder.defaultSystem(config.getContent());
                 }
-                
+
                 clientBuilder
-                        .defaultAdvisors() // 清空默认顾问（包括 ChatModelCallAdvisor）
+                        .defaultAdvisors()
                         .defaultAdvisors((List) allAdvisor);
                 map.put(config.getId(), clientBuilder.build());
                 ok++;
                 log.info("成功加载AI模型: id={}, name={}, merchant={}", config.getId(), config.getName(), merchantType.getName());
             } catch (Exception e) {
                 log.error("***********************AI配置文件[{}]加载失败: {}****************************",
-                          config.getName(), e.getMessage(), e);
+                        config.getName(), e.getMessage(), e);
                 lost++;
             }
         }
         configMap = Collections.unmodifiableMap(map);
         log.info("***********************加载成功AI配置项共:{}项, 加载失败:{}项****************************", ok, lost);
     }
-    
-    /**
-     * 重新加载所有配置
-     */
+
     public void refresh() {
         log.info("-----------------------重新加载AI配置项----------------------------");
         aiInfo();
         selfInspection();
         log.info("-----------------------重新加载AI配置项完成----------------------------");
     }
-    
+
     public void selfInspection() {
         AiClientConfigExample example = new AiClientConfigExample();
         example.createCriteria().andCodeIn(AiConstant.CODE_LIST);
@@ -259,6 +261,5 @@ public class AiClientFactory {
                     log.info("默认配置代码:{},初始化结果:{}", s, r);
             }
         }
-        
     }
 }

@@ -1,6 +1,5 @@
 package com.huaji.galgamebyhuaji.service.ai.impl;
 
-import com.huaji.galgamebyhuaji.AOP.ai.AiRecordAdvisor;
 import com.huaji.galgamebyhuaji.config.AiClientFactory;
 import com.huaji.galgamebyhuaji.constant.AiConstant;
 import com.huaji.galgamebyhuaji.constant.AiPromptTemplate;
@@ -12,6 +11,7 @@ import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
 import com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage.AiMerchantType;
+import com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage.MsgType;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.AiChatClientParam;
@@ -22,6 +22,7 @@ import com.huaji.galgamebyhuaji.myUtil.ListUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.service.ai.AiBastService;
+import com.huaji.galgamebyhuaji.service.ai.AiChatMsgService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -30,7 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.vault.core.VaultTemplate;
 import reactor.core.publisher.Flux;
 
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@DependsOn({"vaultConfigValidator"})
+@DependsOn({ "vaultConfigValidator" })
 public class AiBastServiceImpl implements AiBastService {
     private final AiClientConfigMapper aiClientConfigMapper;
     @Value("${spring.cloud.vault.kv.ai-path}")
@@ -53,36 +53,28 @@ public class AiBastServiceImpl implements AiBastService {
     private final VaultTemplate vaultTemplate;
     private final AESEncryptionUtil aesEncryptionUtil;
     private final AiRecordMapper recordMapper;
-    private final TransactionTemplate transactionTemplate;
-    
-    /**
-     * KV v2 data 路径: {backend}/data/{aiPath}/{sub}
-     */
+    private final AiChatMsgService aiChatMsgService;
+
     private String dataPath(String sub) {
         return bastPath + "/data/" + aiTokenPath + "/" + sub;
     }
-    
-    /**
-     * KV v2 metadata 路径（用于删除）: {backend}/metadata/{aiPath}/{sub}
-     */
+
     private String metadataPath(String sub) {
         return bastPath + "/metadata/" + aiTokenPath + "/" + sub;
     }
-    
-    /**
-     * KV v2 写入请求体: {"data": {"key":"val"}}
-     */
+
     private Map<String, Object> wrapKv2Body(Map<String, Object> kvData) {
         return Map.of("data", kvData);
     }
-    
+
     @Override
     public ReturnResult<AiClientConfigWithBLOBs> getList() {
         List<AiClientConfigWithBLOBs> val = aiClientConfigMapper.selectByExampleWithBLOBs(null);
-        if (ListUtil.isNull(val)) val = val.stream().peek(v -> v.setApiKey(null)).toList();
+        if (!ListUtil.isNull(val))
+            val = val.stream().peek(v -> v.setApiKey(null)).toList();
         return ReturnResult.isTrue("返回成功", val, null);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ReturnResult<AiClientConfigWithBLOBs> add(AiClientConfigWithBLOBs config, String apiKey) {
@@ -101,16 +93,16 @@ public class AiBastServiceImpl implements AiBastService {
             if (!ListUtil.isNull(aiClientConfigs))
                 throw new OperationException(
                         "添加失败!因为使用的代码:%s,不唯一,冲突配置:%s".formatted(config.getCode(),
-                                                                                  aiClientConfigs.stream().map(AiClientConfig::getCode).toList()));
+                                aiClientConfigs.stream().map(AiClientConfig::getCode).toList()));
         }
         if (Boolean.TRUE.equals(config.getKeyIsVault())) {
             WriteError.tryWrite(aiClientConfigMapper.insert(config));
             if (config.getId() == null)
                 throw new OperationException("数据库读写失败");
             String jsonName = String.format("%s-%s-%s",
-                                            AiMerchantType.getByTypeNum(config.getMerchant()).getProviderName(),
-                                            config.getId(),
-                                            new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
+                    AiMerchantType.getByTypeNum(config.getMerchant()).getProviderName(),
+                    config.getId(),
+                    new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
             String path = dataPath(jsonName);
             config.setKeyIsVault(true);
             config.setApiKey(jsonName);
@@ -128,7 +120,7 @@ public class AiBastServiceImpl implements AiBastService {
         }
         return ReturnResult.isTrue("新建成功", config);
     }
-    
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ReturnResult<AiClientConfigWithBLOBs> update(AiClientConfigWithBLOBs aiClientConfig, String apiKey) {
@@ -146,9 +138,9 @@ public class AiBastServiceImpl implements AiBastService {
                 vaultTemplate.write(path, wrapKv2Body(Map.of("api-Key", apiKey)));
             } else {
                 String jsonName = String.format("%s-%s-%s",
-                                                AiMerchantType.getByTypeNum(aiClientConfig.getMerchant()).getProviderName(),
-                                                aiClientConfig.getId(),
-                                                new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
+                        AiMerchantType.getByTypeNum(aiClientConfig.getMerchant()).getProviderName(),
+                        aiClientConfig.getId(),
+                        new SimpleDateFormat("-yyyy-MM-dd-HH-mm").format(new Date()));
                 String path = dataPath(jsonName);
                 aiClientConfig.setApiKey(jsonName);
                 WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfig));
@@ -156,7 +148,9 @@ public class AiBastServiceImpl implements AiBastService {
             }
         } else {
             boolean hasKey = !MyStringUtil.isNull(apiKey);
-            if (hasKey) {aiClientConfig.setApiKey(aesEncryptionUtil.encryptValue(apiKey));} else {
+            if (hasKey) {
+                aiClientConfig.setApiKey(aesEncryptionUtil.encryptValue(apiKey));
+            } else {
                 aiClientConfig.setKeyIsVault(old.getKeyIsVault());
                 aiClientConfig.setApiKey(old.getApiKey());
             }
@@ -172,7 +166,7 @@ public class AiBastServiceImpl implements AiBastService {
         }
         return ReturnResult.isTrue("修改完成", aiClientConfig);
     }
-    
+
     @Override
     @Transactional
     public ReturnResult<Void> updateState(Long id, boolean newState) {
@@ -182,15 +176,16 @@ public class AiBastServiceImpl implements AiBastService {
         WriteError.tryWrite(aiClientConfigMapper.updateByPrimaryKeySelective(aiClientConfigWithBLOBs));
         return ReturnResult.isTrue("状态更新成功", null);
     }
-    
+
     @Override
     public ReturnResult<Map<String, Integer>> getAiMerchantType() {
         Map<String, Integer> map = Arrays.stream(
-                AiMerchantType.values()).collect(Collectors.toMap(
-                AiMerchantType::getName, AiMerchantType::getCode));
+                AiMerchantType.values()).collect(
+                        Collectors.toMap(
+                                AiMerchantType::getName, AiMerchantType::getCode));
         return ReturnResult.isTrue("获取成功", map);
     }
-    
+
     @Override
     public ReturnResult<String> sumUpRecorder(List<AiRecordWithBLOBs> messageList) {
         if (ListUtil.isNull(messageList) || messageList.stream().noneMatch(Objects::nonNull)) {
@@ -208,7 +203,8 @@ public class AiBastServiceImpl implements AiBastService {
         List<Integer> index = new ArrayList<>(messageList.size());
         for (int i = 0; i < messageList.size(); i++) {
             AiRecordWithBLOBs m = messageList.get(i);
-            if (m == null || MyStringUtil.isNull(m.getContent())) continue;
+            if (m == null || MyStringUtil.isNull(m.getContent()))
+                continue;
             String content = m.getContent()
                     .replace("【", "[")
                     .replace("】", "]")
@@ -229,8 +225,7 @@ public class AiBastServiceImpl implements AiBastService {
         aiChatClientParam.setMessageList(List.of());
         aiChatClientParam.setSumUp(true);
         log.info("开始总结聊天记录,聊天记录归属用户:{},sessionId:{},总结记录索引:{}",
-                 userId, sessionId, index
-        );
+                userId, sessionId, index);
         ReturnResult<String> result = aiChat(null, AiConstant.SUM_UP_CODE, aiChatClientParam);
         if (result.isOperationResult() && !MyStringUtil.isNull(result.getReturnResult())) {
             String summary = result.getReturnResult().trim();
@@ -241,30 +236,31 @@ public class AiBastServiceImpl implements AiBastService {
         }
         return result;
     }
-    
-    
+
     @Override
     public Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param) {
         return aiChatByStream(clientId, code, param, null);
     }
-    
+
     @Override
-    public Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config) {
+    public Flux<String> aiChatByStream(Long clientId, String code, AiChatClientParam param,
+            AiClientConfigWithBLOBs config) {
         Long useClientId = getClientId(clientId, code, param);
         ChatClient chatClient = AiClientFactory.getChatClient(useClientId);
         if (chatClient == null) {
             return Flux.error(new OperationException("ai客户端调用失败"));
         }
-        List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize, param.getUserId(), param.getSessionId());
+        List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize, param.getUserId(),
+                param.getSessionId());
         param.setMessageList(latest);
         if (ListUtil.isNull(latest))
             param.setIndex(1);
         else
             param.setIndex(latest.stream()
-                .filter(Objects::nonNull)
-                .mapToInt(r -> r.getChatIndex() == null ? 0 : r.getChatIndex())
-                .max()
-                .orElse(0) + 1);
+                    .filter(Objects::nonNull)
+                    .mapToInt(r -> r.getChatIndex() == null ? 0 : r.getChatIndex())
+                    .max()
+                    .orElse(0) + 1);
         boolean hasTempConfig = config != null;
         if (hasTempConfig) {
             param.setPromptContent(config.getContent());
@@ -281,21 +277,16 @@ public class AiBastServiceImpl implements AiBastService {
         }
         if (hasTempConfig) {
             ChatOptions.Builder optionsBuilder = ChatOptions.builder();
-            if (config.getMaxTokens() != null) {
+            if (config.getMaxTokens() != null)
                 optionsBuilder.maxTokens(config.getMaxTokens());
-            }
-            if (config.getTemperature() != null) {
+            if (config.getTemperature() != null)
                 optionsBuilder.temperature(config.getTemperature() / 100.0);
-            }
-            if (config.getTopP() != null) {
+            if (config.getTopP() != null)
                 optionsBuilder.topP(config.getTopP() / 100.0);
-            }
-            if (config.getFrequencyPenalty() != null) {
+            if (config.getFrequencyPenalty() != null)
                 optionsBuilder.frequencyPenalty(config.getFrequencyPenalty() / 100.0);
-            }
-            if (config.getPresencePenalty() != null) {
+            if (config.getPresencePenalty() != null)
                 optionsBuilder.presencePenalty(config.getPresencePenalty() / 100.0);
-            }
             requestSpec.options(optionsBuilder.build());
         }
         StringBuilder fullResponseBuilder = new StringBuilder();
@@ -304,28 +295,39 @@ public class AiBastServiceImpl implements AiBastService {
                 .doOnNext(fullResponseBuilder::append)
                 .doOnComplete(() -> {
                     String aiContent = fullResponseBuilder.toString();
-                    if (MyStringUtil.isNull(aiContent)) aiContent = "AI响应为空";
-                    AiRecordAdvisor.writeRecord(param, aiContent, transactionTemplate, recordMapper);
+                    if (MyStringUtil.isNull(aiContent))
+                        aiContent = "AI响应为空";
+
+                    AiRecordWithBLOBs record = new AiRecordWithBLOBs();
+                    record.setContent(aiContent);
+                    record.setPromptContent(param.getPromptContent());
+                    record.setChatIndex(param.getIndex() + 1);
+                    record.setUserId(param.getUserId());
+                    record.setRole(MsgType.AI_MSG.getType());
+                    record.setSessionId(param.getSessionId());
+                    aiChatMsgService.installData(record);
                 });
     }
-    
+
     @Override
-    public ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param, AiClientConfigWithBLOBs config) {
+    public ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param,
+            AiClientConfigWithBLOBs config) {
         Long useClientId = getClientId(clientId, code, param);
         ChatClient chatClient = AiClientFactory.getChatClient(useClientId);
         if (chatClient == null) {
             throw new OperationException("ai客户端调用失败");
         }
-        List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize, param.getUserId(), param.getSessionId());
+        List<AiRecordWithBLOBs> latest = recordMapper.getLatestBySize(chatRecordSize,
+                param.getUserId(), param.getSessionId());
         param.setMessageList(latest);
         if (ListUtil.isNull(latest))
             param.setIndex(1);
         else
             param.setIndex(latest.stream()
-                .filter(Objects::nonNull)
-                .mapToInt(r -> r.getChatIndex() == null ? 0 : r.getChatIndex())
-                .max()
-                .orElse(0) + 1);
+                    .filter(Objects::nonNull)
+                    .mapToInt(r -> r.getChatIndex() == null ? 0 : r.getChatIndex())
+                    .max()
+                    .orElse(0) + 1);
         boolean hasTempConfig = config != null;
         if (hasTempConfig) {
             param.setPromptContent(config.getContent());
@@ -342,32 +344,26 @@ public class AiBastServiceImpl implements AiBastService {
         }
         if (hasTempConfig) {
             ChatOptions.Builder optionsBuilder = ChatOptions.builder();
-            if (config.getMaxTokens() != null) {
+            if (config.getMaxTokens() != null)
                 optionsBuilder.maxTokens(config.getMaxTokens());
-            }
-            if (config.getTemperature() != null) {
+            if (config.getTemperature() != null)
                 optionsBuilder.temperature(config.getTemperature() / 100.0);
-            }
-            if (config.getTopP() != null) {
+            if (config.getTopP() != null)
                 optionsBuilder.topP(config.getTopP() / 100.0);
-            }
-            if (config.getFrequencyPenalty() != null) {
+            if (config.getFrequencyPenalty() != null)
                 optionsBuilder.frequencyPenalty(config.getFrequencyPenalty() / 100.0);
-            }
-            if (config.getPresencePenalty() != null) {
+            if (config.getPresencePenalty() != null)
                 optionsBuilder.presencePenalty(config.getPresencePenalty() / 100.0);
-            }
             requestSpec.options(optionsBuilder.build());
         }
-        ChatClient.CallResponseSpec call = requestSpec.call();
-        log.info("输出内容" + call);
-        String responseContent = call
-                .content();
-        //插入
+        // 非流式：adviseCall → saveUserMsg + saveAiMsg 完成全部写入
+        String responseContent = requestSpec.call().content();
+        if (MyStringUtil.isNull(responseContent))
+            responseContent = "AI响应为空";
+        log.info("AI响应内容:{}", responseContent);
         return ReturnResult.isTrue("响应完成", responseContent);
     }
-    
-    
+
     private Long getClientId(Long clientId, String code, AiChatClientParam param) {
         Long finalId = null;
         if (clientId == null) {
@@ -387,10 +383,9 @@ public class AiBastServiceImpl implements AiBastService {
             throw new OperationException("未检测到调用目标");
         return finalId;
     }
-    
+
     @Override
     public ReturnResult<String> aiChat(Long clientId, String code, AiChatClientParam param) {
         return aiChat(clientId, code, param, null);
     }
-    
 }

@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.listen;
 
 
 import com.huaji.galgamebyhuaji.config.AiClientFactory;
+import com.huaji.galgamebyhuaji.config.AiHttpRecordScheduler;
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.controller.BackgroundImgController;
 import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
@@ -34,6 +35,7 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CONSTANT_PASSWORD;
 @Slf4j
 public class IntoListen {
     private final AiClientFactory aiClientFactory;
+    private final AiHttpRecordScheduler aiHttpRecordScheduler;
     private final ResourcesService resourcesService;
     private final TagService tagService;
     private final SessionService sessionService;
@@ -63,7 +65,7 @@ public class IntoListen {
             rootServlet.rootUserInit();
             tagService.getTagMap();
             resourcesService.getAllResources();
-            userMxgServlet.getAllUserListMxg();
+   
             //设置防止时序攻击的固定密码,不过大部分情况下密码不会包括中文所以这里夹带了点私货
             CONSTANT_PASSWORD = passwordEncryptionUtil.hashPassword("红豆可爱滴捏_Vigna_very_loveliness");
             File dir = new File(resourceSavePath);
@@ -127,6 +129,10 @@ public class IntoListen {
     
     @EventListener
     public void onContextClosed(ContextClosedEvent event) {
+        int flushed = aiHttpRecordScheduler.flushNow();
+        if (flushed > 0) {
+            log.info("服务器关闭时写回 {} 条未入库的流式 HTTP 记录", flushed);
+        }
         int i = sessionService.manbaOut();
         log.info("{}服务器关闭", TimeUtil.getSimpleDateFormatTime(new Date()));
         log.info("在服务器关闭时,使{}位在线用户离线", i);

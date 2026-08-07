@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.service.ai;
 
 import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
 import com.huaji.galgamebyhuaji.vo.AiModerList;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,4 +21,10 @@ public interface AiChatMsgService {
      * 获取所有可用模型列表
      */
     List<AiModerList> getAiConfig(int userId);
+    
+    @Transactional
+    long installData(AiRecordWithBLOBs record);
+    
+    @Transactional
+    void setRecordJson(long id, String json);
 }

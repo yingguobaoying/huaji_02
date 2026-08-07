@@ -2,11 +2,13 @@ package com.huaji.galgamebyhuaji;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 @SpringBootApplication
+@EnableScheduling
 public class GalGameByHuaJiApplication {
 
 	public static void main(String[] args) {
