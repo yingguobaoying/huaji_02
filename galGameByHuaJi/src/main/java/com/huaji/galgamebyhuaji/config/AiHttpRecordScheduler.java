@@ -2,23 +2,16 @@ package com.huaji.galgamebyhuaji.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * 定时任务：定期清理 HTTP 拦截器中的过期缓存记录。
+ * 占位定时任务。
+ * HttpInterceptor 已简化为纯日志记录，不再需要缓存清理。
+ * 保留此类以备后续扩展（如 AI 调用限流统计等）。
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class AiHttpRecordScheduler {
-
-    @Scheduled(fixedDelay = 10 * 60 * 1000)
-    public void flushCompletedRecords() {
-        int pending = AiHttpRecordInterceptor.pendingCount();
-        if (pending > 0) {
-            log.debug("flushCompletedRecords: pending={}", pending);
-        }
-        AiHttpRecordInterceptor.cleanupStale(30);
-    }
+    // 预留扩展点
 }

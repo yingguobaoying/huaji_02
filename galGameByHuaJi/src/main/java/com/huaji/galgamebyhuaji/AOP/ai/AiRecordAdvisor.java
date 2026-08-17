@@ -20,19 +20,21 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class AiRecordAdvisor extends MyBaseAdvisor {
-
+    
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-
-    /** ai 收发全量日志 */
+    
+    /**
+     * ai 收发全量日志
+     */
     private static final org.slf4j.Logger aiMsgLog = org.slf4j.LoggerFactory.getLogger("aiChatAllMsg");
-
+    
     private final AiChatMsgService aiChatMsgService;
-
+    
     public AiRecordAdvisor(AiChatMsgService aiChatMsgService) {
         this.aiChatMsgService = aiChatMsgService;
     }
-
+    
     private void saveUserMsg(ChatClientRequest request) {
         try {
             Object rawParam = getParam(request, AiChatClientParam.PARAM_KEY);
@@ -43,11 +45,11 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
             // 序列化请求对象作为原始 JSON
             String requestJson;
             try {
-                requestJson = objectMapper.writeValueAsString(request);
+                requestJson = objectMapper.writeValueAsString(request.prompt());
             } catch (Exception e) {
                 requestJson = "{\"error\":\"序列化失败\"}";
             }
-
+            
             AiRecordWithBLOBs record = new AiRecordWithBLOBs();
             record.setContent(param.getUserContent());
             record.setPromptContent(param.getPromptContent());
@@ -56,20 +58,21 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
             record.setUserId(param.getUserId());
             record.setRole(param.isSumUp() ? MsgType.SUMMARY.getType() : MsgType.USER.getType());
             record.setSessionId(MyStringUtil.isNull(param.getSessionId())
-                    ? IdUtil.getRandomId("ai_chat_") : param.getSessionId());
+                                        ? IdUtil.getRandomId("ai_chat_") : param.getSessionId());
+            param.setSessionId(record.getSessionId());
             long id = aiChatMsgService.installData(record);
             if (id <= 0) throw new WriteError(1, 0);
             saveData(request, "userRecordId", id);
-
+            
             // 记录 aiChatAllMsg 日志
             aiMsgLog.info("[用户消息] userId={}, sessionId={}, index={}, content={}",
-                    param.getUserId(), record.getSessionId(), param.getIndex(), param.getUserContent());
+                          param.getUserId(), record.getSessionId(), param.getIndex(), param.getUserContent());
         } catch (Exception e) {
             log.error("保存用户消息失败", e);
             throw new OperationException("用户发送信息保存失败!请稍后重试");
         }
     }
-
+    
     private ChatClientResponse saveAiMsg(ChatClientResponse response) {
         Object rawParam = getParam(response, AiChatClientParam.PARAM_KEY);
         if (!(rawParam instanceof AiChatClientParam param)) {
@@ -85,7 +88,7 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
             log.error("获取 AI 文本失败", e);
         }
         if (MyStringUtil.isNull(aiContent)) aiContent = "AI响应为空";
-
+        
         // 序列化响应对象作为原始 JSON
         String responseJson;
         try {
@@ -93,7 +96,7 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
         } catch (Exception e) {
             responseJson = "{\"error\":\"序列化失败\"}";
         }
-
+        
         AiRecordWithBLOBs record = new AiRecordWithBLOBs();
         record.setContent(aiContent);
         record.setPromptContent(param.getPromptContent());
@@ -103,28 +106,28 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
         record.setRole(MsgType.AI_MSG.getType());
         record.setSessionId(param.getSessionId());
         long id = aiChatMsgService.installData(record);
-
+        
         // 记录 aiChatAllMsg 日志
         aiMsgLog.info("[AI回复] userId={}, sessionId={}, index={}, content={}",
-                param.getUserId(), param.getSessionId(), param.getIndex() + 1, aiContent);
-
+                      param.getUserId(), param.getSessionId(), param.getIndex() + 1, aiContent);
+        
         return response;
     }
-
+    
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         saveUserMsg(request);
         ChatClientResponse response = chain.nextCall(request);
         return saveAiMsg(response);
     }
-
+    
     @Override
     public reactor.core.publisher.Flux<ChatClientResponse> adviseStream(
             ChatClientRequest request, StreamAdvisorChain chain) {
         saveUserMsg(request);
         return chain.nextStream(request);
     }
-
+    
     @Override
     public int getOrder() {
         return 1;

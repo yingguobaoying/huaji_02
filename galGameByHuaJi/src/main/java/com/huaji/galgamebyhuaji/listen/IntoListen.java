@@ -40,14 +40,11 @@ public class IntoListen {
     private final TagService tagService;
     private final SessionService sessionService;
     private final UserMxgServlet userMxgServlet;
-    final
-    ServletContext servletContext;
-    final
-    PasswordEncryptionUtil passwordEncryptionUtil;
+    final ServletContext servletContext;
+    final PasswordEncryptionUtil passwordEncryptionUtil;
     @Value("${resource-save-path}")
     private String resourceSavePath;
-    final
-    RedisMemoryService redisMemoryService;
+    final RedisMemoryService redisMemoryService;
     final RootServlet rootServlet;
     private static final Date starTime;
     
@@ -65,29 +62,23 @@ public class IntoListen {
             rootServlet.rootUserInit();
             tagService.getTagMap();
             resourcesService.getAllResources();
-   
+            
             //设置防止时序攻击的固定密码,不过大部分情况下密码不会包括中文所以这里夹带了点私货
             CONSTANT_PASSWORD = passwordEncryptionUtil.hashPassword("红豆可爱滴捏_Vigna_very_loveliness");
             File dir = new File(resourceSavePath);
             if (!dir.exists()) {
-                if (dir.mkdirs())
-                    log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", resourceSavePath);
-                else
-                    throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath);
+                if (dir.mkdirs()) log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", resourceSavePath);
+                else throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + resourceSavePath);
             }
             File imgFile = new File(resourceSavePath + File.separator + FileCategory.IMG.getFILE_SAVE_URL());
             File rarFile = new File(resourceSavePath + File.separator + FileCategory.ARCHIVE.getFILE_SAVE_URL());
             if (!imgFile.exists()) {
-                if (imgFile.mkdirs())
-                    log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", imgFile);
-                else
-                    throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + imgFile);
+                if (imgFile.mkdirs()) log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", imgFile);
+                else throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + imgFile);
             }
             if (!rarFile.exists()) {
-                if (rarFile.mkdirs())
-                    log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", rarFile);
-                else
-                    throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
+                if (rarFile.mkdirs()) log.info("静态资源存储文件夹不存在!进行创建!创建位置为:{}", rarFile);
+                else throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
             }
             Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
             aiClientFactory.aiInfo();
@@ -115,13 +106,9 @@ public class IntoListen {
                 System.err.println("============  红豆可爱滴捏~~~~  ===========");
                 System.err.println("=========================================");
             }
-            BackgroundImgController.updateFileNameList(
-                    Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile()
-            );
+            BackgroundImgController.updateFileNameList(Paths.get(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background").toFile());
             log.info("服务器应用层启动完成用时:{}毫秒", (System.currentTimeMillis()) - date.getTime());
-            log.info("类加载开始时间:{},全部初始化完成时间:{},用时{}毫秒",
-                     TimeUtil.getVisualDateFormatTime(starTime),
-                     TimeUtil.getVisualDateFormatTime(new Date()),
+            log.info("类加载开始时间:{},全部初始化完成时间:{},用时{}毫秒", TimeUtil.getVisualDateFormatTime(starTime), TimeUtil.getVisualDateFormatTime(new Date()),
                      System.currentTimeMillis() - starTime.getTime());
         }
     }
@@ -129,10 +116,6 @@ public class IntoListen {
     
     @EventListener
     public void onContextClosed(ContextClosedEvent event) {
-        int flushed = aiHttpRecordScheduler.flushNow();
-        if (flushed > 0) {
-            log.info("服务器关闭时写回 {} 条未入库的流式 HTTP 记录", flushed);
-        }
         int i = sessionService.manbaOut();
         log.info("{}服务器关闭", TimeUtil.getSimpleDateFormatTime(new Date()));
         log.info("在服务器关闭时,使{}位在线用户离线", i);
