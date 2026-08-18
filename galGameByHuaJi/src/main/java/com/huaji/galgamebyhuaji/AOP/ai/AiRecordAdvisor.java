@@ -84,6 +84,7 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
             if (response.chatResponse() != null && response.chatResponse().getResult() != null) {
                 aiContent = response.chatResponse().getResult().getOutput().getText();
             }
+            log.debug("ai返回内容============>>{}", aiContent);
         } catch (Exception e) {
             log.error("获取 AI 文本失败", e);
         }
@@ -105,7 +106,7 @@ public class AiRecordAdvisor extends MyBaseAdvisor {
         record.setUserId(param.getUserId());
         record.setRole(MsgType.AI_MSG.getType());
         record.setSessionId(param.getSessionId());
-        long id = aiChatMsgService.installData(record);
+        aiChatMsgService.installData(record);
         
         // 记录 aiChatAllMsg 日志
         aiMsgLog.info("[AI回复] userId={}, sessionId={}, index={}, content={}",

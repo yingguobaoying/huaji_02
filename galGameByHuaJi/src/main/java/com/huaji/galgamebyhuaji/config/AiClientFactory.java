@@ -26,7 +26,6 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.stereotype.Component;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultResponse;
@@ -153,6 +152,7 @@ public class AiClientFactory {
                         DeepSeekChatOptions options = DeepSeekChatOptions.builder()
                                 .model(config.getModel())
                                 .temperature(temperature)
+                                .internalToolExecutionEnabled(false)
                                 .topP(topP)
                                 .frequencyPenalty(freqPenalty)
                                 .presencePenalty(presPenalty)
