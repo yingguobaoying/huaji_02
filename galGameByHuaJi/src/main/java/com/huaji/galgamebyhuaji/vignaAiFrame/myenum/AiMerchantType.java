@@ -35,7 +35,7 @@ public enum AiMerchantType {
 	}
 	
 	public static AiMerchantType getByTypeNum (int merchantCode) {
-		if ( OPEN_AI.getCode() == merchantCode ) return DEEP_SEEK_CLOUD;
+		if ( OPEN_AI.getCode() == merchantCode ) return OPEN_AI;
 		if ( OLLAMA_CLOUD.getCode() == merchantCode ) return OLLAMA_CLOUD;
 		if ( OLLAMA.getCode() == merchantCode ) return OLLAMA;
 		return OPEN_AI;

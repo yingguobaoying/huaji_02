@@ -51,6 +51,7 @@ public class VignaChatClientConfig {
 		}
 		log.info("***********************取得启用AI配置项共:{}项****************************", aiClientConfigs.size());
 		Map<Long, VignaHttpClient> map = new HashMap<>(50);
+		Map<String, Long> idmap = new HashMap<>(50);
 		if ( !ListUtil.isNull(allAdvisor) ) allAdvisor.sort(Comparator.comparingInt(MyBaseAdvisor::getIndex));
 		for ( AiClientConfigWithBLOBs config : aiClientConfigs ) {
 			Long id = config.getId();
@@ -59,8 +60,10 @@ public class VignaChatClientConfig {
 			VignaHttpClient client = VignaBaseClient.getInstance(config, allAdvisor, false, type);
 			client.setKeyServlet(keyServlet);//密钥授权
 			map.put(id, client);
-			idMap.put(code, id);
+			idmap.put(code, id);
 		}
+		idMap = idmap;
+		configMap = map;
 	}
 	
 	public void refresh () {

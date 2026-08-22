@@ -3,10 +3,14 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.config;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
 
 import java.io.IOException;
@@ -57,5 +61,32 @@ public class VignaHttpClientFactory {
 				log.error("关闭http客户端失败{}", e.getMessage(), e);
 			}
 		}
+	}
+	
+	public static CloseableHttpAsyncClient createAsyncHttpClient (Long maxMilliseconds) {
+		// 连接池配置
+		PoolingAsyncClientConnectionManager connectionManager =
+				PoolingAsyncClientConnectionManagerBuilder.create()
+						.setMaxConnTotal(50)
+						.setMaxConnPerRoute(10)
+						.setDefaultConnectionConfig(
+								ConnectionConfig.custom()
+										.setConnectTimeout(Timeout.ofSeconds(10))
+										.setSocketTimeout(Timeout.ofSeconds(30))
+										.build())
+						.build();
+		
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectionRequestTimeout(Timeout.ofSeconds(5))
+				.setResponseTimeout(Timeout.ofMilliseconds(
+						maxMilliseconds == null ? 300_000 : maxMilliseconds))
+				.build();
+		
+		CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+				.setConnectionManager(connectionManager)
+				.setDefaultRequestConfig(requestConfig)
+				.build();
+		client.start();  // 启动异步客户端
+		return client;
 	}
 }
