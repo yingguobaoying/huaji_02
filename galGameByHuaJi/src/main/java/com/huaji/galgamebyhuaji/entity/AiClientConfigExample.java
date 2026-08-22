@@ -935,52 +935,52 @@ public class AiClientConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutEqualTo(Integer value) {
+        public Criteria andTimeoutEqualTo(Long value) {
             addCriterion("timeout =", value, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutNotEqualTo(Integer value) {
+        public Criteria andTimeoutNotEqualTo(Long value) {
             addCriterion("timeout <>", value, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutGreaterThan(Integer value) {
+        public Criteria andTimeoutGreaterThan(Long value) {
             addCriterion("timeout >", value, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutGreaterThanOrEqualTo(Integer value) {
+        public Criteria andTimeoutGreaterThanOrEqualTo(Long value) {
             addCriterion("timeout >=", value, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutLessThan(Integer value) {
+        public Criteria andTimeoutLessThan(Long value) {
             addCriterion("timeout <", value, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutLessThanOrEqualTo(Integer value) {
+        public Criteria andTimeoutLessThanOrEqualTo(Long value) {
             addCriterion("timeout <=", value, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutIn(List<Integer> values) {
+        public Criteria andTimeoutIn(List<Long> values) {
             addCriterion("timeout in", values, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutNotIn(List<Integer> values) {
+        public Criteria andTimeoutNotIn(List<Long> values) {
             addCriterion("timeout not in", values, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutBetween(Integer value1, Integer value2) {
+        public Criteria andTimeoutBetween(Long value1, Long value2) {
             addCriterion("timeout between", value1, value2, "timeout");
             return (Criteria) this;
         }
 
-        public Criteria andTimeoutNotBetween(Integer value1, Integer value2) {
+        public Criteria andTimeoutNotBetween(Long value1, Long value2) {
             addCriterion("timeout not between", value1, value2, "timeout");
             return (Criteria) this;
         }
@@ -1302,6 +1302,66 @@ public class AiClientConfigExample {
 
         public Criteria andDescriptionNotBetween(String value1, String value2) {
             addCriterion("description not between", value1, value2, "description");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeIsNull() {
+            addCriterion("max_try_size is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeIsNotNull() {
+            addCriterion("max_try_size is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeEqualTo(Integer value) {
+            addCriterion("max_try_size =", value, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeNotEqualTo(Integer value) {
+            addCriterion("max_try_size <>", value, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeGreaterThan(Integer value) {
+            addCriterion("max_try_size >", value, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("max_try_size >=", value, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeLessThan(Integer value) {
+            addCriterion("max_try_size <", value, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeLessThanOrEqualTo(Integer value) {
+            addCriterion("max_try_size <=", value, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeIn(List<Integer> values) {
+            addCriterion("max_try_size in", values, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeNotIn(List<Integer> values) {
+            addCriterion("max_try_size not in", values, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeBetween(Integer value1, Integer value2) {
+            addCriterion("max_try_size between", value1, value2, "maxTrySize");
+            return (Criteria) this;
+        }
+
+        public Criteria andMaxTrySizeNotBetween(Integer value1, Integer value2) {
+            addCriterion("max_try_size not between", value1, value2, "maxTrySize");
             return (Criteria) this;
         }
     }

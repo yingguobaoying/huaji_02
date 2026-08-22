@@ -29,7 +29,7 @@ public class AiClientConfig {
 
     private Boolean stream;
 
-    private Integer timeout;
+    private Long timeout;
 
     private Boolean isActive;
 
@@ -40,6 +40,8 @@ public class AiClientConfig {
     private String merchant;
 
     private String description;
+
+    private Integer maxTrySize;
 
     public Long getId() {
         return id;
@@ -145,11 +147,11 @@ public class AiClientConfig {
         this.stream = stream;
     }
 
-    public Integer getTimeout() {
+    public Long getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(Integer timeout) {
+    public void setTimeout(Long timeout) {
         this.timeout = timeout;
     }
 
@@ -191,5 +193,13 @@ public class AiClientConfig {
 
     public void setDescription(String description) {
         this.description = description == null ? null : description.trim();
+    }
+
+    public Integer getMaxTrySize() {
+        return maxTrySize;
+    }
+
+    public void setMaxTrySize(Integer maxTrySize) {
+        this.maxTrySize = maxTrySize;
     }
 }

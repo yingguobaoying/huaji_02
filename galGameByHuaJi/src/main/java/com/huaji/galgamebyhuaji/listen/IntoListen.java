@@ -1,8 +1,6 @@
 package com.huaji.galgamebyhuaji.listen;
 
 
-import com.huaji.galgamebyhuaji.config.AiClientFactory;
-import com.huaji.galgamebyhuaji.config.AiHttpRecordScheduler;
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.controller.BackgroundImgController;
 import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
@@ -34,8 +32,8 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CONSTANT_PASSWORD;
 @RequiredArgsConstructor
 @Slf4j
 public class IntoListen {
-    private final AiClientFactory aiClientFactory;
-    private final AiHttpRecordScheduler aiHttpRecordScheduler;
+//    private final AiClientFactory aiClientFactory;
+//    private final AiHttpRecordScheduler aiHttpRecordScheduler;
     private final ResourcesService resourcesService;
     private final TagService tagService;
     private final SessionService sessionService;
@@ -81,8 +79,8 @@ public class IntoListen {
                 else throw new RuntimeException("静态资源存储文件夹创建失败!创建位置为:" + rarFile);
             }
             Constant.setRESOURCE_SAVE_PATH(resourceSavePath);
-            aiClientFactory.aiInfo();
-            aiClientFactory.selfInspection();
+//            aiClientFactory.aiInfo();
+//            aiClientFactory.selfInspection();
             System.out.println("=========================================");
             System.out.println("=========  滑稽/因果报应的个人小站  =========");
             System.out.println("=========================================");

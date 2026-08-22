@@ -12,6 +12,11 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 取名为web可能会更好一些但是我懒得改了
+ *
+ * @author 滑稽/因果报应
+ */
 public class ElseUtil {
 	/**
 	 * 设置包含用户基本信息的cook,如果传入空值将设置为游客信息
@@ -20,8 +25,8 @@ public class ElseUtil {
 	 * @param users    设置信息的用户
 	 * @param keepTime 保持登录时间,单位:秒
 	 */
-	public static void setUserMxgCookie(HttpServletResponse response, Users users, int keepTime) {
-		if (users == null || Constant.TOURIST.getUserId().equals(users.getUserId()))
+	public static void setUserMxgCookie (HttpServletResponse response, Users users, int keepTime) {
+		if ( users == null || Constant.TOURIST.getUserId().equals(users.getUserId()) )
 			users = Constant.TOURIST;
 		response.addCookie(setCook("114514UserName", users.getUserName(), null, keepTime));
 		response.addCookie(setCook("114514UserCoin", users.getCoin().toString(), null, keepTime));
@@ -41,9 +46,9 @@ public class ElseUtil {
 	 *
 	 * @return 设置好的cook
 	 */
-	public static Cookie setCook(String name, String value, String url, Integer MaxTime) {
-		if (MyStringUtil.isNull(value)) value = "null";
-		if (MyStringUtil.isNull(url)) url = "/";
+	public static Cookie setCook (String name, String value, String url, Integer MaxTime) {
+		if ( MyStringUtil.isNull(value) ) value = "null";
+		if ( MyStringUtil.isNull(url) ) url = "/";
 		String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
 		Cookie cookie = new Cookie(name, encodedValue);
 		cookie.setPath(url);
@@ -58,11 +63,11 @@ public class ElseUtil {
 	 *
 	 * @return IP地址
 	 */
-	public static String getClientIp(HttpServletRequest request) {
+	public static String getClientIp (HttpServletRequest request) {
 		// 尝试从 X-Forwarded-For 头部获取 IP 地址
 		String ip = request.getHeader("X-Forwarded-For");
 		
-		if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+		if ( ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip) ) {
 			// 如果有多个代理 IP，X-Forwarded-For 中的第一个是客户端的真实 IP
 			int index = ip.indexOf(',');
 			return index != -1 ? ip.substring(0, index).trim() :
@@ -70,20 +75,20 @@ public class ElseUtil {
 		}
 		// 检查 X-Real-IP 头
 		ip = request.getHeader("X-Real-IP");
-		if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip))
+		if ( ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip) )
 			return ip.trim();
 		// 如果都没有，则使用 getRemoteAddr() 获取 IP
 		return request.getRemoteAddr();
 	}
 	
-	public static String getToken(HttpServletRequest request) {
+	public static String getToken (HttpServletRequest request) {
 		return getToken(request, SystemConstant.JWT_TOKEN_NAME);
 	}
 	
-	public static String getToken(HttpServletRequest request, String name) {
-		if (MyStringUtil.isNull(name)) name = SystemConstant.JWT_TOKEN_NAME;
+	public static String getToken (HttpServletRequest request, String name) {
+		if ( MyStringUtil.isNull(name) ) name = SystemConstant.JWT_TOKEN_NAME;
 		String jwt = request.getHeader(name);
-		if (MyStringUtil.isNull(jwt)) {
+		if ( MyStringUtil.isNull(jwt) ) {
 			jwt = (String) request.getAttribute(name);
 		}
 		//不再从cookie和session里面获取令牌防止跨站攻击,仅检查请求头和请求体
@@ -98,24 +103,24 @@ public class ElseUtil {
 	 *
 	 * @return 两个 IP 地址是否逻辑等价
 	 */
-	public static boolean equalsIp(String ip1, String ip2) {
-		if (MyStringUtil.isNull(ip1) || MyStringUtil.isNull(ip2))
+	public static boolean equalsIp (String ip1, String ip2) {
+		if ( MyStringUtil.isNull(ip1) || MyStringUtil.isNull(ip2) )
 			return false;
 		// 快速路径：完全相等（常见情况）
-		if (ip1.equals(ip2))
+		if ( ip1.equals(ip2) )
 			return true;
 		// 标准化后比较
 		String norm1 = normalizeIp(ip1);
 		String norm2 = normalizeIp(ip2);
 		// 若标准化后相等则返回 true
-		if (norm1.equals(norm2))
+		if ( norm1.equals(norm2) )
 			return true;
 		// 尝试使用 InetAddress 对比（作为兜底逻辑）
 		try {
 			InetAddress a1 = InetAddress.getByName(norm1);
 			InetAddress a2 = InetAddress.getByName(norm2);
 			return a1.equals(a2);
-		} catch (UnknownHostException e) {
+		} catch ( UnknownHostException e ) {
 			// 不抛出，只记录一次 debug 级别日志（频繁调用时不影响性能）
 			MyLogUtil.info(ElseUtil.class, "equalsIp(): IP解析失败 [{%s}] vs [{%s}] - {%s}".formatted(ip1, ip2, e.getMessage()));
 			return false;
@@ -128,27 +133,27 @@ public class ElseUtil {
 	 * - 支持 IPv6 映射的 IPv4 (::ffff:192.168.1.1)
 	 * - 统一本地地址 (::1, 0:0:0:0:0:0:0:1 → 127.0.0.1)
 	 */
-	private static String normalizeIp(String ip) {
-		if (ip == null) return "";
+	private static String normalizeIp (String ip) {
+		if ( ip == null ) return "";
 		
 		ip = ip.trim().toLowerCase();
 		
 		// 处理本地地址
-		if ("127.0.0.1".equals(ip) || "::1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip))
+		if ( "127.0.0.1".equals(ip) || "::1".equals(ip) || "0:0:0:0:0:0:0:1".equals(ip) )
 			return "127.0.0.1";
 		
 		// IPv6 映射的 IPv4 (::ffff:192.168.1.1 → 192.168.1.1)
-		if (ip.startsWith("::ffff:")) {
+		if ( ip.startsWith("::ffff:") ) {
 			String mapped = ip.substring(7);
-			if (mapped.contains(":")) return ip; // 防止错误切分
+			if ( mapped.contains(":") ) return ip; // 防止错误切分
 			return mapped;
 		}
 		
 		// 对 IPv6 进行完整化标准化（防止 fe80::1 != fe80:0:0:0:0:0:0:1）
-		if (ip.contains(":")) {
+		if ( ip.contains(":") ) {
 			try {
 				return InetAddress.getByName(ip).getHostAddress().toLowerCase();
-			} catch (UnknownHostException e) {
+			} catch ( UnknownHostException e ) {
 				// 不抛异常，只记录日志并返回原始值
 				MyLogUtil.info(ElseUtil.class, "ip转化错误!" + e.getMessage());
 				return ip;
@@ -156,16 +161,35 @@ public class ElseUtil {
 		}
 		
 		// 对 IPv4：去除多余空格和前导0
-		if (ip.matches("\\d+\\.\\d+\\.\\d+\\.\\d+")) {
+		if ( ip.matches("\\d+\\.\\d+\\.\\d+\\.\\d+") ) {
 			String[] segs = ip.split("\\.");
 			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < segs.length; i++) {
-				sb.append(Integer.parseInt(segs[i]));
-				if (i < segs.length - 1) sb.append('.');
+			for ( int i = 0; i < segs.length; i++ ) {
+				sb.append(Integer.parseInt(segs[ i ]));
+				if ( i < segs.length - 1 ) sb.append('.');
 			}
 			return sb.toString();
 		}
 		
 		return ip;
+	}
+	
+	/**
+	 * 指数寄退避重试计算器(毫秒)
+	 *
+	 * @param size 重试次数
+	 */
+	public static long getNextTime (int size) {
+		if ( size < 1 ) size = 1; // 修正非法值
+		//避免过大值
+		size = Math.min(10, size);
+		return switch ( size ) {
+			case 1 -> 2000L;
+			case 2 -> 10000L;
+			case 3 -> 30000L;
+			case 4 -> 60000L;
+			default -> // 基础间隔：1分钟（60000ms），从第4次开始指数增长
+					60_000L << (size - 4);
+		};
 	}
 }

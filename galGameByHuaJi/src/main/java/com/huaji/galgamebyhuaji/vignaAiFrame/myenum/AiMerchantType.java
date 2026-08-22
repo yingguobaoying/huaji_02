@@ -1,4 +1,4 @@
-package com.huaji.galgamebyhuaji.enumPackage.AiEnumPackage;
+package com.huaji.galgamebyhuaji.vignaAiFrame.myenum;
 
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import lombok.Getter;

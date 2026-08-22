@@ -6,13 +6,13 @@ import com.huaji.galgamebyhuaji.exceptions.BestException;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.LoginUserDetails;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
-import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.service.TokenService;
 import com.huaji.galgamebyhuaji.service.UserMxgServlet;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 public class StrongAuthenticationFilter extends OncePerRequestFilter {
 	
 	private final UserMxgServlet userMxgServlet;
@@ -32,15 +33,15 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 	
 	private final StrongAuthenticationEntryPoint strongAuthenticationEntryPoint;
 	
-	public StrongAuthenticationFilter(TokenService tokenService, UserMxgServlet userMxgServlet, StrongAuthenticationEntryPoint s) {
+	public StrongAuthenticationFilter (TokenService tokenService, UserMxgServlet userMxgServlet, StrongAuthenticationEntryPoint s) {
 		this.tokenService = tokenService;
 		this.userMxgServlet = userMxgServlet;
 		this.strongAuthenticationEntryPoint = s;
 	}
 	
 	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) {
-		if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+	protected boolean shouldNotFilter (HttpServletRequest request) {
+		if ( "OPTIONS".equalsIgnoreCase(request.getMethod()) ) {
 			return true;
 		}
 		String uri = request.getServletPath();
@@ -48,27 +49,26 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 	}
 	
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-	                                FilterChain chain) throws ServletException, IOException {
+	protected void doFilterInternal (HttpServletRequest request, HttpServletResponse response,
+	                                 FilterChain chain) throws ServletException, IOException {
 		
 		String token = ElseUtil.getToken(request);
-		if (!StringUtils.hasText(token)) {
+		if ( !StringUtils.hasText(token) ) {
 			strongAuthenticationEntryPoint.commence(request, response,
-			                                        new AuthenticationServiceException("您还未登录,请先进行登录后再进行此操作")
-			);
+					new AuthenticationServiceException("您还未登录,请先进行登录后再进行此操作"));
 			return;
 		}
 		
 		try {
 			UserToken userToken = tokenService.verifyToken(token, -1, ElseUtil.getClientIp(request), false);
-			if (userToken == null || userToken.getUserId() == null) {
+			if ( userToken == null || userToken.getUserId() == null ) {
 				strongAuthenticationEntryPoint.commence(request, response, new BadCredentialsException("无效的Token"));
 				return;
 			}
 			
 			//加载用户信息
 			UsersWithBLOBs user = userMxgServlet.getItselfMxg(userToken.getUserId());
-			if (user == null) {
+			if ( user == null ) {
 				strongAuthenticationEntryPoint.commence(request, response, new UsernameNotFoundException("用户不存在"));
 				return;
 			}
@@ -80,23 +80,22 @@ public class StrongAuthenticationFilter extends OncePerRequestFilter {
 							userDetails, null, userDetails.getAuthorities());
 			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 			SecurityContextHolder.getContext().setAuthentication(authentication);
-			MyLogUtil.info(StrongAuthenticationFilter.class,
-			               "用户ID为{%d}的用户{%s}在强认证过滤器中完成了认证, IP: {%s}".formatted(
-					               user.getUserId(),
-					               user.getUserName(),
-					               ElseUtil.getClientIp(request)));
-		} catch (OperationException ex) {
+			log.info("用户ID为{}的用户{}在强认证过滤器中完成了认证, IP: {}",
+					user.getUserId(),
+					user.getUserName(),
+					ElseUtil.getClientIp(request));
+		} catch ( OperationException ex ) {
 			// 认证失败，清理上下文并返回错误
 			SecurityContextHolder.clearContext();
 			strongAuthenticationEntryPoint.commence(request, response, new AuthenticationServiceException("认证过程中发生错误,请重新进行登录后再进行此操作"));
 			return;
-		} catch (BestException e) {
+		} catch ( BestException e ) {
 			SecurityContextHolder.clearContext();
 			strongAuthenticationEntryPoint.commence(request, response, new AuthenticationServiceException(e.getMessage()));
 			return;
-		} catch (Exception ex) {
+		} catch ( Exception ex ) {
 			SecurityContextHolder.clearContext();
-			MyLogUtil.error(StrongAuthenticationFilter.class, ex);
+			log.error("认证过程中发生未知错误:{}", ex.getMessage(), ex);
 			strongAuthenticationEntryPoint.commence(request, response, new AuthenticationServiceException("认证过程中发生错误请稍后再试"));
 			return;
 		}

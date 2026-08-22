@@ -18,11 +18,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 错误描述信息,横坐标:等级errorLevel,纵坐标:错误代码errorNun
- * <table>
- *     <tr>
- *         <td></td>
- *     </tr>
- * </table>
  *
  * @author 滑稽/因果报应
  */
@@ -64,7 +59,7 @@ public class GlobalExceptionHandler {
 		if ( ex instanceof AccessDeniedException
 				|| ex instanceof AuthenticationException
 		) handleSecurityException(ex);
-		log.error("错误{}", ex.getMessage(),ex);
+		log.error("错误{}", ex.getMessage(), ex);
 		ReturnResult<Exception> error = ReturnResult.isError(ex.getMessage());
 		return addSystemMsg(error, request);
 	}

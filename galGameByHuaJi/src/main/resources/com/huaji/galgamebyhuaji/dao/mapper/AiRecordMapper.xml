@@ -431,8 +431,7 @@
                `chat_index`
         from ai_record
         where user_id = #{userId}
-          and session_id = #{sessionId
-        u}
+          and session_id = #{sessionId}
     </select>
     <select id="getFirstRecord" resultType="com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs">
         select session_id,
