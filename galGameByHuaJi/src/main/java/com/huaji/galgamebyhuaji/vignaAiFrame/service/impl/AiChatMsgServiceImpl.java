@@ -76,4 +76,10 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
 		bloBs.setRequestJson(json);
 		WriteError.tryWrite(recordMapper.updateByPrimaryKeySelective(bloBs));
 	}
+	
+	@Override
+	public boolean hasSession (String sessionId) {
+		int i =  recordMapper.selectSession(sessionId);
+		return i>0;
+	}
 }

@@ -3,6 +3,7 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.message;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -24,7 +25,7 @@ public class VignaMsgContext {
 	/**
 	 * 历史记录消息(不包含当前消息)
 	 */
-	private List<VignaMsg> historyMsgList;
+	private List<VignaMsg> historyMsgList = new ArrayList<>();;
 	/**
 	 * 系统消息
 	 */
@@ -62,7 +63,10 @@ public class VignaMsgContext {
 	 */
 	private long outTime;
 	private boolean isSum = false;
-	
+	/**
+	 * 使用的客户端配置ID
+	 */
+	private long clientId;
 	public boolean isDel () {
 		if ( sendTime == null ) return false;
 		return System.currentTimeMillis() > sendTime.getTime() + outTime;

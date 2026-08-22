@@ -50,7 +50,6 @@ public class VignaChatClientConfig {
 			return;
 		}
 		log.info("***********************取得启用AI配置项共:{}项****************************", aiClientConfigs.size());
-		int ok = 0, lost = 0;
 		Map<Long, VignaHttpClient> map = new HashMap<>(50);
 		if ( !ListUtil.isNull(allAdvisor) ) allAdvisor.sort(Comparator.comparingInt(MyBaseAdvisor::getIndex));
 		for ( AiClientConfigWithBLOBs config : aiClientConfigs ) {

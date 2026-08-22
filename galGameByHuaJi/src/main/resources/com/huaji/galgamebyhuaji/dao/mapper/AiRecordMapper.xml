@@ -447,4 +447,9 @@
           and `chat_index` = 1
         order by session_id
     </select>
+    <select id="selectSession" resultType="java.lang.Integer">
+        select count(*)
+        from ai_record
+        where session_id = #{sessionId}
+    </select>
 </mapper>

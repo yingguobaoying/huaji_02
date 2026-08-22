@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.filter;//package com.huaji.galgame
 
 import com.huaji.galgamebyhuaji.entity.AiRecord;
 import com.huaji.galgamebyhuaji.entity.AiRecordWithBLOBs;
+import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.vignaAiFrame.ChatContextMap;
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
@@ -35,7 +36,7 @@ public class DatabaseChatMemory implements MyBaseAdvisor {
 	 */
 	@Override
 	public int getIndex () {
-		return 2;
+		return 1;
 	}
 	
 	/**
@@ -45,7 +46,8 @@ public class DatabaseChatMemory implements MyBaseAdvisor {
 	 */
 	@Override
 	public void beforeAdvise (String sessionId) {
-		VignaMsgContext context = ChatContextMap.consumptionContext(sessionId);
+		VignaMsgContext context = ChatContextMap.getContext(sessionId);
+		if ( context == null ) throw new OperationException("请求上下文不存在，可能已被提前清理");
 		//整合历史记录
 		List<AiRecordWithBLOBs> lastRecord = chatMsgService.getRecord(sessionId, context.getUserId());
 		boolean needSumUp = lastRecord.size() >= chatRecordSize && !context.isSum();
@@ -66,32 +68,45 @@ public class DatabaseChatMemory implements MyBaseAdvisor {
 				if ( index >= chatRecordSize ) break;
 			}
 			if ( isSum ) break;//遇到上次总结内容时立刻终止
-		}
+		}//拿到用户消息并进行下标管理
+		VignaMsg userMsg = context.getContent();
 		if ( needSumUp ) {
+			log.info("会话{}开始进行上下文压缩", sessionId);
 			//拿到了需要总结的列表
 			context.setHistoryMsgList(type);
 			context.setSum(true);
 			//更新上下文
-			ChatContextMap.setContext(sessionId,context);
-			//拿到当前用户信息
-			VignaMsg userMsg = context.getContent();
+			ChatContextMap.setContext(sessionId, context);
 			//进行总结
-			ReturnResult<String> stringReturnResult = chatService.vignaAiChat(null, sessionId, true);
+			ReturnResult<String> stringReturnResult = chatService.vignaAiChat(null, sessionId, context.getUserId(), context.getUserId(), true);
 			if ( stringReturnResult.isOperationResult() ) {
 				VignaMsg msg = new VignaMsg();
 				msg.setIndex(lastRecord.getLast().getChatIndex() + 1);
-				msg.setContent("以下为系统总结的前面的内容:" + stringReturnResult.getReturnResult());
+				userMsg.setIndex(msg.getIndex() + 1);
+				msg.setContent("[System Summary]:" + stringReturnResult.getReturnResult());
 				msg.setRole(VignaRole.sum);
 				type.add(msg);
 				context.setContent(userMsg);
+				context.setSum(false);
+				context.setSendTime(null);
+				context.setTrySize(0);//更新内容
 			} else {
-				log.error("总结内容时出现错误:{}跳过了此次自动总结", stringReturnResult.getMsg());
+				log.error("上下文压缩时出现错误:{}跳过了此次自动压缩", stringReturnResult.getMsg());
+				if ( stringReturnResult.isHasError() )
+					throw new OperationException(stringReturnResult.getMsg());
 			}
+		} else {
+			if ( lastRecord.isEmpty() )
+				userMsg.setIndex(1);
+			else
+				userMsg.setIndex(lastRecord.getLast().getChatIndex());
 		}
 		//重新排序
 		type.sort(Comparator.comparingInt(VignaMsg::getIndex));
 		//记录用户消息
-		
+		context.setHistoryMsgList(type);//更新上下文
+		context.setContent(userMsg);
+		ChatContextMap.setContext(sessionId, context);//整理完成
 	}
 	
 	/**
@@ -101,6 +116,5 @@ public class DatabaseChatMemory implements MyBaseAdvisor {
 	 */
 	@Override
 	public void afterAdvise (String sessionId) {
-	
 	}
 }

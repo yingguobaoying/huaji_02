@@ -2,6 +2,9 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.myenum;
 
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Getter
 public enum VignaRole {
 	user("用户输入", "user", 1),
@@ -20,11 +23,16 @@ public enum VignaRole {
 		this.code = code;
 	}
 	
-	public static VignaRole getType (Integer role) {
-		if(role==null) return user;
-		for (VignaRole v : VignaRole.values()) {
-			if (v.code == role) {return v;}
+	private static final Map<Integer, VignaRole> CODE_MAP = new HashMap<>();
+	
+	static {
+		for ( VignaRole v : VignaRole.values() ) {
+			CODE_MAP.put(v.code, v);
 		}
-		return user;
+	}
+	
+	public static VignaRole getType (Integer role) {
+		if ( role == null ) return user;
+		return CODE_MAP.getOrDefault(role, user);
 	}
 }

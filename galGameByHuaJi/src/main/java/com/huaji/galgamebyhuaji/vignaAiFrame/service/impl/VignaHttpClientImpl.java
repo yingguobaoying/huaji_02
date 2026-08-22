@@ -151,7 +151,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
 				log.error(
 						"解析额外请求JSON失败, sessionId: {}, error: {}",
 						sessionId, e.getMessage(), e);
-				ChatContextMap.consumptionContext(sessionId);
+				if ( !para.isSumUp() ) ChatContextMap.delContext(sessionId);
 				throw e;
 			}
 		}
@@ -173,7 +173,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
 					Thread.sleep(waitMillis);
 				} catch ( InterruptedException e ) {
 					Thread.currentThread().interrupt();
-					ChatContextMap.consumptionContext(sessionId);
+					if ( !para.isSumUp() ) ChatContextMap.delContext(sessionId);
 					throw new OperationException("请求被中断: " + e.getMessage());
 				}
 			}
@@ -230,14 +230,14 @@ public class VignaHttpClientImpl extends VignaBaseClient {
 					aiMsg.setContent(aiContent);
 					context.setAiReply(aiMsg);
 					ChatContextMap.setContext(sessionId, context);
-					return body;
+					return aiContent;
 				});
 				requestSuccess = true;
 				break;
 			} catch ( IllegalArgumentException | JacksonException e ) {
 				log.error("请求失败且不可重试, sessionId: {}, 尝试次数: {}/{}, 错误: {}",
 						sessionId, attempt, maxTrySize, e.getMessage());
-				ChatContextMap.consumptionContext(sessionId);
+				if ( !para.isSumUp() ) ChatContextMap.delContext(sessionId);
 				throw new OperationException("请求参数或响应格式错误，停止重试: " + e.getMessage());
 			} catch ( Exception e ) {
 				log.warn(
@@ -250,7 +250,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
 					"AI模型调用最终失败, sessionId: {}, 已尝试 {} 次",
 					sessionId, maxTrySize);
 			//全部请求完成上下文失去意义ban了
-			ChatContextMap.consumptionContext(sessionId);
+			if ( !para.isSumUp() ) ChatContextMap.delContext(sessionId);
 			throw new OperationException("AI模型调用失败，已重试 " + maxTrySize + " 次");
 		}
 		for ( MyBaseAdvisor advisor : filterList ) {
@@ -262,7 +262,6 @@ public class VignaHttpClientImpl extends VignaBaseClient {
 			}
 		}
 		//本次请求生命周期结束
-		ChatContextMap.consumptionContext(sessionId);
 		return responseBody;
 	}
 	

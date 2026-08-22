@@ -24,4 +24,6 @@ public interface AiChatMsgService {
 	long installData (AiRecordWithBLOBs record);
 	
 	void setRecordJson (long id, String json);
+	
+	boolean hasSession (String sessionId);
 }
