@@ -48,11 +48,28 @@ public class VignaAiChatImpl implements VignaAiChat {
 			if(e instanceof OperationException o)
 				return ReturnResult.isError("系统出现错误:"+e.getMessage()+"已经终止了请求!");
 			return ReturnResult.isFalse("AI请求出错:" + e.getMessage());
+		}finally {
+			if(isSumUp)
+				ChatContextMap.delContext(sessionId);
 		}
 	}
 	
 	@Override
 	public Flux<String> vignaAiChatByStream (VignaMsg msg, String sessionId, int userId, long clientId) {
-		return null;
+		//流式请求与普通请求一样需要先建立上下文
+		VignaMsgContext context = new VignaMsgContext();
+		context.setSessionId(sessionId);
+		context.setClientId(clientId);
+		context.setUserId(userId);
+		context.setContent(msg);
+		context.setSum(false);
+		ChatContextMap.setContext(sessionId, context);
+		VignaHttpClient chatClient = VignaChatClientConfig.getChatClient(clientId);
+		if ( chatClient == null )
+			return Flux.error(new OperationException("AI客户端不存在, clientId: " + clientId));
+		ChatRequiredPara chatRequiredPara = new ChatRequiredPara();
+		chatRequiredPara.setSessionId(sessionId);
+		chatRequiredPara.setSumUp(false);
+		return chatClient.sendAiMsgByStream(chatRequiredPara);
 	}
 }

@@ -13,13 +13,14 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.util.Timeout;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
 public class VignaHttpClientFactory {
-	private static List<CloseableHttpClient> all = new LinkedList<>();
+	private static final List<Closeable> all = new LinkedList<>();
 	
 	/**
 	 * 创建http客户端
@@ -30,8 +31,8 @@ public class VignaHttpClientFactory {
 		//仅在加载客户端/刷新客户端时使用,除了管理员偶尔刷新配置以及服务器启动时应该不会被用到
 		PoolingHttpClientConnectionManager connectionManager =
 				PoolingHttpClientConnectionManagerBuilder.create()
-						.setMaxConnTotal(50) // 最大总连接数
-						.setMaxConnPerRoute(10) // 每个路由的最大连接数
+						.setMaxConnTotal(20) // 最大总连接数
+						.setMaxConnPerRoute(5) // 每个路由的最大连接数
 						.setDefaultConnectionConfig( // 连接级别配置
 								ConnectionConfig.custom()
 										.setValidateAfterInactivity(Timeout.ofSeconds(60))//60s连接过期
@@ -54,7 +55,7 @@ public class VignaHttpClientFactory {
 	}
 	
 	public static void shutdown () {
-		for ( CloseableHttpClient c : all ) {
+		for ( Closeable c : all ) {
 			try {
 				c.close();
 			} catch ( IOException e ) {
@@ -67,8 +68,8 @@ public class VignaHttpClientFactory {
 		// 连接池配置
 		PoolingAsyncClientConnectionManager connectionManager =
 				PoolingAsyncClientConnectionManagerBuilder.create()
-						.setMaxConnTotal(50)
-						.setMaxConnPerRoute(10)
+						.setMaxConnTotal(20)
+						.setMaxConnPerRoute(5)
 						.setDefaultConnectionConfig(
 								ConnectionConfig.custom()
 										.setConnectTimeout(Timeout.ofSeconds(10))
@@ -87,6 +88,7 @@ public class VignaHttpClientFactory {
 				.setDefaultRequestConfig(requestConfig)
 				.build();
 		client.start();  // 启动异步客户端
+		all.add(client); // 纳入统一管理,便于服务器关闭时统一释放
 		return client;
 	}
 }
