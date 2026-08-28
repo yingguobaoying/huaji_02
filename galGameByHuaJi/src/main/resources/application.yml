@@ -122,5 +122,5 @@ mail:
 resource-save-path: 'D:\temp\tomcat-work\work\Tomcat\localhost\static'
 #资源存放位置
 ai:
-  chat-record-size: 20
+  chat-record-size: 4
 #保留的聊天记录轮数

@@ -55,6 +55,11 @@ public class VignaAiChatImpl implements VignaAiChat {
 	}
 	
 	@Override
+	public ReturnResult<String> vignaAiChat(VignaMsg msg, String sessionId, int userId, String code) {
+		return vignaAiChat(msg, sessionId, userId, VignaChatClientConfig.getChatClientId(code), false);
+	}
+	
+	@Override
 	public Flux<String> vignaAiChatByStream (VignaMsg msg, String sessionId, int userId, long clientId) {
 		//流式请求与普通请求一样需要先建立上下文
 		VignaMsgContext context = new VignaMsgContext();

@@ -54,6 +54,7 @@ import static com.huaji.galgamebyhuaji.constant.AiParamConstant.*;
  */
 public class VignaHttpClientImpl extends VignaBaseClient {
     private static final Logger log = LoggerFactory.getLogger(VignaHttpClientImpl.class);
+    private static final Logger aiMsgLog = LoggerFactory.getLogger("aiChatAllMsg");
     private final AiClientConfigWithBLOBs config;
     private final List<MyBaseAdvisor> filterList;
     private CloseableHttpClient httpClient;
@@ -114,6 +115,9 @@ public class VignaHttpClientImpl extends VignaBaseClient {
         context.setAiReply(aiMsg);
         // 响应解析完成后重新写入上下文
         ChatContextMap.setContext(sessionId, context);
+        //调试输出:解析结果
+        log.debug("普通请求解析完成, sessionId: {}, 回复内容长度: {}, 内容: {}",
+                  sessionId, aiContent.length(), aiContent);
         //后导过滤器链
         afterAdvise(sessionId);
         //本次请求生命周期结束
@@ -125,6 +129,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
             throw new OperationException("请求上下文失败,因为密钥服务未注册");
         if (para == null)
             throw new OperationException("请求参数不能为空");
+        AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
         String sessionId = para.getSessionId();
         if (MyStringUtil.isNull(sessionId))
             throw new OperationException("SessionId不能为空");
@@ -157,6 +162,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
      * 不负责发送 HTTP 请求。
      */
     private String buildRequest(ChatRequiredPara para, VignaMsgContext context, ObjectMapper objectMapper, boolean stream) throws JsonProcessingException {
+        AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
         final String sessionId = para.getSessionId();
         // 获取当前用户消息
         VignaMsg userMsg;
@@ -198,12 +204,14 @@ public class VignaHttpClientImpl extends VignaBaseClient {
         }
         // 基础模型参数
         root.put("model", config.getModel());
-        root.put("temperature", config.getTemperature() != null ? config.getTemperature() : DEFAULT_TEMPERATURE);
-        root.put("top_p", config.getTopP() != null ? config.getTopP() : DEFAULT_TOP_P);
+        root.put("temperature",
+                 config.getTemperature() != null ? config.getTemperature() / 100.0 : DEFAULT_TEMPERATURE);
+        root.put("top_p", config.getTopP() != null ? config.getTopP() / 100.0 : DEFAULT_TOP_P);
         root.put("frequency_penalty",
-                 config.getFrequencyPenalty() != null ? config.getFrequencyPenalty() : DEFAULT_FREQ_PENALTY);
+                 config.getFrequencyPenalty() != null ? config.getFrequencyPenalty() / 100.0 : DEFAULT_FREQ_PENALTY);
         root.put("presence_penalty",
-                 config.getPresencePenalty() != null ? config.getPresencePenalty() : DEFAULT_PRES_PENALTY);
+                 config.getPresencePenalty() != null ? config.getPresencePenalty() / 100.0 : DEFAULT_PRES_PENALTY);
+        root.put("max_token", config.getMaxTokens() != null ? config.getMaxTokens() : MAX_TOKEN);
         // 是否流式请求,由调用方决定(普通请求 false,流式请求 true)
         root.put("stream", stream);
         // 合并额外 JSON 配置
@@ -251,6 +259,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
      * <p>
      */
     private String sendRequest(ChatRequiredPara para, VignaMsgContext context, String requestJson) {
+        AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
         final String sessionId = para.getSessionId();
         String apiKey = keyServlet.getApiKey(config);
         if (MyStringUtil.isNull(apiKey))
@@ -279,6 +288,9 @@ public class VignaHttpClientImpl extends VignaBaseClient {
             try {
                 log.info("执行请求, sessionId: {}, 尝试次数: {}/{}",
                          sessionId, attempt, maxTrySize);
+                // 记录发送信息到 AI 全量收发日志(API Key 脱敏)
+                aiMsgLog.info("【发送请求】sessionId={}, 目标URL={}, APIKey={}, 请求体={}",
+                              sessionId, config.getBaseUrl(), maskApiKey(apiKey), requestJson);
                 // 构造 HTTP 请求
                 ClassicHttpRequest httpRequest =
                         ClassicRequestBuilder
@@ -295,6 +307,9 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                             HttpEntity entity = response.getEntity();
                             String body = entity != null ? EntityUtils.toString(
                                     entity, StandardCharsets.UTF_8) : "";
+                            // 记录接收信息到 AI 全量收发日志
+                            aiMsgLog.info("【接收响应】sessionId={}, 状态码={}, 响应体={}",
+                                          sessionId, statusCode, body);
                             // HTTP 请求失败
                             if (statusCode < 200 || statusCode >= 300) {
                                 log.error("请求体->{}\n路径->{}\n请求失败信息->{}",
@@ -342,6 +357,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
     
     @Override
     public Flux<String> sendAiMsgByStream(ChatRequiredPara para) {
+        AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
         final String sessionId = para.getSessionId();
         final boolean isSumUp = para.isSumUp();
         //桥接 sink:multicast 支持多订阅者(本地记录 + 外部消费)
@@ -397,6 +413,9 @@ public class VignaHttpClientImpl extends VignaBaseClient {
             context.setOutTime(config.getTimeout());
             ChatContextMap.setContext(sessionId, context);
             log.info("即将开始流式请求:{},原始参数:{}", sessionId, requestJson);
+            // 记录发送信息到 AI 全量收发日志(API Key 脱敏)
+            aiMsgLog.info("【发送流式请求】sessionId={}, 目标URL={}, APIKey={}, 请求体={}",
+                          sessionId, config.getBaseUrl(), maskApiKey(apiKey), requestJson);
             
             //执行异步请求,把 SSE 增量桥接到 sink
             httpAsyncClient.execute(
@@ -505,10 +524,26 @@ public class VignaHttpClientImpl extends VignaBaseClient {
             aiMsg.setContent(aiContent);
             context.setAiReply(aiMsg);
             ChatContextMap.setContext(sessionId, context);
+            // 记录接收信息到 AI 全量收发日志
+            aiMsgLog.info("【接收流式响应】sessionId={}, 响应内容={}", sessionId, aiContent);
             afterAdvise(sessionId);
         } catch (Exception e) {
             log.error("流式请求收尾处理失败, sessionId: {}, 错误: {}", sessionId, e.getMessage(), e);
         }
+    }
+    
+    /**
+     * API Key 脱敏:仅保留前4位和后4位,中间以 **** 代替
+     * <p>过短密钥(长度<=8)仅保留首尾各1位,避免泄露</p>
+     */
+    private static String maskApiKey(String apiKey) {
+        if (apiKey == null || apiKey.isEmpty()) return apiKey;
+        int len = apiKey.length();
+        if (len <= 8) {
+            if (len <= 2) return "****";
+            return apiKey.charAt(0) + "****" + apiKey.charAt(len - 1);
+        }
+        return apiKey.substring(0, 4) + "****" + apiKey.substring(len - 4);
     }
     
     @Override

@@ -9,7 +9,6 @@ public class AiConstant {
     /**
      * ai总结的客户端编码
      */
-    public static final String SUM_UP_CODE = "ai-sum-up";
     public static final List<String> CODE_LIST;
     
     static {

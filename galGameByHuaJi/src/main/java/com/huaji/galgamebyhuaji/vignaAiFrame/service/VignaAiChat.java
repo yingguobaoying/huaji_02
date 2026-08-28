@@ -19,5 +19,10 @@ public interface VignaAiChat {
 	 */
 	ReturnResult<String> vignaAiChat (VignaMsg msg, String sessionId, int userId, long clientId, boolean isSumUp);
 	
+	/**
+	 * 系统调用接口
+	 */
+	ReturnResult<String> vignaAiChat (VignaMsg msg, String sessionId, int userId, String code);
+	
 	Flux<String> vignaAiChatByStream (VignaMsg msg, String sessionId, int userId, long clientId);
 }

@@ -67,7 +67,7 @@ public class AiRecordAdvisor implements MyBaseAdvisor {
 			log.error("错误!AI接口返回内容为空!已跳过本次ai回复记录!");
 			return;
 		}
-		r.setContent(aiReply.getContent());
+		r.setContent(aiReply.getContent());//用户下标+1应该就是本轮ai回复了
 		r.setChatIndex(context.getContent().getIndex() + 1);
 		r.setCreatedAt(new Date());
 		r.setUserId(context.getUserId());
