@@ -158,7 +158,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     @Transactional
     public VignaMessageNode setData(VignaMessageNode msg, String sessionId, boolean updateSession) {
         //检查是否满足插入条件
-        if (msg == null || MyStringUtil.isNull(msg.getLastMessage().getMessageId()))
+        if (msg == null || msg.getLastMessage()==null|| MyStringUtil.isNull(msg.getLastMessage().getMessageId()))
             throw new OperationException("消息保存失败!因为必要信息为空!");
         //检查是否存在节点(即使修改/回复的部分检查过了,但这个方法还会被单独调用因此保留)
         Optional<VignaMessageNode> lastMsg = neo4jTemplate.findById(msg.getLastMessage().getMessageId(), VignaMessageNode.class);

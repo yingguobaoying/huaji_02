@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiPromptTemplate;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
@@ -14,6 +13,7 @@ import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.ObjectUtil;
 import com.huaji.galgamebyhuaji.vignaAiFrame.ChatContextMap;
 import com.huaji.galgamebyhuaji.vignaAiFrame.config.VignaHttpClientFactory;
+import com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiPromptTemplate;
 import com.huaji.galgamebyhuaji.vignaAiFrame.filter.MyBaseAdvisor;
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsgContext;
@@ -174,7 +174,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
         final String sessionId = para.getSessionId();
         // 获取当前用户消息
         VignaMsg userMsg;
-        if (para.isSumUp()&& context.getContent()==null) {
+        if (para.isSumUp() && context.getContent() == null) {
             userMsg = new VignaMsg();
             userMsg.setRole(VignaRole.user);
             userMsg.setContent(AiPromptTemplate.CHAT_SUMMARY_PROMPT);
@@ -359,7 +359,8 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                           e.getMessage(), advisor.getIndex(), e);
             }
         }
-        ChatContextMap.delContext(sessionId);
+        if (ChatContextMap.getContext(sessionId) != null && ChatContextMap.getContext(sessionId).isSum())
+            ChatContextMap.delContext(sessionId);
         
     }
     

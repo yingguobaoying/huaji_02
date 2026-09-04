@@ -65,7 +65,7 @@ public class VignaAiChatImpl implements VignaAiChat {
                 return ReturnResult.isError("系统出现错误:" + e.getMessage() + "已经终止了请求!");
             return ReturnResult.isFalse("AI请求出错:" + e.getMessage());
         } finally {
-            if (para.isSumUp())
+            if (!para.isSumUp())
                 ChatContextMap.delContext(para.getSessionId());
         }
     }

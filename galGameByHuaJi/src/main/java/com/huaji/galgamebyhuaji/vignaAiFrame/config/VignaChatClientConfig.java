@@ -53,7 +53,7 @@ public class VignaChatClientConfig {
         if (chatClientId == null) {
             return false;
         }
-        return getChatClient(chatClientId) == null;
+        return getChatClient(chatClientId) != null;
     }
     
     public void info() {

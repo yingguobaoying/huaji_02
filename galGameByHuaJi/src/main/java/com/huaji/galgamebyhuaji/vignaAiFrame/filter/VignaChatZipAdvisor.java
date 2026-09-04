@@ -65,7 +65,6 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
             ChatServicePara para = new ChatServicePara();
             para.setSumUp(true);
             para.setSessionId(sessionId);
-            para.setCode(context.getSessionId());
             para.setMsgId(context.getMsgId());
             if (VignaChatClientConfig.codeState(AiConstant.AI_SUM))
                 para.setCode(AiConstant.AI_SUM);//这里使用默认的AI提示词
