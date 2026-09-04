@@ -77,6 +77,11 @@ spring:
       database: 0
       port: 6379
       host: localhost
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: hongdouchu
 server:
   error:
     whitelabel:
@@ -122,5 +127,7 @@ mail:
 resource-save-path: 'D:\temp\tomcat-work\work\Tomcat\localhost\static'
 #资源存放位置
 ai:
+#  触发上下文自动压缩的轮数
   chat-record-size: 4
-#保留的聊天记录轮数
+#  触发上下文压缩的字符数量
+  chat-token-size: 1000

@@ -1,4 +1,4 @@
-package com.huaji.galgamebyhuaji.constant;
+package com.huaji.galgamebyhuaji.vignaAiFrame.constant;
 
 public class AiParamConstant {
 	// 默认参数常量

@@ -9,12 +9,11 @@ import java.util.Date;
  * @author 滑稽/因果报应
  */
 public class TimeUtil {
-	public static String getSimpleDateFormatTime(Date date) {
-		if (date == null)
-			date = new Date();
-		return new SimpleDateFormat("yyyy_MM_dd_HH_mm").format(date);
-	}
-	
+	/**
+	 * 获取人读的格式化的时间
+	 *
+	 * @return 返回格式: "yyyy年MM月dd日HH:mm:ss"
+	 */
 	public static String getVisualDateFormatTime(Date date) {
 		if (date == null)
 			date = new Date();
@@ -25,6 +24,10 @@ public class TimeUtil {
 		return getVisualDateFormatTime(null);
 	}
 	
+	/**
+	 * 获取格式化的时间
+	 * @return 返回格式: _yyyy_MM_dd_HH_mm_ss
+	 */
 	public static String getNowTime() {
 		return new SimpleDateFormat("_yyyy_MM_dd_HH_mm_ss").format(new Date());
 	}

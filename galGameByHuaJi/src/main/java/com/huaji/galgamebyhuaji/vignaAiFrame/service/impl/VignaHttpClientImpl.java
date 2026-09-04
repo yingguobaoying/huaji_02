@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.huaji.galgamebyhuaji.constant.AiPromptTemplate;
+import com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiPromptTemplate;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
@@ -47,7 +47,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import static com.huaji.galgamebyhuaji.constant.AiParamConstant.*;
+import static com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiParamConstant.*;
 
 /**
  * 使用openai规范的实现类
@@ -89,39 +89,47 @@ public class VignaHttpClientImpl extends VignaBaseClient {
         VignaMsgContext context = ChatContextMap.getContext(sessionId);
         if (context == null)
             throw new OperationException("请求上下文不存在，可能已被提前清理");
-        //组装请求
-        String requestJson = buildRequest(para, context, objectMapper, false);
-        //发送请求
-        String responseBody = sendRequest(para, context, requestJson);
-        JsonNode responseJson = objectMapper.readTree(responseBody);
-        String aiContent = responseJson
-                .path("choices")
-                .path(0)
-                .path("message")
-                .path("content")
-                .asText();
-        // 当前 stream=false，正常情况下不会进入这里。
-        // 保留该逻辑以兼容部分模型返回的特殊结构。
-        if (MyStringUtil.isNull(aiContent)) aiContent = responseJson
-                .path("choices")
-                .path(0)
-                .path("delta")
-                .path("content")
-                .asText();
-        context.setFinishReason(responseBody);
-        VignaMsg aiMsg = new VignaMsg();
-        aiMsg.setRole(VignaRole.ai);
-        aiMsg.setContent(aiContent);
-        context.setAiReply(aiMsg);
-        // 响应解析完成后重新写入上下文
-        ChatContextMap.setContext(sessionId, context);
-        //调试输出:解析结果
-        log.debug("普通请求解析完成, sessionId: {}, 回复内容长度: {}, 内容: {}",
-                  sessionId, aiContent.length(), aiContent);
-        //后导过滤器链
-        afterAdvise(sessionId);
-        //本次请求生命周期结束
-        return aiContent;
+        try {//只要前导执行了就执行后导过滤器链
+            //组装请求
+            String requestJson = buildRequest(para, context, objectMapper, false);
+            //发送请求
+            String responseBody = sendRequest(para, context, requestJson);
+            JsonNode responseJson = objectMapper.readTree(responseBody);
+            String aiContent = responseJson
+                    .path("choices")
+                    .path(0)
+                    .path("message")
+                    .path("content")
+                    .asText();
+            // 当前 stream=false，正常情况下不会进入这里。
+            // 保留该逻辑以兼容部分模型返回的特殊结构。
+            if (MyStringUtil.isNull(aiContent)) aiContent = responseJson
+                    .path("choices")
+                    .path(0)
+                    .path("delta")
+                    .path("content")
+                    .asText();
+            context.setSendJson(requestJson);
+            context.setFinishReason(responseBody);
+            VignaMsg aiMsg = new VignaMsg();
+            aiMsg.setRole(VignaRole.ai);
+            aiMsg.setContent(aiContent);
+            context.setAiReply(aiMsg);
+            // 响应解析完成后重新写入上下文
+            ChatContextMap.setContext(sessionId, context);
+            //调试输出:解析结果
+            log.debug("普通请求解析完成, sessionId: {}, 回复内容长度: {}, 内容: {}",
+                      sessionId, aiContent.length(), aiContent);
+            return aiContent;
+        } catch (Exception e) {//出现问题的时候记录
+            context.setError(true);
+            context.setErrorMsg(e.getMessage());
+            ChatContextMap.setContext(sessionId, context);
+            throw e;
+        } finally {
+            //确保后导过滤器链执行
+            afterAdvise(sessionId);
+        }
     }
     
     private void checkRequiredInfo(ChatRequiredPara para) {
@@ -166,7 +174,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
         final String sessionId = para.getSessionId();
         // 获取当前用户消息
         VignaMsg userMsg;
-        if (para.isSumUp()) {
+        if (para.isSumUp()&& context.getContent()==null) {
             userMsg = new VignaMsg();
             userMsg.setRole(VignaRole.user);
             userMsg.setContent(AiPromptTemplate.CHAT_SUMMARY_PROMPT);
@@ -549,5 +557,10 @@ public class VignaHttpClientImpl extends VignaBaseClient {
     @Override
     public AiMerchantType getType() {
         return AiMerchantType.OPEN_AI;
+    }
+    
+    @Override
+    public String getDeftSystemPrompt() {
+        return config.getContent();
     }
 }

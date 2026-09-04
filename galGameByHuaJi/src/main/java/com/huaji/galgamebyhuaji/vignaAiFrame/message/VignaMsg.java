@@ -32,6 +32,16 @@ public class VignaMsg {
 	private String name;
 	private List<VignaTool> tools;
 	
+	public VignaMsg(VignaRole role, String content, int index) {
+		this.role = role;
+		this.content = content;
+		this.index = index;
+	}
+	
+	public VignaMsg() {
+	}
+	
+	
 	public ObjectNode getJson () {
 		ObjectNode root = ObjectUtil.getObjectMapper().createObjectNode();
 		root.put("role", role.getValue());

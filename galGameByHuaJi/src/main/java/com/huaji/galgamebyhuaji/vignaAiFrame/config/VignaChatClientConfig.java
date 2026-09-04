@@ -1,6 +1,6 @@
 package com.huaji.galgamebyhuaji.vignaAiFrame.config;
 
-import com.huaji.galgamebyhuaji.constant.AiConstant;
+import com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiConstant;
 import com.huaji.galgamebyhuaji.dao.AiClientConfigMapper;
 import com.huaji.galgamebyhuaji.entity.AiClientConfig;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;
@@ -37,6 +37,8 @@ public class VignaChatClientConfig {
     private final List<MyBaseAdvisor> allAdvisor;
     @Value("${ai.chat-record-size}")
     private int size;
+    @Value("${ai.chat-token-size}")
+    private int tokenSize;
     
     public static VignaHttpClient getChatClient(long id) {
         return configMap.get(id);
@@ -46,20 +48,28 @@ public class VignaChatClientConfig {
         return idMap.get(code);
     }
     
+    public static boolean codeState(String code) {
+        Long chatClientId = getChatClientId(code);
+        if (chatClientId == null) {
+            return false;
+        }
+        return getChatClient(chatClientId) == null;
+    }
+    
     public void info() {
         String banner =
                 """
                 \n
-                ============================================================
-                =                                                          =
-                =          __     ___                          _          =
-                =          \\ \\   / (_) __ _ _ __   __ _       /_\\   __ _(_) =
-                =           \\ \\ / /| |/ _` | '_ \\ / _` |     //_\\\\ / _` | |  =
-                =            \\ V / | | (_| | | | | (_| |    /  _  \\ (_| | |   =
-                =             \\_/  |_|\\__, |_| |_|\\__,_|    \\_/ \\_/\\__,_|_| =
-                =                     |___/                                =
-                =                                                          =
-                ============================================================""";
+                =============================================================
+                =                                                           =
+                =     __     ___                          _                 =
+                =     \\ \\   / (_) __ _ _ __   __ _       /_\\   __ _(_)      =
+                =      \\ \\ / /| |/ _` | '_ \\ / _` |     //_\\\\ / _` | |      =
+                =       \\ V / | | (_| | | | | (_| |    /  _  \\ (_| | |      =
+                =        \\_/  |_|\\__, |_| |_|\\__,_|    \\_/ \\_/\\__,_|_|      =
+                =                |___/                                      =
+                =                                                           =
+                =============================================================""";
         System.out.println(banner);
         System.out.println(" :: Vigna-ai ::                (v0.0.1)");
         log.info("*****************************************************************");
@@ -100,11 +110,13 @@ public class VignaChatClientConfig {
         log.info("----------------------------------------------------------------------");
         log.info("---------------- 当前自动压缩上下文对话消息数量: {} (每次HTTP请求发送/接收响应均计1次) ----------------",
                  size / 2.0);
+        log.info("---------------- 当前自动压缩上下文消息文本字数: {} ----------------",
+                 tokenSize);
         log.info("----------------------------------------------------------------------");
     }
     
     public void selfInspection() {
-        if (AiConstant.CODE_LIST.size() == 0)
+        if (AiConstant.CODE_LIST.isEmpty())
             log.warn("警告:当前未定义任何系统ai功能");
         else {
             AiClientConfigExample example = new AiClientConfigExample();

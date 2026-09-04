@@ -2,7 +2,7 @@
 //
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.huaji.galgamebyhuaji.AOP.ai.MyBaseAdvisor;
-//import com.huaji.galgamebyhuaji.constant.AiConstant;
+//import com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiConstant;
 //import com.huaji.galgamebyhuaji.dao.AiClientConfigMapper;
 //import com.huaji.galgamebyhuaji.entity.AiClientConfig;
 //import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;

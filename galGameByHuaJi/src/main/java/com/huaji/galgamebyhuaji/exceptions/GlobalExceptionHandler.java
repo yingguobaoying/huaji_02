@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
 				|| ex instanceof AuthenticationException
 		) handleSecurityException(ex);
 		log.error("错误{}", ex.getMessage(), ex);
-		ReturnResult<Exception> error = ReturnResult.isError(ex.getMessage());
+		ReturnResult<Exception> error = ReturnResult.isError(ex);
 		return addSystemMsg(error, request);
 	}
 	

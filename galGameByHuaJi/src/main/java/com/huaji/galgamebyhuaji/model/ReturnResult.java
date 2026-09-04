@@ -1,6 +1,8 @@
 package com.huaji.galgamebyhuaji.model;
 
 
+import com.huaji.galgamebyhuaji.exceptions.BestException;
+import com.huaji.galgamebyhuaji.exceptions.BestRuntimeException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,6 +37,16 @@ public class ReturnResult<T> {
      * 拓展字段
      */
     private Map<String, Object> map;
+    
+    public static ReturnResult<Exception> isError(Exception ex) {
+        ReturnResult<Exception> error = isError(ex.getMessage());
+        if (ex instanceof BestException e) {
+            error.setErrorNum(e.getErrorType() * 100 + e.getErrorNum());
+        } else if (ex instanceof BestRuntimeException e) {
+            error.setErrorNum(e.getErrorType() * 100 + e.getErrorNum());
+        }
+        return error;
+    }
     
     
     public void addMap(String key, Object value) {
