@@ -359,8 +359,10 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                           e.getMessage(), advisor.getIndex(), e);
             }
         }
-        if (ChatContextMap.getContext(sessionId) != null && ChatContextMap.getContext(sessionId).isSum())
+        VignaMsgContext context = ChatContextMap.getContext(sessionId);
+        if (context != null && !context.isSum())
             ChatContextMap.delContext(sessionId);
+        
         
     }
     

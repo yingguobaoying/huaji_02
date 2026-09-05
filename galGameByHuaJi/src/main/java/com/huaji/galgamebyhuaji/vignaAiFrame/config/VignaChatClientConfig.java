@@ -73,8 +73,8 @@ public class VignaChatClientConfig {
         System.out.println(banner);
         System.out.println(" :: Vigna-ai ::                (v0.0.1)");
         log.info("*****************************************************************");
-        log.info("********************** 开始加载AI配置项 **************************");
-        log.info("********************** 当前vigna-ai对话框架版本: v0.0.1 *********");
+        log.info("********************** 开始加载AI配置项 ****************************");
+        log.info("********************** 当前vigna-ai对话框架版本: v0.0.1 ************");
         log.info("*****************************************************************");
         AiClientConfigExample configExample = new AiClientConfigExample();
         configExample.createCriteria().andIsActiveEqualTo(true);

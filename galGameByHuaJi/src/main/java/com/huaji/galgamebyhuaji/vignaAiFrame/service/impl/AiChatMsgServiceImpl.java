@@ -39,7 +39,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
         if (MyStringUtil.isNull(sessionId) || size <= 0) return List.of();
         List<VignaMessageNode> nodeList = queryMessageChain(sessionId, msgId);
         if (nodeList.isEmpty()) return List.of();
-         //理论上 Neo4j 返回结果的顺序不能作为业务依据,因此统一按照 turnIndex 从新到旧排序。
+        //理论上 Neo4j 返回结果的顺序不能作为业务依据,因此统一按照 turnIndex 从新到旧排序。
         nodeList.sort(Comparator.comparingInt(VignaMessageNode::getTurnIndex).reversed());
         List<VignaMsg> result = new ArrayList<>();
         int summaryCount = 0;
@@ -48,7 +48,11 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
             if (Boolean.TRUE.equals(node.getError())) continue;
             // 达到指定总结段数量后停止。
             if (summaryCount >= size) break;
-            if (Boolean.TRUE.equals(node.getIsSummary())) summaryCount++;
+            if (Boolean.TRUE.equals(node.getIsSummary())) {
+                summaryCount++;
+                continue;//不把总结信息塞进去,因为总结只标记了用户发送的请求
+                //总结节点的模式: 用户身份调用总结提示词发送的请求->ai回复
+            }
             VignaMsg msg = new VignaMsg();
             msg.setRole(VignaRole.getType(node.getRole()));
             msg.setContent(node.getContent());
@@ -106,24 +110,26 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     public VignaMessageNode editData(String msgId, String sessionId, VignaMsg msg, Long clientID) {
         //检查是否满足插入条件
         if (msg == null || MyStringUtil.isNull(msgId))
-            throw new OperationException("修改消息失败!因为必要信息为空!");
-        //检查是否存在节点
-        Optional<VignaMessageNode> lastMsg = neo4jTemplate.findById(msgId, VignaMessageNode.class);
-        if (lastMsg.isEmpty())
-            throw new OperationException("修改消息失败!因为前置信息不存在!");
-        VignaMessageNode oldNode = lastMsg.get();
-        VignaMessageNode node = new VignaMessageNode();
-        node.setRole(msg.getRole().getCode());
-        node.setContent(msg.getContent());
-        node.setTurnIndex(msg.getIndex());
-        node.setClientId(clientID);
-        node.setLastMessage(oldNode.getLastMessage());
-        node.setIsSummary(msg.getRole() == VignaRole.sum);
-        node.setTimestamp(OffsetDateTime.now());
-        VignaMessageNode node1 = setData(node, sessionId, true);
-        oldNode.getModifiedVersions().add(node);
+            throw new OperationException("修改消息失败!因为需要保存的信息为空!");
+        // 查找被编辑的旧节点
+        VignaMessageNode oldNode = neo4jTemplate.findById(msgId, VignaMessageNode.class)
+                .orElseThrow(() -> new OperationException("消息修改失败!因为修改的目标对话不存在"));
+        neo4jTemplate.findById(sessionId, VignaSessionNode.class)
+                .orElseThrow(() -> new OperationException("消息保存失败! 会话不存在"));
+        VignaMessageNode newNode = new VignaMessageNode();
+        newNode.setRole(msg.getRole().getCode());
+        newNode.setContent(msg.getContent());
+        newNode.setTurnIndex(msg.getIndex());
+        newNode.setClientId(clientID);
+        // 新节点的前驱是 oldNode 的前驱（即跳过 oldNode）
+        newNode.setLastMessage(oldNode.getLastMessage());
+        newNode.setIsSummary(msg.getRole() == VignaRole.sum);
+        newNode.setTimestamp(OffsetDateTime.now());
+        // 保存新节点（更新会话 tailId）
+        VignaMessageNode saved = setData(newNode, sessionId, true);
+        oldNode.getModifiedVersions().add(saved);
         neo4jTemplate.save(oldNode);
-        return node1;
+        return saved;
         
     }
     
@@ -132,51 +138,50 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     public VignaMessageNode retry(String msgId, String sessionId, VignaMsg msg, Long clientID) {
         //检查是否满足插入条件
         if (msg == null || MyStringUtil.isNull(msgId))
-            throw new OperationException("消息重试失败!因为必要信息为空!");
-        String id = IdUtil.getRandomId("msg");
+            throw new OperationException("修改消息失败!因为需要保存的信息为空!");
         //检查是否存在节点
-        Optional<VignaMessageNode> lastMsg = neo4jTemplate.findById(msgId, VignaMessageNode.class);
-        if (lastMsg.isEmpty())
-            throw new OperationException("消息重试失败!因为前置信息不存在!");
-        VignaMessageNode oldNode = lastMsg.get();
-        VignaMessageNode node = new VignaMessageNode();
-        node.setRole(msg.getRole().getCode());
-        node.setContent(msg.getContent());
-        node.setTurnIndex(msg.getIndex());
-        node.setClientId(clientID);
-        node.setLastMessage(oldNode.getLastMessage());
-        node.setIsSummary(msg.getRole() == VignaRole.sum);
-        node.setTimestamp(OffsetDateTime.now());
-        VignaMessageNode node1 = setData(node, sessionId, true);
-        oldNode.getRetriedVersions().add(node);
+        VignaMessageNode oldNode = neo4jTemplate.findById(msgId, VignaMessageNode.class)
+                .orElseThrow(() -> new OperationException("消息修改失败!因为修改的目标对话不存在"));
+        neo4jTemplate.findById(sessionId, VignaSessionNode.class)
+                .orElseThrow(() -> new OperationException("消息保存失败! 会话不存在"));
+        // 构造新节点
+        VignaMessageNode newNode = new VignaMessageNode();
+        newNode.setRole(msg.getRole().getCode());
+        newNode.setContent(msg.getContent());
+        newNode.setTurnIndex(msg.getIndex());
+        newNode.setClientId(clientID);
+        // 新节点的前驱是 oldNode 的前驱（即跳过 oldNode）
+        newNode.setLastMessage(oldNode.getLastMessage());
+        newNode.setIsSummary(msg.getRole() == VignaRole.sum);
+        newNode.setTimestamp(OffsetDateTime.now());
+        VignaMessageNode saved = setData(newNode, sessionId, true);
+        oldNode.getRetriedVersions().add(saved);
         neo4jTemplate.save(oldNode);
-        return node1;
-        
+        // 保存新节点（更新会话 tailId）
+        return saved;
     }
     
     @Override
     @Transactional
     public VignaMessageNode setData(VignaMessageNode msg, String sessionId, boolean updateSession) {
-        //检查是否满足插入条件
-        if (msg == null || msg.getLastMessage()==null|| MyStringUtil.isNull(msg.getLastMessage().getMessageId()))
-            throw new OperationException("消息保存失败!因为必要信息为空!");
-        //检查是否存在节点(即使修改/回复的部分检查过了,但这个方法还会被单独调用因此保留)
-        Optional<VignaMessageNode> lastMsg = neo4jTemplate.findById(msg.getLastMessage().getMessageId(), VignaMessageNode.class);
-        if (lastMsg.isEmpty())
-            throw new OperationException("消息保存失败!因为前置信息不存在!");
-        //存在时直接插入并更新会话
-        Optional<VignaSessionNode> sessionNode = neo4jTemplate.findById(sessionId, VignaSessionNode.class);
-        if (sessionNode.isEmpty())
-            throw new OperationException("消息保存失败!因为信息所属会话信息不存在!");
-        VignaSessionNode session = sessionNode.get();
-        //更新id
+        if (msg == null) throw new OperationException("消息内容为空");
+        VignaSessionNode session = neo4jTemplate.findById(sessionId, VignaSessionNode.class)
+                .orElseThrow(() -> new OperationException("消息保存失败! 会话不存在"));
+        //处理前置节点
+        VignaMessageNode lastNode = msg.getLastMessage();
+        if (lastNode != null) {
+            // 验证前置节点确实存在于数据库中（防止脏数据）
+            if (neo4jTemplate.findById(lastNode.getMessageId(), VignaMessageNode.class).isEmpty())
+                throw new OperationException("消息保存失败! 前置消息不存在");
+        }
+        //生成新 ID 并填充消息对象
         String id = IdUtil.getRandomId("msg");
-        session.setTailId(id);
         msg.setMessageId(id);
         msg.setSessionId(sessionId);
-        msg.setLastMessage(lastMsg.get());
-        if (updateSession)
+        if (updateSession) {
+            session.setTailId(id);
             neo4jTemplate.save(session);
+        }
         return neo4jTemplate.save(msg);
     }
     

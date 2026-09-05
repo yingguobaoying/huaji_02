@@ -23,7 +23,7 @@ public class VignaSessionNode {
     /**
      * 所属用户 ID
      */
-    private Long userId;
+    private Integer userId;
     /**
      * 核心游标：当前生效对话流的末端节点 ID
      */
