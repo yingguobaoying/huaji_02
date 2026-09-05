@@ -36,6 +36,7 @@ public class VignaAiChatImpl implements VignaAiChat {
             context = ChatContextMap.getContext(para.getSessionId());
             if (context == null)
                 return ReturnResult.isFalse("总结失败,因为上下文已被清除");
+            context.setSum(true);
         } else {
             //普通情况下需要建立上下文
             context = new VignaMsgContext();

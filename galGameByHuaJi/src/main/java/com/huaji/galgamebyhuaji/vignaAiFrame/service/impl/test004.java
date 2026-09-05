@@ -17,7 +17,6 @@ public class test004 {
     
     @GetMapping("/test/01")
     public void test() {
-        aiChatMsgService.getMsgList("session-001", 0);
-        aiChatMsgService.getMsgList(null, "msg-007", 0);
+        aiChatMsgService.getMsgList("session-002", 0);
     }
 }

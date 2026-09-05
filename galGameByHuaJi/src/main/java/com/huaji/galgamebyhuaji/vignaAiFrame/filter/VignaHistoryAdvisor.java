@@ -28,6 +28,7 @@ public class VignaHistoryAdvisor implements MyBaseAdvisor {
     public void beforeAdvise(String sessionId) {
         VignaMsgContext context = ChatContextMap.getContext(sessionId);
         if (context == null) throw new OperationException("请求上下文不存在，可能已被提前清理");
+        if(context.isSum())return;//如果是压缩上下文就不管他
         String msgId = context.getMsgId();
         //获取到上个总结节点为止的记录
         List<VignaMsg> msgList = msgService.getMsgList(sessionId, msgId, 1);
