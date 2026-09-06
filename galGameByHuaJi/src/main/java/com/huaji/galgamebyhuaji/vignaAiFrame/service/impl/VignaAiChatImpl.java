@@ -31,6 +31,8 @@ public class VignaAiChatImpl implements VignaAiChat {
         para.setCode(null);//避免污染
         VignaMsgContext context;
         VignaHttpClient chatClient = VignaChatClientConfig.getChatClient(para.getClientId());
+        if(chatClient==null)
+            throw new OperationException("发送失败,因为请求发送器获取失败!");
         if (para.isSumUp()) {
             //如果为总结调用那么会话上下文存在
             context = ChatContextMap.getContext(para.getSessionId());
@@ -45,6 +47,7 @@ public class VignaAiChatImpl implements VignaAiChat {
             context.setUserId(para.getUserId());
             context.setContent(para.getMsg());
             context.setMsgId(para.getMsgId());
+            context.setType(para.getType());
             context.setSum(false);
         }
         //装配系统消息

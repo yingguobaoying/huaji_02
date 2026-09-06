@@ -40,4 +40,5 @@ public interface AiClientConfigMapper {
 	
 	List<AiClientConfigWithBLOBs> getUserUseModer ();
 	
+	List<AiClientConfigWithBLOBs> selectByIds(List<Long> configId);
 }

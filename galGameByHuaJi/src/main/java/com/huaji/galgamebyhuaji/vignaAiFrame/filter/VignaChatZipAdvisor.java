@@ -60,10 +60,10 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
                 maxIndex = vignaMsg.getIndex();
             textSize += vignaMsg.getContent().length();
         }
-        //触发压缩的条件:文本或者对话轮数达到阈值并且自身不为压缩请求,同时此消息为普通消息
+        //触发压缩的条件:文本或者对话轮数达到阈值并且自身不为压缩请求,同时此消息为普通消息(类型为普通或者null)
         boolean needSum =
                 (maxTokenSize <= textSize || size <= historyMsgList.size())
-                && !(context.isSum()) && (context.getType() == null || context.getType() != VignaMsgType.generic);
+                && !(context.isSum()) && (context.getType() == null || context.getType() == VignaMsgType.generic);
         VignaMsg sysMsg = context.getSystemMsg();
         if (needSum) {//需要压缩的情况
             ChatServicePara para = new ChatServicePara();

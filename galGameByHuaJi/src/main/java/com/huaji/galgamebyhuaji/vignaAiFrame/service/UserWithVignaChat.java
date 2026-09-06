@@ -15,5 +15,5 @@ public interface UserWithVignaChat {
     /**
      * 获取用户的聊天会话id和首条消息的预览
      */
-    Map<String, VignaMsg> getUserSession(int userId);
+    Map<String, List<VignaMsg>> getUserSession(int userId);
 }

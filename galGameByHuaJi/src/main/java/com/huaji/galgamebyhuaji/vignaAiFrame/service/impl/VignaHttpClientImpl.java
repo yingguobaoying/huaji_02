@@ -219,7 +219,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                  config.getFrequencyPenalty() != null ? config.getFrequencyPenalty() / 100.0 : DEFAULT_FREQ_PENALTY);
         root.put("presence_penalty",
                  config.getPresencePenalty() != null ? config.getPresencePenalty() / 100.0 : DEFAULT_PRES_PENALTY);
-        root.put("max_token", config.getMaxTokens() != null ? config.getMaxTokens() : MAX_TOKEN);
+        root.put("max_tokens", config.getMaxTokens() != null ? config.getMaxTokens() : MAX_TOKEN);
         // 是否流式请求,由调用方决定(普通请求 false,流式请求 true)
         root.put("stream", stream);
         // 合并额外 JSON 配置

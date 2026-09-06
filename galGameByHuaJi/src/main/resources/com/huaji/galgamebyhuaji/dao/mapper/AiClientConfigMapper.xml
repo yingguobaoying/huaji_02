@@ -589,4 +589,8 @@
         from ai_client_config
         where is_active = true
     </select>
+    <select id="selectByIds" resultType="com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs">
+      select id,code,name,description
+      from ai_client_config;
+    </select>
 </mapper>
