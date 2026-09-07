@@ -371,87 +371,117 @@ public class VignaHttpClientImpl extends VignaBaseClient {
         AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
         final String sessionId = para.getSessionId();
         final boolean isSumUp = para.isSumUp();
-        //桥接 sink:multicast 支持多订阅者(本地记录 + 外部消费)
+        //桥接 sink:multicast 支持多订阅者 (本地记录 + 外部消费)
         final Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer(1024, false);
-        
-        //本地订阅:累积完整内容,并在流式请求彻底完成后触发后置过滤器链
+
+        //本地订阅：累积完整内容，并在流式请求彻底完成后触发后置过滤器链
         final StringBuilder aiContent = new StringBuilder();
         sink.asFlux()
                 .doOnNext(aiContent::append)
                 .doFinally(signal -> {
                     if (signal == SignalType.ON_COMPLETE) {
-                        //流式请求彻底完成:写回上下文并触发后置过滤器链(记录AI回复)
+                        //流式请求彻底完成：写回上下文并触发后置过滤器链 (记录 AI 回复)
                         finishStreamContext(sessionId, aiContent.toString());
                     } else {
-                        //出错或被取消:清理上下文(总结请求除外)
+                        //出错或被取消：清理上下文 (总结请求除外)
                         if (!isSumUp) ChatContextMap.delContext(sessionId);
-                        log.error("流式请求出错!已经记录的内容如下{}", aiContent);
+                        log.error("流式请求出错！已经记录的内容如下{}", aiContent);
                     }
                 })
                 .subscribe();
-        
+
         try {
             //必要信息检查
             checkRequiredInfo(para);
             final ObjectMapper objectMapper = ObjectUtil.getObjectMapper();
             //前导过滤器链
             beforeAdvise(sessionId);
-            //获取上下文,这里能触发自动总结
+            //获取上下文，这里能触发自动总结
             VignaMsgContext context = ChatContextMap.getContext(sessionId);
             if (context == null) {
                 sink.tryEmitError(new OperationException("请求上下文不存在，可能已被提前清理"));
                 return sink.asFlux();
             }
+            //组装请求 (与普通请求一致)
             String requestJson = buildRequest(para, context, objectMapper, true);
-            //获取 API Key
-            String apiKey = keyServlet.getApiKey(config);
-            if (MyStringUtil.isNull(apiKey)) {
-                if (!isSumUp) ChatContextMap.delContext(sessionId);//终止性错误进行处理
-                sink.tryEmitError(new OperationException("错误!APIkey读取失败!"));
-                return sink.asFlux();
-            }
-            //构造异步 HTTP 请求(SSE)
+            //发送流式请求 (与普通请求的 sendRequest 逻辑对齐，但不包含重试)
+            sendStreamRequest(para, context, requestJson, sink, isSumUp);
+        } catch (Exception e) {
+            log.error("流式请求启动失败，sessionId: {}, 错误：{}", sessionId, e.getMessage(), e);
+            if (!isSumUp) ChatContextMap.delContext(sessionId);
+            sink.tryEmitError(e);
+        }
+        return sink.asFlux();
+    }
+
+    /**
+     * 发送流式 HTTP 请求
+     * <p>
+     * 与普通请求的 sendRequest 方法对齐，负责：
+     * 1. 获取 API Key
+     * 2. 构造 HTTP 请求
+     * 3. 执行 HTTP 异步请求
+     * 4. 判断 HTTP 状态码
+     * 5. SSE 数据桥接到 sink
+     * <p>
+     * 注意：流式请求不支持重试机制
+     */
+    private void sendStreamRequest(ChatRequiredPara para, VignaMsgContext context, String requestJson,
+                                   Sinks.Many<String> sink, boolean isSumUp) {
+        AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
+        final String sessionId = para.getSessionId();
+        String apiKey = keyServlet.getApiKey(config);
+        if (MyStringUtil.isNull(apiKey)) {
+            if (!isSumUp) ChatContextMap.delContext(sessionId);//终止性错误进行处理
+            sink.tryEmitError(new OperationException("错误!APIkey 读取失败!"));
+            return;
+        }
+        //流式请求不实现重试机制，只尝试一次
+        int maxTrySize = 1;
+        //更新本次尝试信息
+        context.setTrySize(1);
+        context.setSendTime(new Date());
+        context.setOutTime(config.getTimeout());
+        //更新上下文
+        ChatContextMap.setContext(sessionId, context);
+        try {
+            log.info("执行流式请求，sessionId: {}, 尝试次数：{}/{}",
+                     sessionId, 1, maxTrySize);
+            //记录发送信息到 AI 全量收发日志 (API Key 脱敏)
+            aiMsgLog.info("【发送流式请求】sessionId={}, 目标 URL={}, APIKey={}, 请求体={}",
+                          sessionId, config.getBaseUrl(), maskApiKey(apiKey), requestJson);
+            //构造异步 HTTP 请求 (SSE)
             SimpleHttpRequest request = SimpleRequestBuilder.post(config.getBaseUrl())
                     .setHeader("Authorization", "Bearer " + apiKey)
                     .setHeader("Content-Type", "application/json")
                     .setHeader("Accept", "text/event-stream")
                     .setBody(requestJson, ContentType.APPLICATION_JSON)
                     .build();
-            //更新上下文
-            context.setTrySize(1);
-            context.setSendTime(new Date());
-            context.setSum(false);//流式请求禁用总结模式
-            context.setOutTime(config.getTimeout());
-            ChatContextMap.setContext(sessionId, context);
-            log.info("即将开始流式请求:{},原始参数:{}", sessionId, requestJson);
-            // 记录发送信息到 AI 全量收发日志(API Key 脱敏)
-            aiMsgLog.info("【发送流式请求】sessionId={}, 目标URL={}, APIKey={}, 请求体={}",
-                          sessionId, config.getBaseUrl(), maskApiKey(apiKey), requestJson);
-            
-            //执行异步请求,把 SSE 增量桥接到 sink
+
+            //执行异步请求，把 SSE 增量桥接到 sink
             httpAsyncClient.execute(
                     SimpleRequestProducer.create(request),
                     new AbstractCharResponseConsumer<Void>() {
                         private final StringBuilder lineBuffer = new StringBuilder();
-                        
+
                         @Override
                         public void releaseResources() {
-                            //ResourceHolder 接口抽象方法,流式场景无需额外释放资源
+                            //ResourceHolder 接口抽象方法，流式场景无需额外释放资源
                         }
-                        
+
                         @Override
                         protected void start(HttpResponse response, ContentType contentType) throws IOException {
                             int code = response.getCode();
                             if (code < 200 || code >= 300) {
-                                throw new IOException(String.format("流式请求失败, HTTP %d", code));
+                                throw new IOException(String.format("流式请求失败，HTTP %d", code));
                             }
                         }
-                        
+
                         @Override
                         protected int capacityIncrement() {
                             return Integer.MAX_VALUE;
                         }
-                        
+
                         @Override
                         protected void data(CharBuffer src, boolean endOfStream) {
                             while (src.hasRemaining()) {
@@ -472,12 +502,12 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                                 sink.tryEmitComplete();
                             }
                         }
-                        
+
                         @Override
                         protected Void buildResult() {
                             return null;
                         }
-                        
+
                         @Override
                         public void failed(Exception cause) {
                             sink.tryEmitError(cause);
@@ -485,11 +515,10 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                     },
                     null);
         } catch (Exception e) {
-            log.error("流式请求启动失败, sessionId: {}, 错误: {}", sessionId, e.getMessage(), e);
+            log.error("流式请求执行失败，sessionId: {}, 错误：{}", sessionId, e.getMessage(), e);
             if (!isSumUp) ChatContextMap.delContext(sessionId);
             sink.tryEmitError(e);
         }
-        return sink.asFlux();
     }
     
     
