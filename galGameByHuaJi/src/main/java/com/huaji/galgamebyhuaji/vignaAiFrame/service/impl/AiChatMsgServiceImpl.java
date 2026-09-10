@@ -9,6 +9,7 @@ import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaMessageNode;
 import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaSessionNode;
 import com.huaji.galgamebyhuaji.vignaAiFrame.node.repository.MsgRepository;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
+import com.huaji.galgamebyhuaji.vignaAiFrame.vo.VignaMsgTree;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.cypherdsl.core.Cypher;
@@ -21,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
+
+import static org.neo4j.cypherdsl.core.Cypher.node;
 
 @Service
 @Slf4j
@@ -53,10 +56,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
                 continue;//不把总结信息塞进去,因为总结只标记了用户发送的请求
                 //总结节点的模式: 用户身份调用总结提示词发送的请求->ai回复
             }
-            VignaMsg msg = new VignaMsg();
-            msg.setRole(VignaRole.getType(node.getRole()));
-            msg.setContent(node.getContent());
-            msg.setIndex(node.getTurnIndex());
+            VignaMsg msg = new VignaMsg(node);
             result.add(msg);
         }
         // 当前遍历为新 -> 旧，最终返回旧 -> 新
@@ -65,13 +65,13 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     }
     
     private List<VignaMessageNode> queryMessageChain(String sessionId, String msgId) {
-        Node msg = Cypher.node("VignaMessage").named("msg");
-        Node previous = Cypher.node("VignaMessage").named("p");
+        Node msg = node("VignaMessage").named("msg");
+        Node previous = node("VignaMessage").named("p");
         NamedPath path = Cypher.path("path").definedBy(
                 msg.relationshipTo(previous, "LAST").min(0));
         Statement statement;
         if (MyStringUtil.isNull(msgId)) {
-            Node session = Cypher.node("VignaSession").named("s");
+            Node session = node("VignaSession").named("s");
             statement = Cypher.match(session)
                     .where(session.property("sessionId")
                                    .isEqualTo(Cypher.parameter("sessionId", sessionId)))
@@ -189,5 +189,63 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     public VignaMessageNode getMsgNode(String msgId) {
         Optional<VignaMessageNode> byId = neo4jTemplate.findById(msgId, VignaMessageNode.class);
         return byId.orElse(null);
+    }
+    
+    @Override
+    public List<VignaMsg> getMsgByIds(List<String> idList) {
+        /*
+        MATCH(n:VignaMessage) WHERE n.messageId IN ['msg_2026_09_06_00_24_35_7e05fc8c-68de-415e-8eee-e6','msg_2026_09_06_00_24_03_fea7a0fe-c6df-4eb1-8115-47']
+RETURN n
+         */
+        Node msg = node("VignaMessage").named("msg");
+        Statement statement = Cypher.match(msg)
+                .where(msg.property("messageId").in(Cypher.parameter("messageId", idList)))
+                .returning("n").build();
+        Collection<VignaMessageNode> all = msgRepository.findAll(statement);
+        if (all.isEmpty())
+            return List.of();
+        return all.stream().map(VignaMsg::new).toList();
+    }
+    @Override
+    public List<VignaMsgTree> getTree(String sessionId) {
+        /*
+            MATCH (n:VignaMessage {sessionId: 'session-002'})
+            RETURN {
+                id: n.messageId,
+                timestamp: n.timestamp,
+                parentId: head([ (n)-[:LAST]->(p) | p.messageId ]),
+                editIds: [ (n)-[:MODIFY]->(m) | m.messageId ],
+                retryIds: [ (n)-[:RETRY]->(r) | r.messageId ]
+            } AS nodeData
+            ORDER BY n.timestamp
+         */
+        Node n = Cypher.node("VignaMessage").named("n");
+        Node p = Cypher.node("VignaMessage").named("p");
+        Node m = Cypher.node("VignaMessage").named("m");
+        Node r = Cypher.node("VignaMessage").named("r");
+        
+        var parentIdExpr = Cypher.head(
+                Cypher.listBasedOn(n.relationshipTo(p, "LAST"))
+                        .returning(p.property("messageId")));
+        var editIdsExpr = Cypher.listBasedOn(n.relationshipTo(m, "MODIFY"))
+                .returning(m.property("messageId"));
+        var retryIdsExpr = Cypher.listBasedOn(n.relationshipTo(r, "RETRY"))
+                .returning(r.property("messageId"));
+        
+        var statement = Cypher.match(n)
+                .where(n.property("sessionId")
+                               .isEqualTo(Cypher.parameter("sessionId", sessionId)))
+                .returning(
+                        n.property("messageId").as("id"),
+                        n.property("timestamp").as("timestamp"),
+                        parentIdExpr.as("parentId"),
+                        editIdsExpr.as("editIds"),
+                        retryIdsExpr.as("retryIds"))
+                .orderBy(n.property("timestamp"))
+                .build();
+        Collection<VignaMsgTree> all = neo4jTemplate.findAll(statement, VignaMsgTree.class);
+        if (all.isEmpty())
+            return List.of();
+        return new ArrayList<>(all);
     }
 }

@@ -125,8 +125,11 @@ public class VignaChatInscriberAdvisor implements MyBaseAdvisor {
             ChatContextMap.setContext(sessionId, context);
             return;
         }
+        if (context.isSum())
+            node.setContent(reply == null ? "ai回复获取解析失败或者ai模型返回了空回复" : "[system Summary of Chat records]:"+reply.getContent());
+        else
+            node.setContent(reply == null ? "ai回复获取解析失败或者ai模型返回了空回复" : reply.getContent());
         //存放AI聊天记录
-        node.setContent(reply == null ? "ai回复获取解析失败或者ai模型返回了空回复" : reply.getContent());
         node.setIsSummary(false);//因为会过滤总结内容请求,这里设置为false
         node.setError(false);
         VignaMessageNode vignaMessageNode = msgService.setData(node, sessionId, true);

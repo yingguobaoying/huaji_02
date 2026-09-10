@@ -55,6 +55,9 @@ public class VignaChatClientConfig {
         }
         return getChatClient(chatClientId) != null;
     }
+    public static boolean idState(long code) {
+        return getChatClient(code) != null;
+    }
     
     public void info() {
         String banner =

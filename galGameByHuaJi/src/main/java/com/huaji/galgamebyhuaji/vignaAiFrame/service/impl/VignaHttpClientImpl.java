@@ -11,6 +11,7 @@ import com.huaji.galgamebyhuaji.myUtil.ElseUtil;
 import com.huaji.galgamebyhuaji.myUtil.ListUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.myUtil.ObjectUtil;
+import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
 import com.huaji.galgamebyhuaji.vignaAiFrame.ChatContextMap;
 import com.huaji.galgamebyhuaji.vignaAiFrame.config.VignaHttpClientFactory;
 import com.huaji.galgamebyhuaji.vignaAiFrame.constant.AiPromptTemplate;
@@ -190,6 +191,8 @@ public class VignaHttpClientImpl extends VignaBaseClient {
             systemMsg.setContent(config.getContent());
             context.setSystemMsg(systemMsg);
         }
+        systemMsg.setContent(
+                systemMsg.getContent() + "\n#当前系统时间:[%s]".formatted(TimeUtil.getVisualDateFormatTime()));
         // 这里只负责按照 index 排序
         List<VignaMsg> historyMsgList =
                 context.getHistoryMsgList();
@@ -370,65 +373,69 @@ public class VignaHttpClientImpl extends VignaBaseClient {
     public Flux<String> sendAiMsgByStream(ChatRequiredPara para) {
         AiClientConfigWithBLOBs config = ObjectUtil.mergeObject(this.config, para.getConfig());
         final String sessionId = para.getSessionId();
-        final boolean isSumUp = para.isSumUp();
-        //桥接 sink:multicast 支持多订阅者(本地记录 + 外部消费)
+        // 桥接 sink
         final Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer(1024, false);
-        
-        //本地订阅:累积完整内容,并在流式请求彻底完成后触发后置过滤器链
         final StringBuilder aiContent = new StringBuilder();
+        
+        // 订阅处理：无论完成或错误，最终执行 afterAdvise
         sink.asFlux()
                 .doOnNext(aiContent::append)
                 .doFinally(signal -> {
-                    if (signal == SignalType.ON_COMPLETE) {
-                        //流式请求彻底完成:写回上下文并触发后置过滤器链(记录AI回复)
-                        finishStreamContext(sessionId, aiContent.toString());
-                    } else {
-                        //出错或被取消:清理上下文(总结请求除外)
-                        if (!isSumUp) ChatContextMap.delContext(sessionId);
-                        log.error("流式请求出错!已经记录的内容如下{}", aiContent);
+                    try {
+                        if (signal == SignalType.ON_COMPLETE) {
+                            // 完成：设置完整 AI 回复内容
+                            finishStreamContext(sessionId, aiContent.toString()); // 仅设置 aiReply，不调用 afterAdvise
+                        } else if (signal == SignalType.ON_ERROR) {
+                            // 错误：标记上下文错误状态
+                            VignaMsgContext context = ChatContextMap.getContext(sessionId);
+                            if (context != null) {
+                                context.setError(true);
+                                context.setErrorMsg("流式响应异常");
+                                ChatContextMap.setContext(sessionId, context);
+                            }
+                        }
+                        // 统一执行后置过滤器链（包含上下文清理）
+                        afterAdvise(sessionId);
+                    } catch (Exception e) {
+                        log.error("流式请求后置处理异常, sessionId: {}", sessionId, e);
                     }
                 })
                 .subscribe();
-        
         try {
-            //必要信息检查
+            // 必要信息检查
             checkRequiredInfo(para);
-            final ObjectMapper objectMapper = ObjectUtil.getObjectMapper();
-            //前导过滤器链
+            // 前导过滤器链
             beforeAdvise(sessionId);
-            //获取上下文,这里能触发自动总结
+            final ObjectMapper objectMapper = ObjectUtil.getObjectMapper();
             VignaMsgContext context = ChatContextMap.getContext(sessionId);
             if (context == null) {
                 sink.tryEmitError(new OperationException("请求上下文不存在，可能已被提前清理"));
                 return sink.asFlux();
             }
             String requestJson = buildRequest(para, context, objectMapper, true);
-            //获取 API Key
             String apiKey = keyServlet.getApiKey(config);
             if (MyStringUtil.isNull(apiKey)) {
-                if (!isSumUp) ChatContextMap.delContext(sessionId);//终止性错误进行处理
                 sink.tryEmitError(new OperationException("错误!APIkey读取失败!"));
                 return sink.asFlux();
             }
-            //构造异步 HTTP 请求(SSE)
+            
             SimpleHttpRequest request = SimpleRequestBuilder.post(config.getBaseUrl())
                     .setHeader("Authorization", "Bearer " + apiKey)
                     .setHeader("Content-Type", "application/json")
                     .setHeader("Accept", "text/event-stream")
                     .setBody(requestJson, ContentType.APPLICATION_JSON)
                     .build();
-            //更新上下文
+            
             context.setTrySize(1);
             context.setSendTime(new Date());
-            context.setSum(false);//流式请求禁用总结模式
+            context.setSum(false);
             context.setOutTime(config.getTimeout());
             ChatContextMap.setContext(sessionId, context);
+            
             log.info("即将开始流式请求:{},原始参数:{}", sessionId, requestJson);
-            // 记录发送信息到 AI 全量收发日志(API Key 脱敏)
             aiMsgLog.info("【发送流式请求】sessionId={}, 目标URL={}, APIKey={}, 请求体={}",
                           sessionId, config.getBaseUrl(), maskApiKey(apiKey), requestJson);
             
-            //执行异步请求,把 SSE 增量桥接到 sink
             httpAsyncClient.execute(
                     SimpleRequestProducer.create(request),
                     new AbstractCharResponseConsumer<Void>() {
@@ -436,7 +443,7 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                         
                         @Override
                         public void releaseResources() {
-                            //ResourceHolder 接口抽象方法,流式场景无需额外释放资源
+                            // no-op
                         }
                         
                         @Override
@@ -464,7 +471,6 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                                 }
                             }
                             if (endOfStream) {
-                                //处理缓冲区可能残留的最后一行
                                 String lastLine = lineBuffer.toString().trim();
                                 if (!lastLine.isEmpty()) {
                                     handleSseLine(lastLine, sink);
@@ -486,12 +492,29 @@ public class VignaHttpClientImpl extends VignaBaseClient {
                     null);
         } catch (Exception e) {
             log.error("流式请求启动失败, sessionId: {}, 错误: {}", sessionId, e.getMessage(), e);
-            if (!isSumUp) ChatContextMap.delContext(sessionId);
             sink.tryEmitError(e);
         }
+        
         return sink.asFlux();
     }
     
+    /**
+     * 流式请求完成：仅将完整内容写回上下文，不触发后置过滤器链
+     */
+    private void finishStreamContext(String sessionId, String aiContent) {
+        VignaMsgContext context = ChatContextMap.getContext(sessionId);
+        if (context == null) {
+            log.warn("流式请求收尾时上下文不存在, sessionId: {}", sessionId);
+            return;
+        }
+        context.setFinishReason(aiContent);
+        VignaMsg aiMsg = new VignaMsg();
+        aiMsg.setRole(VignaRole.ai);
+        aiMsg.setContent(aiContent);
+        context.setAiReply(aiMsg);
+        ChatContextMap.setContext(sessionId, context);
+        aiMsgLog.info("【接收流式响应】sessionId={}, 响应内容={}", sessionId, aiContent);
+    }
     
     /**
      * 解析单行 SSE 数据,提取 content 增量并发射到 sink
@@ -515,31 +538,6 @@ public class VignaHttpClientImpl extends VignaBaseClient {
             }
         } catch (JsonProcessingException e) {
             log.warn("解析流式响应块失败, 原始数据: {}", data, e);
-        }
-    }
-    
-    /**
-     * 流式请求彻底完成后的收尾:把完整内容写回上下文并触发后置过滤器链
-     */
-    private void finishStreamContext(String sessionId, String aiContent) {
-        try {
-            VignaMsgContext context = ChatContextMap.getContext(sessionId);
-            if (context == null) {
-                log.warn("流式请求收尾时上下文不存在, sessionId: {}", sessionId);
-                return;
-            }
-            //流式响应没有完整 JSON,这里把拼接后的完整内容记录下来
-            context.setFinishReason(aiContent);
-            VignaMsg aiMsg = new VignaMsg();
-            aiMsg.setRole(VignaRole.ai);
-            aiMsg.setContent(aiContent);
-            context.setAiReply(aiMsg);
-            ChatContextMap.setContext(sessionId, context);
-            // 记录接收信息到 AI 全量收发日志
-            aiMsgLog.info("【接收流式响应】sessionId={}, 响应内容={}", sessionId, aiContent);
-            afterAdvise(sessionId);
-        } catch (Exception e) {
-            log.error("流式请求收尾处理失败, sessionId: {}, 错误: {}", sessionId, e.getMessage(), e);
         }
     }
     

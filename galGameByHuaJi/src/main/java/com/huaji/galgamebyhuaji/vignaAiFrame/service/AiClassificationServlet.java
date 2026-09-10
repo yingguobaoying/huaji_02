@@ -1,6 +1,9 @@
 package com.huaji.galgamebyhuaji.vignaAiFrame.service;//package com.huaji.galgamebyhuaji.service.ai;
 
 import com.huaji.galgamebyhuaji.entity.AiClassification;
+import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
+
+import java.util.List;
 
 public interface AiClassificationServlet {
 	String user_view_cache_key = "Vigna_thinks";
@@ -13,4 +16,6 @@ public interface AiClassificationServlet {
 	void addDate (AiClassification classification);
 	
 	void delDate (Long classificationId);
+	
+	List<AiClientConfigWithBLOBs> getList(int userId);
 }

@@ -99,7 +99,7 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
                 context = ChatContextMap.getContext(sessionId);//重新获取上下文避免jvm拿缓存
                 returnMst.setIndex(userMsg.getIndex() + 2);//请求提示词跨了一个请求消息
                 userMsg.setIndex(returnMst.getIndex() + 1);//
-                returnMst.setContent("[System Summary]:" + zipReturnResult.getReturnResult());
+                returnMst.setContent("[system Summary of Chat records]:" + zipReturnResult.getReturnResult());
                 returnMst.setRole(VignaRole.sum);
                 context.getHistoryMsgList().add(returnMst);
                 context.setContent(userMsg);

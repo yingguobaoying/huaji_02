@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.service;//package com.huaji.galgam
 
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
 import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaMessageNode;
+import com.huaji.galgamebyhuaji.vignaAiFrame.vo.VignaMsgTree;
 
 import java.util.List;
 
@@ -60,4 +61,8 @@ public interface AiChatMsgService {
     VignaMessageNode setData(VignaMessageNode msg, String sessionId, boolean updateSession);
     
     VignaMessageNode getMsgNode(String msgId);
+    
+    List<VignaMsg> getMsgByIds(List<String> idList);
+    
+    List<VignaMsgTree> getTree(String sessionId);
 }

@@ -3,7 +3,6 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.service.impl;//package com.huaji.g
 import com.huaji.galgamebyhuaji.dao.AiClassificationMapper;
 import com.huaji.galgamebyhuaji.dao.AiClientConfigMapper;
 import com.huaji.galgamebyhuaji.entity.AiClassification;
-import com.huaji.galgamebyhuaji.entity.AiClientConfigExample;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.myUtil.ListUtil;
@@ -54,7 +53,7 @@ public class AiClassificationServletImpl implements AiClassificationServlet {
                 cache.evict(userId + ":" + config);
         WriteError.tryWrite(classificationMapper.deleteByPrimaryKey(classificationId));
     }
-    
+    @Override
     public List<AiClientConfigWithBLOBs> getList(int userId) {
         List<AiClassification> userViewList = classificationMapper.getUserViewList(userId);
         if (ListUtil.isNull(userViewList))

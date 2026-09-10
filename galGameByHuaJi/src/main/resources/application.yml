@@ -127,7 +127,7 @@ mail:
 resource-save-path: 'D:\temp\tomcat-work\work\Tomcat\localhost\static'
 #资源存放位置
 ai:
-#  触发上下文自动压缩的轮数
-  chat-record-size: 4
+#  触发上下文自动压缩的轮数.对于云模型5轮差不多了
+  chat-record-size: 10
 #  触发上下文压缩的字符数量
-  chat-token-size: 1000
+  chat-token-size: 15000
