@@ -33,7 +33,7 @@ public class StrongAuthenticationEntryPoint implements AuthenticationEntryPoint 
             byd.setMsg("您的权限不足,无法进行此操作");
         } else if (authException instanceof AuthenticationServiceException ||
                    authException instanceof BadCredentialsException) {
-            byd.operationError("Token无效或验证失败,请重新登录后重试",null, 2007);
+            byd.operationError("Token无效或验证失败,请重新登录后重试", null, 2007);
         } else {
             byd.setMsg(authException.getMessage());
         }
@@ -41,8 +41,7 @@ public class StrongAuthenticationEntryPoint implements AuthenticationEntryPoint 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.writeValue(response.getOutputStream(), byd);
         // 记录日志
-        log.error(
-                "强认证失败: 路径={}, 原因={}, IP={}",
-                request.getServletPath(), authException.getMessage(), ElseUtil.getClientIp(request));
+        log.error("强认证失败: 路径={}, 原因={}, IP={}",
+                  request.getServletPath(), authException.getMessage(), ElseUtil.getClientIp(request));
     }
 }

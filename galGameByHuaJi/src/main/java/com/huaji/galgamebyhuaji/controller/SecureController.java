@@ -30,9 +30,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 @ResponseBody
 public class SecureController {
-	final EmailService emailService;
-	final SecureServlet secureServlet;
-	final UserMxgServlet userMxgServlet;
+	private final EmailService emailService;
+	private final SecureServlet secureServlet;
+	private final UserMxgServlet userMxgServlet;
 	
 	//就参数我就懒得新建一个接收类了
 	@PostMapping("/lostPassword")

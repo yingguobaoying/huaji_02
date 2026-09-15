@@ -28,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @ResponseBody
 public class UserManageController extends BaseController {
-    final LoginService loginService;
+    private final LoginService loginService;
     private final RootServlet rootServlet;
     private final SecureServlet secureServlet;
     

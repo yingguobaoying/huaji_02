@@ -164,12 +164,4 @@ public class LoginServiceAspect {
 			return "凭据提取异常";
 		}
 	}
-	
-	/**
-	 * 邮箱脱敏处理
-	 */
-	private String maskEmail(String email) {
-		
-		return email.substring(0, 2) + "***";
-	}
 }

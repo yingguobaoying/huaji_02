@@ -32,10 +32,10 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 public class UserBehaviorServiceImpl implements UserBehaviorService {
-	final UserResourceRepositoryMapper mapper;
-	final ResourcesFileMapMapper resourcesFileMap;
-	final UsersMapper usersMapper;
-	final UserResourceUtil util;
+	private final UserResourceRepositoryMapper mapper;
+	private final ResourcesFileMapMapper resourcesFileMap;
+	private final UsersMapper usersMapper;
+	private final UserResourceUtil util;
 	private final LinksMapper linksMapper;
 	private final CommentMapper commentMapper;
 	private final UserMxgServlet mxgServlet;

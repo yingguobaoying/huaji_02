@@ -25,8 +25,8 @@ import static com.huaji.galgamebyhuaji.myUtil.ElseUtil.getToken;
 @ResponseBody
 @RequiredArgsConstructor
 public class UserBehaviorController extends BaseController {
-    final UserMxgServlet userMxgServlet;
-    final TokenService tokenService;
+    private final UserMxgServlet userMxgServlet;
+    private final TokenService tokenService;
     
     
     @GetMapping("/getUserMxg")

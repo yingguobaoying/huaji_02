@@ -86,7 +86,7 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
             //设置用户提示内容,避免ai因为长上下文导致的错误回复
             VignaMsg msg = new VignaMsg();
             msg.setRole(VignaRole.user);
-            msg.setContent("[system out]: 请按照提示词设置,客观的总结以上传入的上下文信息(请勿带入对话),并且在总结的时候需要忽略此消息,以保证用户体验和之后的AI总结不会出错");
+            msg.setContent("[system output]: 请按照提示词设置,客观的总结以上传入的上下文信息(请勿带入对话),并且在总结的时候需要忽略此消息,以保证用户体验和之后的AI总结不会出错");
             context.setContent(msg);
             ChatContextMap.setContext(sessionId, context);
             log.info("会话{}上下文窗口压缩流程准备开始", sessionId);
@@ -128,6 +128,10 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
         if (context == null) throw new OperationException("请求上下文不存在，可能已被提前清理");
         //计算回复信息的下标
         VignaMsg reply = context.getAiReply();
+        if(reply==null){
+            log.warn("ai请求返回空体!已跳过下标计算");
+            return;
+        }
         reply.setIndex(context.getContent().getIndex() + 1);
         context.setAiReply(reply);
     }

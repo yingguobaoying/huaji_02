@@ -16,28 +16,28 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SelectServletImpl implements SelectServlet {
-	final ResourcesMapper resourcesMapper;
-	
-	
-	@Override
-	public int getSearchResourceSize(Resources rMsg, List<Integer> tag, int tagSize) {
-		tagSize = Math.min(tag.size(), tagSize);
-		return resourcesMapper.getSelectResourcesSize(rMsg, tag, tagSize);
-	}
-	
-	@Override
-	public List<Resources> searchResource(Resources rMsg, List<Integer> tag, int tagSize, PageUtil pageMsg) {
-		tagSize = Math.min(tag.size(), tagSize);
-		rMsg = MyStringUtil.setNull(rMsg);
-		List<Resources> resources = resourcesMapper.selectResources(rMsg, tag, tagSize, pageMsg);
-		for (Resources r : resources)
-			r.setrJpeg(FileUtil.toRelativeUrl(r.getrJpeg(), FileCategory.IMG));
-		return resources;
-	}
-	
-	@Override
-	public List<Users> searchUser(Integer uId, String uName, PageUtil pageMsg) {
-		return List.of();
-	}
-	
+    private final ResourcesMapper resourcesMapper;
+    
+    
+    @Override
+    public int getSearchResourceSize(Resources rMsg, List<Integer> tag, int tagSize) {
+        tagSize = Math.min(tag.size(), tagSize);
+        return resourcesMapper.getSelectResourcesSize(rMsg, tag, tagSize);
+    }
+    
+    @Override
+    public List<Resources> searchResource(Resources rMsg, List<Integer> tag, int tagSize, PageUtil pageMsg) {
+        tagSize = Math.min(tag.size(), tagSize);
+        rMsg = MyStringUtil.setNull(rMsg);
+        List<Resources> resources = resourcesMapper.selectResources(rMsg, tag, tagSize, pageMsg);
+        for (Resources r : resources)
+            r.setrJpeg(FileUtil.toRelativeUrl(r.getrJpeg(), FileCategory.IMG));
+        return resources;
+    }
+    
+    @Override
+    public List<Users> searchUser(Integer uId, String uName, PageUtil pageMsg) {
+        return List.of();
+    }
+    
 }

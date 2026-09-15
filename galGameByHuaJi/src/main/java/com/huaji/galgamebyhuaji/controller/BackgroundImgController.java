@@ -2,12 +2,9 @@ package com.huaji.galgamebyhuaji.controller;
 
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
-import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
-import com.huaji.galgamebyhuaji.service.RootServlet;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +21,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @RestController
 @Slf4j
 public class BackgroundImgController {
-    @Autowired
-    RootServlet rootServlet;
-    
     //由于这玩意是非常固定的东西,这里直接在控制器里面写了
     @GetMapping("/api/getImgList")
     public ReturnResult<String> getBackgroundImg() {
@@ -69,14 +63,6 @@ public class BackgroundImgController {
         updateFileNameList(
                 new File(FileUtil.formatUrl(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background"))
         );
-        //顺便把root刷了
-        try {
-            rootServlet.rootUserInit();
-        } catch (SessionExceptions e) {
-            log.error("刷新root用户时出错:{}", e.getMessage());
-        } catch (Exception e) {
-            log.error("刷新root用户时出错", e);
-        }
     }
     
     public static void updateFileNameList(File URL) {

@@ -9,6 +9,7 @@ import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
 import com.huaji.galgamebyhuaji.vignaAiFrame.model.ChatServicePara;
 import com.huaji.galgamebyhuaji.vignaAiFrame.myenum.VignaRole;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
+import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiClassificationServlet;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.UserWithVignaChat;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.VignaAiChat;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.VignaSessionService;
@@ -35,6 +36,7 @@ public class AiChatController extends BaseController {
     private final AiChatMsgService msgService;
     private final VignaAiChat chatService;
     private final VignaSessionService sessionService;
+    private final AiClassificationServlet classificationServlet;
     
     @GetMapping("/getUserSessionList")
     public ReturnResult<Map<String, List<VignaMsg>>> gerUserSessionList() {
@@ -66,7 +68,11 @@ public class AiChatController extends BaseController {
             return ReturnResult.isFalse(testResult.getFieldError() ==
                                         null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
         //进行对话
-        return vignaChatLock(() -> chatService.vignaAiChat(getPara(pram)), pram.getSessionId());
+        return vignaChatLock(() -> {
+            if (classificationServlet.userCanSee(getLoginUser().getUserId(), pram.getClientId()))
+                return chatService.vignaAiChat(getPara(pram));
+            return ReturnResult.isFalse("请求失败!因为您没有访问该模型的权限");
+        }, pram.getSessionId());
     }
     
     
@@ -78,8 +84,18 @@ public class AiChatController extends BaseController {
             throw new OperationException(
                     testResult.getFieldError() ==
                     null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
-        //进行对话
-        return vignaChatLock(() -> chatService.vignaAiChatByStream(getPara(pram)), pram.getSessionId());
+        String sessionId = pram.getSessionId();
+        return GlobalLock.safeExecute(getLoginUser().getUserId(), () -> {
+            int i = sessionService.sessionLeisure(sessionId);
+            if (i == 2)
+                throw new OperationException("对话失败,因为当前会话正在被使用!");
+            else if (i == 0) {
+                throw new OperationException("对话失败,因为当前会话不存在!");
+            }
+            sessionService.lockSession(sessionId);
+            Flux<String> flux = chatService.vignaAiChatByStream(getPara(pram));
+            return flux.doAfterTerminate(() -> sessionService.unlockSession(sessionId));
+        });
     }
     
     private ChatServicePara getPara(@RequestBody @Valid VignaChatUserPram pram) {
@@ -89,7 +105,7 @@ public class AiChatController extends BaseController {
         VignaMsg vignaMsg = new VignaMsg();
         vignaMsg.setContent(pram.getContent());
         vignaMsg.setRole(VignaRole.user);
-        pram.setMsgId(para.getMsgId());
+        para.setMsgId(pram.getMsgId());
         para.setMsg(vignaMsg);
         para.setMsgId(pram.getMsgId());
         para.setUserId(getLoginUser().getUserId());
@@ -99,8 +115,12 @@ public class AiChatController extends BaseController {
     
     private <T> T vignaChatLock(Supplier<T> action, String sessionId) {
         return GlobalLock.safeExecute(getLoginUser().getUserId(), () -> {
-            if (sessionService.sessionLeisure(sessionId) == 1)
+            int i = sessionService.sessionLeisure(sessionId);
+            if (i == 2)
                 throw new OperationException("对话失败,因为当前会话正在被使用!");
+            else if (i == 0) {
+                throw new OperationException("对话失败,因为当前会话不存在!");
+            }
             sessionService.lockSession(sessionId);
             try {
                 return action.get();

@@ -33,8 +33,8 @@ import java.util.List;
 @ResponseBody
 @Slf4j
 public class ResourcesController extends BaseController {
-    final ResourcesService resourcesService;
-    final ResourcesFileService resourcesFileService;
+    private final ResourcesService resourcesService;
+    private final ResourcesFileService resourcesFileService;
     
     @PostMapping("/resources/add")
     @PreAuthorize("hasRole('RESOURCES_SHARE_JURISDICTION')")

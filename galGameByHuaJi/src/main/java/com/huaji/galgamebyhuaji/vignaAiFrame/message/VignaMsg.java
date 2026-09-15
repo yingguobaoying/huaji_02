@@ -53,8 +53,12 @@ public class VignaMsg {
             root.put("content", content);
         else {
             if (timestamp == null) timestamp = OffsetDateTime.now();
-            root.put("content", content + "\n[system out]:此信息发送时间:%s".formatted(timestamp));
+            root.put("content", content + "\n[system output]:此信息发送于：%s".formatted(timestamp));
         }
         return root;
+    }
+    //占位方法
+    public ObjectNode getToolJson(){
+        return null;
     }
 }

@@ -106,7 +106,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     }
     
     @Override
-    @Transactional
+    @Transactional(transactionManager = "neo4jTransactionManager")
     public VignaMessageNode editData(String msgId, String sessionId, VignaMsg msg, Long clientID) {
         //检查是否满足插入条件
         if (msg == null || MyStringUtil.isNull(msgId))
@@ -134,7 +134,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     }
     
     @Override
-    @Transactional
+    @Transactional(transactionManager = "neo4jTransactionManager")
     public VignaMessageNode retry(String msgId, String sessionId, VignaMsg msg, Long clientID) {
         //检查是否满足插入条件
         if (msg == null || MyStringUtil.isNull(msgId))
@@ -162,7 +162,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     }
     
     @Override
-    @Transactional
+    @Transactional(transactionManager = "neo4jTransactionManager")
     public VignaMessageNode setData(VignaMessageNode msg, String sessionId, boolean updateSession) {
         if (msg == null) throw new OperationException("消息内容为空");
         VignaSessionNode session = neo4jTemplate.findById(sessionId, VignaSessionNode.class)

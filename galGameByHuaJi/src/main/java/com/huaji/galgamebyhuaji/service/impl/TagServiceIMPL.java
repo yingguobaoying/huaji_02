@@ -18,8 +18,8 @@ import java.util.Map;
 @Transactional
 @RequiredArgsConstructor
 public class TagServiceIMPL implements TagService {
-	final TagMapper tagMapper;
-	final RedisMemoryService redisMemoryService;
+	private final TagMapper tagMapper;
+	private final RedisMemoryService redisMemoryService;
 	
 	@Override
 	public ReturnResult<Tag> addTag (Tag tag) {

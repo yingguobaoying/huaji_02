@@ -23,7 +23,7 @@ import java.util.Iterator;
 @Controller
 @RequiredArgsConstructor
 public class HealthProbeController {
-    final StrongAuthenticationFilter StrongAuthenticationEntryPoint;
+    private final StrongAuthenticationFilter StrongAuthenticationEntryPoint;
     
     //当出现错误无法被spring security 捕抓时作为备用手段
     @GetMapping(path = {"/api/error/dispose", "/error"})

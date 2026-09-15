@@ -17,7 +17,7 @@ public class Neo4jConfig {
     }
     
     @Bean
-    public Neo4jTransactionManager transactionManager(Driver driver) {
+    public Neo4jTransactionManager neo4jTransactionManager(Driver driver) {
         return new Neo4jTransactionManager(driver);
     }
 }

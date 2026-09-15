@@ -20,8 +20,8 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 public class CollectServletImpl implements CollectServlet {
-	final FenMapper fenMapper;
-	final ResourcesService resourcesService;
+	private final FenMapper fenMapper;
+	private final ResourcesService resourcesService;
 	
 	/**
 	 * 取消收藏资源

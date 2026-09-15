@@ -31,6 +31,7 @@ public class ChatContextMap {
 			// 如果上下文为 null，或者被标记为删除，则移除
 			// 使用 remove(key, value) 确保只删除当前版本的 Context，防止误删新写入的 Context
 			if ( context == null || context.isDel() ) {
+				log.info("清理超时上下文:key{ {} }value{ {} }", key,context);
 				contextMap.remove(key, context);
 			}
 		}

@@ -46,17 +46,12 @@ import static com.huaji.galgamebyhuaji.constant.Constant.CHECK_IN_SCORE;
 @RequiredArgsConstructor
 @Slf4j
 public class LoginServiceIMPL implements LoginService {
-    final UsersMapper usersMapper;
-    final
-    PasswordEncryptionUtil passwordEncryptionUtil;
-    final
-    SessionService sessionService;
-    final
-    RedisMemoryService redisMemoryService;
-    final
-    TokenService tokenService;
-    final
-    RootServlet rootServlet;
+    private final UsersMapper usersMapper;
+    private final PasswordEncryptionUtil passwordEncryptionUtil;
+    private final SessionService sessionService;
+    private final RedisMemoryService redisMemoryService;
+    private final TokenService tokenService;
+    private final RootServlet rootServlet;
     private static final String EMAIL_REGEX =
             "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+)*" +
             "@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";

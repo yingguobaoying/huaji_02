@@ -52,7 +52,7 @@ public class UserWithVignaChatImpl implements UserWithVignaChat {
          */
         Statement statement = Cypher
                 .match(session)
-                .where(session.property("sessionId")
+                .where(session.property("userId")
                                .isEqualTo(Cypher.parameter("userId", userId)))
                 .returning("s").build();
         Collection<VignaSessionNode> sessionNodes = sessionRepository.findAll(statement);
@@ -65,7 +65,7 @@ public class UserWithVignaChatImpl implements UserWithVignaChat {
                 message.relationshipTo(previous, "LAST").min(0));
         statement = Cypher
                 .match(session)
-                .where(session.property("sessionId")
+                .where(session.property("userId")
                                .isEqualTo(Cypher.parameter("userId", userId)))
                 .match(path)
                 .where(Cypher.not(message.relationshipTo(Cypher.anyNode(), "LAST")))

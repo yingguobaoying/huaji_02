@@ -17,30 +17,29 @@ import java.util.List;
 @ResponseBody
 @RequiredArgsConstructor
 public class CollectController extends BaseController {
-	final
-	CollectServlet collectServlet;
-	
-	
-	@GetMapping("/getUserCollectList")
-	public ReturnResult<Integer> getUserCollectList() {
-		Users loginUser = getLoginUser();
-		List<Integer> r = collectServlet.getCollectResources(loginUser.getUserId());
-		return r.isEmpty() ?
-				ReturnResult.isTrue("您未收藏任何资源", null)
-				: ReturnResult.isTrue("获取收藏列表成功", r, -1);
-	}
-	
-	@GetMapping("/collect/add/{id}")
-	public ReturnResult<Integer> addCollect(@PathVariable("id") int id) {
-		Users loginUser = getLoginUser();
-		collectServlet.collectResources(loginUser.getUserId(), id);
-		return ReturnResult.isTrue("收藏列表已更新", null);
-	}
-	
-	@GetMapping("/collect/del/{id}")
-	public ReturnResult<String> delCollect(@PathVariable("id") int id) {
-		Users loginUser = getLoginUser();
-		collectServlet.unCollectResources(loginUser.getUserId(), id);
-		return ReturnResult.isTrue("收藏列表已更新", null);
-	}
+    private final CollectServlet collectServlet;
+    
+    
+    @GetMapping("/getUserCollectList")
+    public ReturnResult<Integer> getUserCollectList() {
+        Users loginUser = getLoginUser();
+        List<Integer> r = collectServlet.getCollectResources(loginUser.getUserId());
+        return r.isEmpty() ?
+                ReturnResult.isTrue("您未收藏任何资源", null)
+                : ReturnResult.isTrue("获取收藏列表成功", r, -1);
+    }
+    
+    @GetMapping("/collect/add/{id}")
+    public ReturnResult<Integer> addCollect(@PathVariable("id") int id) {
+        Users loginUser = getLoginUser();
+        collectServlet.collectResources(loginUser.getUserId(), id);
+        return ReturnResult.isTrue("收藏列表已更新", null);
+    }
+    
+    @GetMapping("/collect/del/{id}")
+    public ReturnResult<String> delCollect(@PathVariable("id") int id) {
+        Users loginUser = getLoginUser();
+        collectServlet.unCollectResources(loginUser.getUserId(), id);
+        return ReturnResult.isTrue("收藏列表已更新", null);
+    }
 }
