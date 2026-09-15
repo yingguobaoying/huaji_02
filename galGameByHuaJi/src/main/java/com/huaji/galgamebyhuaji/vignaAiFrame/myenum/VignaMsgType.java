@@ -15,4 +15,11 @@ public enum VignaMsgType {
         this.code = code;
         this.name = name;
     }
+    
+    public static VignaMsgType get(int type) {
+        for (VignaMsgType value : values()) {
+            if(value.getCode()==type) return value;
+        }
+        return generic;
+    }
 }

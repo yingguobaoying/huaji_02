@@ -1,6 +1,7 @@
 package com.huaji.galgamebyhuaji.vignaAiFrame.service.impl;
 
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
+import com.huaji.galgamebyhuaji.myUtil.IdUtil;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.VignaSessionService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class VignaSessionServiceImpl implements VignaSessionService {
 	}
 	@Override
 	public String getSessionId (int userId, long clientId) {
-		return "";
+		return IdUtil.getRandomId("vigna_chat");
 	}
 	
 	@Override

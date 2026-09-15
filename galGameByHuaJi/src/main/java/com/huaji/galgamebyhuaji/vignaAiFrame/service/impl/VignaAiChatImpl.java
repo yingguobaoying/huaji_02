@@ -61,6 +61,8 @@ public class VignaAiChatImpl implements VignaAiChat {
         ChatRequiredPara chatRequiredPara = new ChatRequiredPara();
         chatRequiredPara.setSessionId(para.getSessionId());
         chatRequiredPara.setSumUp(para.isSumUp());
+        chatRequiredPara.setExtraJson(para.getExtraJson());
+        chatRequiredPara.setConfig(para.getConfig());
         try {
             String s = chatClient.sendAiMsg(chatRequiredPara);
             return ReturnResult.isTrue("ai请求成功", s);

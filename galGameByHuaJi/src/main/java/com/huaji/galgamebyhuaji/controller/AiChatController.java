@@ -1,29 +1,33 @@
 package com.huaji.galgamebyhuaji.controller;
 
+import com.huaji.galgamebyhuaji.constant.GlobalLock;
 import com.huaji.galgamebyhuaji.dto.VignaChatUserPram;
 import com.huaji.galgamebyhuaji.entity.Users;
+import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
+import com.huaji.galgamebyhuaji.vignaAiFrame.model.ChatServicePara;
+import com.huaji.galgamebyhuaji.vignaAiFrame.myenum.VignaRole;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.UserWithVignaChat;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.VignaAiChat;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.VignaSessionService;
+import com.huaji.galgamebyhuaji.vignaAiFrame.vo.VignaMsgTree;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @Controller
 @ResponseBody
-@RequestMapping("/api/user")
+@RequestMapping("/api/user/chat")
 @RequiredArgsConstructor
 @Slf4j
 public class AiChatController extends BaseController {
@@ -45,6 +49,7 @@ public class AiChatController extends BaseController {
         List<VignaMsg> msgList = msgService.getMsgList(pram.getSessionId(), pram.getMsgId(), pram.getSize());
         return ReturnResult.isTrue("会话获取成功", msgList);
     }
+    
     @PostMapping("/getAllBySession/")
     public ReturnResult<VignaMsg> getSessionList(
             @RequestBody VignaChatUserPram pram
@@ -55,15 +60,74 @@ public class AiChatController extends BaseController {
     
     @PostMapping("/chat")
     public ReturnResult<String> chat(
-            @RequestBody VignaChatUserPram pram
-    ) {//进行对话
-        return null;
+            @Valid @RequestBody VignaChatUserPram pram
+            , BindingResult testResult) {
+        if (testResult.hasErrors())
+            return ReturnResult.isFalse(testResult.getFieldError() ==
+                                        null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
+        //进行对话
+        return vignaChatLock(() -> chatService.vignaAiChat(getPara(pram)), pram.getSessionId());
     }
+    
     
     @PostMapping("/stream/chat")
     public Flux<String> chatByStream(
-            @RequestBody VignaChatUserPram pram
-    ) {
-        return null;
+            @Valid @RequestBody VignaChatUserPram pram
+            , BindingResult testResult) {
+        if (testResult.hasErrors())
+            throw new OperationException(
+                    testResult.getFieldError() ==
+                    null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
+        //进行对话
+        return vignaChatLock(() -> chatService.vignaAiChatByStream(getPara(pram)), pram.getSessionId());
+    }
+    
+    private ChatServicePara getPara(@RequestBody @Valid VignaChatUserPram pram) {
+        ChatServicePara para = new ChatServicePara();
+        para.setClientId(pram.getClientId());
+        para.setSessionId(pram.getSessionId());
+        VignaMsg vignaMsg = new VignaMsg();
+        vignaMsg.setContent(pram.getContent());
+        vignaMsg.setRole(VignaRole.user);
+        pram.setMsgId(para.getMsgId());
+        para.setMsg(vignaMsg);
+        para.setMsgId(pram.getMsgId());
+        para.setUserId(getLoginUser().getUserId());
+        para.setSumUp(false);
+        return para;
+    }
+    
+    private <T> T vignaChatLock(Supplier<T> action, String sessionId) {
+        return GlobalLock.safeExecute(getLoginUser().getUserId(), () -> {
+            if (sessionService.sessionLeisure(sessionId) == 1)
+                throw new OperationException("对话失败,因为当前会话正在被使用!");
+            sessionService.lockSession(sessionId);
+            try {
+                return action.get();
+            } finally {
+                sessionService.unlockSession(sessionId);
+            }
+        });
+    }
+    
+    @GetMapping("/session/{clientId}")
+    public ReturnResult<String> getSession(@PathVariable long clientId) {
+        Users loginUser = getLoginUser();
+        String sessionId = sessionService.getSessionId(loginUser.getUserId(), clientId);
+        return ReturnResult.isTrue("获取成功", sessionId);
+    }
+    
+    @GetMapping("/session/get/{sessionId}")
+    public ReturnResult<Void> getSessionState(@PathVariable String sessionId) {
+        return switch (sessionService.sessionLeisure(sessionId)) {//0:不存在的会话 1:空闲 2:占用
+            case 1 -> ReturnResult.isTrue("当前会话可用", null);
+            case 2 -> ReturnResult.isFalse("当前会话正在被使用,请稍后再试");
+            default -> ReturnResult.isFalse("当前会话不存在,请新建");
+        };
+    }
+    
+    @GetMapping("/session/get/tree/{sessionId}")
+    public ReturnResult<VignaMsgTree> getTree(@PathVariable String sessionId) {
+        return ReturnResult.isTrue("聊天树获取成功", msgService.getTree(sessionId));
     }
 }
