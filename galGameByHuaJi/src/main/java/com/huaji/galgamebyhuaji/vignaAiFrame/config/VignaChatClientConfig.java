@@ -99,11 +99,17 @@ public class VignaChatClientConfig {
             map.put(id, client);
             idmap.put(code, id);
         }
+        Map<Long, VignaHttpClient> old = configMap;
         idMap = idmap;
         configMap = map;
+        if(old!=null&&!old.isEmpty()){
+            old.forEach((key,value)->{
+                value.clos();
+            });
+        }
     }
     
-    public void refresh() {
+    public  void refresh() {
         log.info("----------------------------------------------------------------------");
         log.info("---------------------- 重新加载AI配置项 ------------------------------");
         log.info("----------------------------------------------------------------------");

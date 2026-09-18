@@ -38,24 +38,28 @@ public class AiChatController extends BaseController {
     private final VignaSessionService sessionService;
     private final AiClassificationServlet classificationServlet;
     
-    @GetMapping("/getUserSessionList")
+    @GetMapping("/getUserSessionList")//1
     public ReturnResult<Map<String, List<VignaMsg>>> gerUserSessionList() {
         Users loginUser = getLoginUser();
         return ReturnResult.isTrue("获取成功", userChatMsgService.getUserSession(loginUser.getUserId()));
     }
     
-    @PostMapping("/getSessionDeftChatMsg/")
+    @PostMapping("/getSessionDeftChatMsg")//1
     public ReturnResult<VignaMsg> getSession(
             @RequestBody VignaChatUserPram pram
     ) {//获取某个会话的默认链
+        sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
+        if (pram.getSize() <= 0) pram.setSize(1);
         List<VignaMsg> msgList = msgService.getMsgList(pram.getSessionId(), pram.getMsgId(), pram.getSize());
         return ReturnResult.isTrue("会话获取成功", msgList);
     }
     
-    @PostMapping("/getAllBySession/")
+    @PostMapping("/getAllBySession")
     public ReturnResult<VignaMsg> getSessionList(
             @RequestBody VignaChatUserPram pram
     ) {//获取某个会话的默认链
+        sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
+        if (pram.getSize() <= 0) pram.setSize(1);
         List<VignaMsg> msgList = msgService.getMsgList(pram.getSessionId(), pram.getMsgId(), pram.getSize());
         return ReturnResult.isTrue("会话获取成功", msgList);
     }
@@ -67,6 +71,7 @@ public class AiChatController extends BaseController {
         if (testResult.hasErrors())
             return ReturnResult.isFalse(testResult.getFieldError() ==
                                         null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
+        sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         //进行对话
         return vignaChatLock(() -> {
             if (classificationServlet.userCanSee(getLoginUser().getUserId(), pram.getClientId()))
@@ -84,6 +89,7 @@ public class AiChatController extends BaseController {
             throw new OperationException(
                     testResult.getFieldError() ==
                     null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
+        sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         String sessionId = pram.getSessionId();
         return GlobalLock.safeExecute(getLoginUser().getUserId(), () -> {
             int i = sessionService.sessionLeisure(sessionId);
@@ -139,6 +145,7 @@ public class AiChatController extends BaseController {
     
     @GetMapping("/session/get/{sessionId}")
     public ReturnResult<Void> getSessionState(@PathVariable String sessionId) {
+        sessionService.testSessionUser(sessionId, getLoginUser().getUserId());
         return switch (sessionService.sessionLeisure(sessionId)) {//0:不存在的会话 1:空闲 2:占用
             case 1 -> ReturnResult.isTrue("当前会话可用", null);
             case 2 -> ReturnResult.isFalse("当前会话正在被使用,请稍后再试");
@@ -149,5 +156,10 @@ public class AiChatController extends BaseController {
     @GetMapping("/session/get/tree/{sessionId}")
     public ReturnResult<VignaMsgTree> getTree(@PathVariable String sessionId) {
         return ReturnResult.isTrue("聊天树获取成功", msgService.getTree(sessionId));
+    }
+    
+    @PostMapping("/msg/get")
+    public ReturnResult<VignaMsg> getMsgById(@RequestBody List<String> MsgIdList) {
+        return ReturnResult.isTrue("消息获取成功", msgService.getMsgByIds(MsgIdList));
     }
 }

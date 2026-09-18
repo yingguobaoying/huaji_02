@@ -22,4 +22,6 @@ public interface VignaHttpClient {
     String getDeftSystemPrompt();
     
     void setKeyServlet(KeyServlet keyServlet);
+    
+    void clos();
 }

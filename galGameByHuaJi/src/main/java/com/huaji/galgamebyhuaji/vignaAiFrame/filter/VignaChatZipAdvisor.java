@@ -1,6 +1,5 @@
 package com.huaji.galgamebyhuaji.vignaAiFrame.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
@@ -34,7 +33,6 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
     @Value("${ai.chat-token-size}")
     private int maxTokenSize;
     private final VignaAiChat vignaChat;
-    private final ObjectMapper objectMapper;
     
     @Override
     public int getIndex() {
@@ -97,8 +95,8 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
                 //正常总结完成后下标+2(请求发送+1,ai回复+1)
                 //总结xx-x,请求提示词->x+1,ai回复->x+2,此信息->x+3,ai对此信息的回复->x+4
                 context = ChatContextMap.getContext(sessionId);//重新获取上下文避免jvm拿缓存
-                returnMst.setIndex(userMsg.getIndex() + 2);//请求提示词跨了一个请求消息
-                userMsg.setIndex(returnMst.getIndex() + 1);//
+                returnMst.setIndex(maxIndex + 2);//请求提示词跨了一个请求消息
+                userMsg.setIndex(maxIndex + 3);//用户请求跨了2个消息
                 returnMst.setContent("[system Summary of Chat records]:" + zipReturnResult.getReturnResult());
                 returnMst.setRole(VignaRole.sum);
                 context.getHistoryMsgList().add(returnMst);
@@ -128,7 +126,7 @@ public class VignaChatZipAdvisor implements MyBaseAdvisor {
         if (context == null) throw new OperationException("请求上下文不存在，可能已被提前清理");
         //计算回复信息的下标
         VignaMsg reply = context.getAiReply();
-        if(reply==null){
+        if (reply == null) {
             log.warn("ai请求返回空体!已跳过下标计算");
             return;
         }

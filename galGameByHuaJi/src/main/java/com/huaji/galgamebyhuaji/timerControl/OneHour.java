@@ -1,5 +1,6 @@
 package com.huaji.galgamebyhuaji.timerControl;
 
+import com.huaji.galgamebyhuaji.controller.BackgroundImgController;
 import com.huaji.galgamebyhuaji.exceptions.SessionExceptions;
 import com.huaji.galgamebyhuaji.service.RootServlet;
 import lombok.RequiredArgsConstructor;
@@ -12,9 +13,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OneHour {
     private final RootServlet rootServlet;
-    
-    @Scheduled(fixedRate = 60 * 60 * 1000)
+    private final BackgroundImgController backgroundImgController;
+    @Scheduled(fixedRate = 60 * 60 * 1000, initialDelay = 60 * 60 * 1000)
     public void startFrom1h() {
+        backgroundImgController.update();
         //顺便把root刷了
         try {
             rootServlet.rootUserInit();

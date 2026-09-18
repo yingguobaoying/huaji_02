@@ -3,6 +3,7 @@ package com.huaji.galgamebyhuaji.service.impl;
 import com.huaji.galgamebyhuaji.constant.Constant;
 import com.huaji.galgamebyhuaji.constant.GlobalLock;
 import com.huaji.galgamebyhuaji.dao.SessionMapper;
+import com.huaji.galgamebyhuaji.dao.UserTokenMapper;
 import com.huaji.galgamebyhuaji.dao.UsersMapper;
 import com.huaji.galgamebyhuaji.entity.Session;
 import com.huaji.galgamebyhuaji.entity.UserToken;
@@ -45,7 +46,7 @@ public class RootServletImpl implements RootServlet {
     private final PasswordEncryptionUtil passwordEncryptionUtil;
     private final SessionMapper sessionMapper;
     private final SessionService sessionService;
-    
+    private final UserTokenMapper userTokenMapper;
     
     @Override
     public String RootEditUserMxg(UsersWithBLOBs user, int rootId) throws WriteError {
@@ -253,6 +254,11 @@ public class RootServletImpl implements RootServlet {
         onlineUser1.setIp(null);
         onlineUser1.setUserId(1);
         onlineUser1.setTokenType(TokenType.DEFAULT_STATUS);
+        //失效旧的
+        List<UserToken> token0 = userTokenMapper.getTokens(0, TokenType.DEFAULT_STATUS.getStatusNum());
+        List<UserToken> token1 = userTokenMapper.getTokens(1, TokenType.DEFAULT_STATUS.getStatusNum());
+        for(UserToken token : token0) tokenService.invalidateToken(token.getToken(), 0);
+        for(UserToken token : token1) tokenService.invalidateToken(token.getToken(), 1);
         UserToken userToken0 = tokenService.insertToken(onlineUser0, TokenType.DEFAULT_STATUS,
                                                         1000L * 60 * 60 * 24 * 100);
         UserToken userToken1 = tokenService.insertToken(onlineUser1, TokenType.DEFAULT_STATUS,

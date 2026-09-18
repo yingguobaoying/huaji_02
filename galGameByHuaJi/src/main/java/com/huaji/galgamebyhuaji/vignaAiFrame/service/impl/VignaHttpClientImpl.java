@@ -564,4 +564,22 @@ public class VignaHttpClientImpl extends VignaBaseClient {
     public String getDeftSystemPrompt() {
         return config.getContent();
     }
+    
+    @Override
+    public void clos() {
+        if (httpClient != null) {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                log.error("关闭客户端时出错!", e);
+            }
+        }
+        if (httpAsyncClient != null) {
+            try {
+                httpAsyncClient.close();
+            } catch (IOException e) {
+                log.error("关闭客户端时出错!", e);
+            }
+        }
+    }
 }

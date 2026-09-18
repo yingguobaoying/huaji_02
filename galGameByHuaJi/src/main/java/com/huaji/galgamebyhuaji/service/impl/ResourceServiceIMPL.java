@@ -10,7 +10,6 @@ import com.huaji.galgamebyhuaji.exceptions.WriteError;
 import com.huaji.galgamebyhuaji.model.ResourceStatics;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
-import com.huaji.galgamebyhuaji.myUtil.MyLogUtil;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.service.FileAccessService;
 import com.huaji.galgamebyhuaji.service.RedisMemoryService;
@@ -18,6 +17,7 @@ import com.huaji.galgamebyhuaji.service.ResourcesService;
 import com.huaji.galgamebyhuaji.service.TagService;
 import com.huaji.galgamebyhuaji.vo.SelectViewMag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ResourceServiceIMPL implements ResourcesService {
     private final ResourcesMapper resourcesMapper;
     private final ResourcesTagMapMapper resourcesTagMapMapper;
@@ -104,7 +105,7 @@ public class ResourceServiceIMPL implements ResourcesService {
     public ReturnResult<Resources> updateResources(Resources resources, List<Integer> tags) {
         ReturnResult<Resources> resourcesReturnResult = testNewResourcesMxg(resources);
         Resources oldMxg = resourcesMapper.selectByPrimaryKey(resources.getrId());
-        MyLogUtil.info(ResourcesService.class, "资源信息发生变动,原先信息如下:" + oldMxg);
+        log.info("资源信息发生变动,原先信息如下:{}", oldMxg);
         if (!resourcesReturnResult.isOperationResult()) return resourcesReturnResult;
         WriteError.tryWrite(resourcesMapper.updateByPrimaryKeyWithBLOBs(resources));
         //更新tag信息
@@ -115,7 +116,7 @@ public class ResourceServiceIMPL implements ResourcesService {
         ResourceExtensionInformation resourceExtensionInformation = getResourceExtensionInformation(resources, false);
         resources.setResourceExtensionInformation(resourceExtensionInformation);
         WriteError.tryWrite(resourceExtensionInformationMapper.updateByPrimaryKey(resourceExtensionInformation));
-        if (tags != null && !tags.isEmpty()) {//更新数据库中的映射关系
+        if (tags != null && !tags.isEmpty()) {//更新数据库中的映射   关系
             WriteError.tryWrite(tagMapper.addResourcesTag(tags, resources.getrId()), tags.size());
             TagExample tagExample = new TagExample();
             tagExample.createCriteria().andTagIdIn(tags);
@@ -214,6 +215,7 @@ public class ResourceServiceIMPL implements ResourcesService {
         Resources resources = redisMemoryService.getData(rId, Resources.class);
         if (resources == null || resources.getrId() == null) {
             resources = resourcesMapper.selectByPrimaryKey(rId);
+            if (resources == null || resources.getrId() == null) throw new OperationException("您请求的资源不存在!");
             //获取图片
             ResourcesJpegMapExample resourcesJpegMapExample = new ResourcesJpegMapExample();
             resourcesJpegMapExample.createCriteria()
@@ -234,7 +236,7 @@ public class ResourceServiceIMPL implements ResourcesService {
             );
             redisMemoryService.saveData(resources);
         }
-        if (resources == null || resources.getrId() == null) throw new OperationException("您请求的资源不存在!");
+        if (resources.getrId() == null) throw new OperationException("您请求的资源不存在!");
         return resources;
     }
     

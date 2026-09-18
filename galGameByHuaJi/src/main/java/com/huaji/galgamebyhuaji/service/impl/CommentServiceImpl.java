@@ -40,7 +40,8 @@ public class CommentServiceImpl implements CommentService {
         }
         List<CommentWithUser> topComments = new ArrayList<>();
         List<CommentWithUser> rootComments = new ArrayList<>();
-        Map<Long, CommentWithUser> commentWithUserMap = new HashMap<>();
+        List<CommentWithUser> orphanComments = new ArrayList<>();
+        Map<Long, CommentWithUser> commentWithUserMap = new HashMap<>((int) (comments.size() / 0.75f) + 1);
         final Long TOP_ID = 0L; // 顶置评论标识
         
         //构建Map并关联父子评论
@@ -60,14 +61,22 @@ public class CommentServiceImpl implements CommentService {
                     if (father != null) {
                         father.getOriginalComment().addSumComment(cwu); // 延迟排序
                     } else {
-                        rootComments.add(cwu); // 暂时作为根评论
+                        orphanComments.add(cwu); // 延迟
                     }
                 }
             } else {
                 rootComments.add(cwu);
             }
         }
-        
+        for (CommentWithUser comment : orphanComments) {
+            Long fatherId = comment.getOriginalComment().getCommentId();
+            CommentWithUser father = commentWithUserMap.get(fatherId);
+            if (father != null) {
+                father.getOriginalComment().addSumComment(comment);
+            } else {
+                rootComments.add(comment);
+            }
+        }
         // 排序
         Comparator<CommentWithUser> timeComparator = Comparator.comparing(
                 c -> c.getOriginalComment().getCommentTime() != null ?
@@ -82,7 +91,8 @@ public class CommentServiceImpl implements CommentService {
         });
         
         // 合并结果
-        List<CommentWithUser> result = new ArrayList<>(topComments);
+        List<CommentWithUser> result = new ArrayList<>(topComments.size() + rootComments.size());
+        result.addAll(topComments);
         result.addAll(rootComments);
         return result;
     }

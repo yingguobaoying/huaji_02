@@ -48,6 +48,10 @@ public class ReturnResult<T> {
         return error;
     }
     
+    public static <T> ReturnResult<T> isTrue(String mxg) {
+        return ReturnResult.isTrue(mxg, null);
+    }
+    
     
     public void addMap(String key, Object value) {
         if (map == null) map = new HashMap<>();

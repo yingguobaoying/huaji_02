@@ -194,8 +194,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
     @Override
     public List<VignaMsg> getMsgByIds(List<String> idList) {
         /*
-        MATCH(n:VignaMessage) WHERE n.messageId IN ['msg_2026_09_06_00_24_35_7e05fc8c-68de-415e-8eee-e6','msg_2026_09_06_00_24_03_fea7a0fe-c6df-4eb1-8115-47']
-RETURN n
+        MATCH(n:VignaMessage) WHERE n.messageId IN []RETURN n
          */
         Node msg = node("VignaMessage").named("msg");
         Statement statement = Cypher.match(msg)
@@ -206,15 +205,19 @@ RETURN n
             return List.of();
         return all.stream().map(VignaMsg::new).toList();
     }
+    
     @Override
     public List<VignaMsgTree> getTree(String sessionId) {
         /*
             MATCH (n:VignaMessage {sessionId: 'session-002'})
             RETURN {
                 id: n.messageId,
+                role: n.role,
+                content :left( n.content,15),
                 timestamp: n.timestamp,
                 parentId: head([ (n)-[:LAST]->(p) | p.messageId ]),
                 editIds: [ (n)-[:MODIFY]->(m) | m.messageId ],
+                sum:n.isSummary,
                 retryIds: [ (n)-[:RETRY]->(r) | r.messageId ]
             } AS nodeData
             ORDER BY n.timestamp
@@ -231,15 +234,18 @@ RETURN n
                 .returning(m.property("messageId"));
         var retryIdsExpr = Cypher.listBasedOn(n.relationshipTo(r, "RETRY"))
                 .returning(r.property("messageId"));
-        
+        var contentExpr = Cypher.left(n.property("content"), Cypher.literalOf(15));
         var statement = Cypher.match(n)
                 .where(n.property("sessionId")
                                .isEqualTo(Cypher.parameter("sessionId", sessionId)))
                 .returning(
                         n.property("messageId").as("id"),
+                        n.property("role").as("role"),
+                        contentExpr.as("content"),
                         n.property("timestamp").as("timestamp"),
                         parentIdExpr.as("parentId"),
                         editIdsExpr.as("editIds"),
+                        n.property("isSummary").as("sum"),
                         retryIdsExpr.as("retryIds"))
                 .orderBy(n.property("timestamp"))
                 .build();

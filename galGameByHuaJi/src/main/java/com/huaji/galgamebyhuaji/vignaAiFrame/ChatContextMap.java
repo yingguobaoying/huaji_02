@@ -59,7 +59,7 @@ public class ChatContextMap {
 	 * 本次请求生命周期结束，无论成功失败，都销毁 Context
 	 * 使用原子操作，避免“先 get 再 remove”导致的并发覆盖问题
 	 */
-	public static VignaMsgContext delContext (String sessionId) {
-		return contextMap.remove(sessionId);
+	public static void delContext (String sessionId) {
+		contextMap.remove(sessionId);
 	}
 }

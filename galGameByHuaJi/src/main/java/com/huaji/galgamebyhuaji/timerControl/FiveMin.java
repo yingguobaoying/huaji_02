@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class FiveMin {
-    @Scheduled(fixedRate = 60 * 60 * 1000)
+    @Scheduled(fixedRate =  60 * 1000 * 5, initialDelay = 60 * 1000 * 5)
     public void startFrom5m() {
         log.info("开始清理无用资源");
         ChatContextMap.DisposalOfCorpse();

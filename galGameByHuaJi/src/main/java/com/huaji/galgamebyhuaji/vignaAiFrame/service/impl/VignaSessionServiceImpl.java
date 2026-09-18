@@ -2,6 +2,7 @@ package com.huaji.galgamebyhuaji.vignaAiFrame.service.impl;
 
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.myUtil.IdUtil;
+import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaSessionNode;
 import com.huaji.galgamebyhuaji.vignaAiFrame.node.repository.SessionRepository;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -49,6 +51,7 @@ public class VignaSessionServiceImpl implements VignaSessionService {
         node.setCreatedAt(OffsetDateTime.now());
         node.setTailId(null);
         node.setSessionId(id);
+        sessionRepository.save(node);
         return id;
     }
     
@@ -76,5 +79,13 @@ public class VignaSessionServiceImpl implements VignaSessionService {
     @Override
     public void unlockSession(String sessionId) {
         sessionContext.remove(sessionId, Boolean.FALSE);
+    }
+    
+    @Override
+    public void testSessionUser(String sessionId, int user) {
+        if (MyStringUtil.isNull(sessionId)) throw new OperationException("会话获取失败,因为会话信息不存在");
+        Optional<VignaSessionNode> session = sessionRepository.findById(sessionId);
+        if (session.isEmpty()) throw new OperationException("会话获取失败,因为会话信息不存在");
+        if (session.get().getUserId() != user) throw new OperationException("会话获取失败,因为该会话不属于您");
     }
 }

@@ -28,10 +28,6 @@ public class VignaMsg {
      * 属于对话下标
      */
     private int index;
-    /**
-     * 可选，tool 调用时使用,这两玩意暂时不打算支持先撂在这里
-     */
-    private String name;
     private List<VignaTool> tools;
     private OffsetDateTime timestamp;
     

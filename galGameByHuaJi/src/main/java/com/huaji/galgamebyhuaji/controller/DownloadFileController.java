@@ -53,7 +53,7 @@ public class DownloadFileController extends BaseController {
         }
         if (!hasFile)
             throw new OperationException("文件不存在");
-        ReturnResult<ResponseEntity<InputStreamResource>> r = fileAccessService.downloadFile(fileName, FileCategory.ARCHIVE, fileName, loginUser.getUserId(), rId);
+        ReturnResult<ResponseEntity<InputStreamResource>> r = fileAccessService.downloadFile(fileName, FileCategory.ARCHIVE, userNaming, loginUser.getUserId(), rId);
         if (r.isOperationResult()) {
             return r.getReturnResult();
         } else {

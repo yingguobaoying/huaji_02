@@ -14,4 +14,7 @@ public class VignaMsgTree {
     private String parentId;
     private List<String> editIds;
     private List<String> retryIds;
+    private int role;
+    private String content;
+    private boolean sum;
 }

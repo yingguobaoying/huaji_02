@@ -21,4 +21,6 @@ public interface VignaSessionService {
 	Set<String> getUserSessionId (int userId);
 	void lockSession(String sessionId);
 	void unlockSession(String sessionId);
+    
+    void testSessionUser(String sessionId, int user);
 }

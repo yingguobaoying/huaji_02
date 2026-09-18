@@ -102,16 +102,13 @@ public class VignaChatInscriberAdvisor implements MyBaseAdvisor {
         VignaMessageNode node = new VignaMessageNode();
         node.setClientId(context.getClientId());
         node.setTimestamp(OffsetDateTime.now());
-        node.setIsSummary(context.isSum());
+        node.setIsSummary(false);//因为会过滤总结内容请求,这里设置为false
         node.setModifiedVersions(null);
         node.setRetriedVersions(null);
         node.setSessionId(sessionId);
         VignaMsg reply = context.getAiReply();
-        if (reply == null)
-            node.setTurnIndex(context.getContent().getIndex() + 1);
-        else
-            node.setTurnIndex(reply.getIndex());
-        node.setRole(VignaRole.ai.getCode());
+        node.setTurnIndex(reply == null ? context.getContent().getIndex() + 1 : reply.getIndex());
+        node.setRole(context.isSum() ? VignaRole.sum.getCode() : VignaRole.ai.getCode());
         node.setPromptRaw(context.getSystemMsg().getContent());
         node.setJson(context.getFinishReason());
         //设置关联链
@@ -126,16 +123,16 @@ public class VignaChatInscriberAdvisor implements MyBaseAdvisor {
             return;
         }
         if (context.isSum())
-            node.setContent(reply == null ? "ai回复获取解析失败或者ai模型返回了空回复" : "[system Summary of Chat records]:"+reply.getContent());
+            node.setContent(reply == null ? "ai回复获取解析失败或者ai模型返回了空回复" :
+                                    "[system Summary of Chat records]:" + reply.getContent());
         else
             node.setContent(reply == null ? "ai回复获取解析失败或者ai模型返回了空回复" : reply.getContent());
         //存放AI聊天记录
-        node.setIsSummary(false);//因为会过滤总结内容请求,这里设置为false
         node.setError(false);
         VignaMessageNode vignaMessageNode = msgService.setData(node, sessionId, true);
         if (!context.isSum()) return;
         context.setMsgId(vignaMessageNode.getMessageId());
-        ChatContextMap.setContext(sessionId, context);
         //习惯性的强制刷新避免不生效
+        ChatContextMap.setContext(sessionId, context);
     }
 }

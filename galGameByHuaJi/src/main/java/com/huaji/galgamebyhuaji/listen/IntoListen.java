@@ -7,11 +7,7 @@ import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
 import com.huaji.galgamebyhuaji.myUtil.PasswordEncryptionUtil;
 import com.huaji.galgamebyhuaji.myUtil.TimeUtil;
-import com.huaji.galgamebyhuaji.service.RedisMemoryService;
-import com.huaji.galgamebyhuaji.service.ResourcesService;
-import com.huaji.galgamebyhuaji.service.RootServlet;
-import com.huaji.galgamebyhuaji.service.SessionService;
-import com.huaji.galgamebyhuaji.service.TagService;
+import com.huaji.galgamebyhuaji.service.*;
 import com.huaji.galgamebyhuaji.vignaAiFrame.config.VignaChatClientConfig;
 import com.huaji.galgamebyhuaji.vignaAiFrame.config.VignaHttpClientFactory;
 import jakarta.servlet.ServletContext;
@@ -47,6 +43,7 @@ public class IntoListen {
     @Value("${resource-save-path}")
     private String resourceSavePath;
     final RedisMemoryService redisMemoryService;
+    final UserMxgServlet userMxgServlet;
     final RootServlet rootServlet;
     private static final Date starTime;
     
@@ -61,8 +58,10 @@ public class IntoListen {
             log.info("================服务器启动监听器开始启动,准备开始初始化各项数据===================");
             date = new Date();
             redisMemoryService.delAllData();//清空旧数据
+            redisMemoryService.delTokenData();
             rootServlet.rootUserInit();
             tagService.getTagMap();
+            userMxgServlet.getAllUserListMxg();
             resourcesService.getAllResources();
             
             //设置防止时序攻击的固定密码,不过大部分情况下密码不会包括中文所以这里夹带了点私货

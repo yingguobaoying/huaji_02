@@ -5,7 +5,6 @@ import com.huaji.galgamebyhuaji.enumPackage.FileCategory;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.FileUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -58,7 +57,6 @@ public class BackgroundImgController {
     }
     
     //每小时自动刷新一次
-    @Scheduled(fixedRate = 60 * 60 * 1000)
     public void update() {
         updateFileNameList(
                 new File(FileUtil.formatUrl(Constant.getRESOURCE_SAVE_PATH(), FileCategory.IMG.getFILE_SAVE_URL(), "background"))

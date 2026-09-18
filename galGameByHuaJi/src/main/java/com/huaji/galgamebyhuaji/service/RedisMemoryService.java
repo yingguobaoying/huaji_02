@@ -233,6 +233,11 @@ public class RedisMemoryService {
 		keys.deleteByPattern("tokenValid:*");
 		
 	}
+	public void delTokenData(){
+		RKeys keys = redissonClient.getKeys();
+		keys.deleteByPattern(TokenService.TOKEN_CACHE_KEY + ":*");
+		keys.deleteByPattern("tokenValid:*");
+	}
 	
 	private final ConcurrentHashMap<Integer, ReadWriteLock> keyLocks = new ConcurrentHashMap<>();
 	
