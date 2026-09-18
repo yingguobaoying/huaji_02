@@ -8,6 +8,7 @@ import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
 import com.huaji.galgamebyhuaji.vignaAiFrame.model.ChatServicePara;
 import com.huaji.galgamebyhuaji.vignaAiFrame.myenum.VignaRole;
+import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaSessionNode;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiClassificationServlet;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.UserWithVignaChat;
@@ -71,11 +72,13 @@ public class AiChatController extends BaseController {
         if (testResult.hasErrors())
             return ReturnResult.isFalse(testResult.getFieldError() ==
                                         null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
-        sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
+        VignaSessionNode node = sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         //进行对话
         return vignaChatLock(() -> {
-            if (classificationServlet.userCanSee(getLoginUser().getUserId(), pram.getClientId()))
+            if (classificationServlet.userCanSee(getLoginUser().getUserId(), pram.getClientId())) {
+                pram.setClientId(node.getConfigId());
                 return chatService.vignaAiChat(getPara(pram));
+            }
             return ReturnResult.isFalse("请求失败!因为您没有访问该模型的权限");
         }, pram.getSessionId());
     }
@@ -89,7 +92,7 @@ public class AiChatController extends BaseController {
             throw new OperationException(
                     testResult.getFieldError() ==
                     null ? "未知错误请稍后再试" : testResult.getFieldError().getDefaultMessage());
-        sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
+        VignaSessionNode node = sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         String sessionId = pram.getSessionId();
         return GlobalLock.safeExecute(getLoginUser().getUserId(), () -> {
             int i = sessionService.sessionLeisure(sessionId);
@@ -99,6 +102,7 @@ public class AiChatController extends BaseController {
                 throw new OperationException("对话失败,因为当前会话不存在!");
             }
             sessionService.lockSession(sessionId);
+            pram.setClientId(node.getConfigId());
             Flux<String> flux = chatService.vignaAiChatByStream(getPara(pram));
             return flux.doAfterTerminate(() -> sessionService.unlockSession(sessionId));
         });

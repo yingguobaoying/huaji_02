@@ -32,5 +32,5 @@ public class VignaSessionNode {
      * 会话创建时间
      */
     private OffsetDateTime createdAt;
-    
+    private long configId;
 }

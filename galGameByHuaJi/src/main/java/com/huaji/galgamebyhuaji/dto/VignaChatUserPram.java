@@ -12,7 +12,6 @@ public class VignaChatUserPram {
     private String msgId;
     @CustomNotNull(message = "输入信息不可为空")
     private String content;
-    @CustomNotNull(message = "客户端信息不可为空")
     private Long clientId;
     //1: "普通对话" 2: "修改对话" 3: "重试对话"
     private int type = 1;

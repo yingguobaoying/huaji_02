@@ -1,16 +1,19 @@
 package com.huaji.galgamebyhuaji.controller;
 
 import com.huaji.galgamebyhuaji.entity.AiClientConfigWithBLOBs;
+import com.huaji.galgamebyhuaji.entity.Users;
 import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.myUtil.MyStringUtil;
 import com.huaji.galgamebyhuaji.vignaAiFrame.config.VignaChatClientConfig;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiBastService;
+import com.huaji.galgamebyhuaji.vo.AiModerList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -23,7 +26,7 @@ public class AiConfigController extends BaseController {
     
     @GetMapping("/getAiConfig")
     @PreAuthorize("hasRole('SYSTEM_ADMIN_JURISDICTION')")
-    public ReturnResult<AiClientConfigWithBLOBs> getConfigList () {
+    public ReturnResult<AiClientConfigWithBLOBs> getConfigList() {
         return aiBastService.getList();
     }
     
@@ -32,13 +35,13 @@ public class AiConfigController extends BaseController {
      */
     @PostMapping("/addAiConfig")
     @PreAuthorize("hasRole('SYSTEM_ADMIN_JURISDICTION')")
-    public ReturnResult<AiClientConfigWithBLOBs> addConfig (@RequestBody AiClientConfigWithBLOBs config) {
+    public ReturnResult<AiClientConfigWithBLOBs> addConfig(@RequestBody AiClientConfigWithBLOBs config) {
         
         if (config == null) {
             throw new OperationException("配置不可为空");
         }
         
-        if ( MyStringUtil.isNull(config.getApiKey())) {
+        if (MyStringUtil.isNull(config.getApiKey())) {
             throw new OperationException("密钥不可为空");
         }
         
@@ -84,14 +87,18 @@ public class AiConfigController extends BaseController {
      */
     @GetMapping("/getAiMerchantType")
     @PreAuthorize("hasRole('SYSTEM_ADMIN_JURISDICTION')")
-    public ReturnResult<Map<String, Integer>> getMerchantType () {
+    public ReturnResult<Map<String, Integer>> getMerchantType() {
         return aiBastService.getAiMerchantType();
     }
     
-    @GetMapping("/f5")
-    @PreAuthorize("hasRole('SYSTEM_ADMIN_JURISDICTION')")
-    public ReturnResult<Void> refresh () {
-        aiClientFactory.refresh();
-        return ReturnResult.isTrue("配置已刷新", null);
+    @GetMapping("/getUserView")
+    public ReturnResult<AiModerList> getUserView() {
+        Users loginUser = getLoginUser();
+        List<AiClientConfigWithBLOBs> resultList = aiBastService.getList().getResultList();
+        if (resultList == null) return ReturnResult.isTrue("获取成功");
+        return ReturnResult.isTrue("获取成功",
+                                   resultList
+                                           .stream()
+                                           .map(AiModerList::new).toList());
     }
 }

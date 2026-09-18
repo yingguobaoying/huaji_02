@@ -1,5 +1,7 @@
 package com.huaji.galgamebyhuaji.vignaAiFrame.service;
 
+import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaSessionNode;
+
 import java.util.Set;
 
 public interface VignaSessionService {
@@ -22,5 +24,5 @@ public interface VignaSessionService {
 	void lockSession(String sessionId);
 	void unlockSession(String sessionId);
     
-    void testSessionUser(String sessionId, int user);
+    VignaSessionNode testSessionUser(String sessionId, int user);
 }

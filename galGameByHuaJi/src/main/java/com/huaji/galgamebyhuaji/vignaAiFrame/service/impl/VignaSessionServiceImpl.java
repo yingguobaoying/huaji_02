@@ -51,6 +51,7 @@ public class VignaSessionServiceImpl implements VignaSessionService {
         node.setCreatedAt(OffsetDateTime.now());
         node.setTailId(null);
         node.setSessionId(id);
+        node.setConfigId(clientId);
         sessionRepository.save(node);
         return id;
     }
@@ -82,10 +83,11 @@ public class VignaSessionServiceImpl implements VignaSessionService {
     }
     
     @Override
-    public void testSessionUser(String sessionId, int user) {
+    public VignaSessionNode testSessionUser(String sessionId, int user) {
         if (MyStringUtil.isNull(sessionId)) throw new OperationException("会话获取失败,因为会话信息不存在");
         Optional<VignaSessionNode> session = sessionRepository.findById(sessionId);
         if (session.isEmpty()) throw new OperationException("会话获取失败,因为会话信息不存在");
         if (session.get().getUserId() != user) throw new OperationException("会话获取失败,因为该会话不属于您");
+        return session.get();
     }
 }
