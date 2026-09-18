@@ -7,6 +7,7 @@ import com.huaji.galgamebyhuaji.exceptions.OperationException;
 import com.huaji.galgamebyhuaji.model.ReturnResult;
 import com.huaji.galgamebyhuaji.vignaAiFrame.message.VignaMsg;
 import com.huaji.galgamebyhuaji.vignaAiFrame.model.ChatServicePara;
+import com.huaji.galgamebyhuaji.vignaAiFrame.myenum.VignaMsgType;
 import com.huaji.galgamebyhuaji.vignaAiFrame.myenum.VignaRole;
 import com.huaji.galgamebyhuaji.vignaAiFrame.node.VignaSessionNode;
 import com.huaji.galgamebyhuaji.vignaAiFrame.service.AiChatMsgService;
@@ -51,7 +52,7 @@ public class AiChatController extends BaseController {
     ) {//获取某个会话的默认链
         sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         if (pram.getSize() <= 0) pram.setSize(1);
-        List<VignaMsg> msgList = msgService.getMsgList(pram.getSessionId(), pram.getMsgId(), pram.getSize());
+        List<VignaMsg> msgList = msgService.getMsgList(pram.getSessionId(), null, pram.getSize());
         return ReturnResult.isTrue("会话获取成功", msgList);
     }
     
@@ -75,7 +76,7 @@ public class AiChatController extends BaseController {
         VignaSessionNode node = sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         //进行对话
         return vignaChatLock(() -> {
-            if (classificationServlet.userCanSee(getLoginUser().getUserId(), pram.getClientId())) {
+            if (classificationServlet.userCanSee(getLoginUser().getUserId(), node.getConfigId())) {
                 pram.setClientId(node.getConfigId());
                 return chatService.vignaAiChat(getPara(pram));
             }
@@ -95,6 +96,8 @@ public class AiChatController extends BaseController {
         VignaSessionNode node = sessionService.testSessionUser(pram.getSessionId(), getLoginUser().getUserId());
         String sessionId = pram.getSessionId();
         return GlobalLock.safeExecute(getLoginUser().getUserId(), () -> {
+            if (!classificationServlet.userCanSee(getLoginUser().getUserId(), node.getConfigId()))
+                throw new OperationException("请求失败!因为您没有访问该模型的权限");
             int i = sessionService.sessionLeisure(sessionId);
             if (i == 2)
                 throw new OperationException("对话失败,因为当前会话正在被使用!");
@@ -117,9 +120,9 @@ public class AiChatController extends BaseController {
         vignaMsg.setRole(VignaRole.user);
         para.setMsgId(pram.getMsgId());
         para.setMsg(vignaMsg);
-        para.setMsgId(pram.getMsgId());
         para.setUserId(getLoginUser().getUserId());
         para.setSumUp(false);
+        para.setType(VignaMsgType.get(pram.getType()));
         return para;
     }
     

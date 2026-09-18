@@ -199,7 +199,7 @@ public class AiChatMsgServiceImpl implements AiChatMsgService {
         Node msg = node("VignaMessage").named("msg");
         Statement statement = Cypher.match(msg)
                 .where(msg.property("messageId").in(Cypher.parameter("messageId", idList)))
-                .returning("n").build();
+                .returning("msg").build();
         Collection<VignaMessageNode> all = msgRepository.findAll(statement);
         if (all.isEmpty())
             return List.of();

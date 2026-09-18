@@ -37,8 +37,8 @@ public class VignaChatInscriberAdvisor implements MyBaseAdvisor {
         return Integer.MAX_VALUE;
     }
     
-    @Transactional
     @Override
+    @Transactional(transactionManager = "neo4jTransactionManager")
     public void beforeAdvise(String sessionId) {
         VignaMsgContext context = ChatContextMap.getContext(sessionId);
         if (context == null) throw new OperationException("请求上下文不存在，可能已被提前清理");
@@ -87,7 +87,7 @@ public class VignaChatInscriberAdvisor implements MyBaseAdvisor {
     }
     
     @Override
-    @Transactional
+    @Transactional(transactionManager = "neo4jTransactionManager")
     public void afterAdvise(String sessionId) {
         VignaMsgContext context = ChatContextMap.getContext(sessionId);
         if (context == null) throw new OperationException("请求上下文不存在，可能已被提前清理");
